@@ -13,13 +13,13 @@ const handler = NextAuth({
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          return null;
-        }
+        if (!credentials?.email || !credentials?.password) return null;
 
         const user = await prisma.user.findUnique({
           where: { email: credentials.email },
         });
+
+        console.log("Usuario encontrado:", user?.email);
 
         if (user && credentials.password === "admin123") {
           return {
@@ -29,7 +29,6 @@ const handler = NextAuth({
             role: user.role,
           };
         }
-
         return null;
       }
     })
