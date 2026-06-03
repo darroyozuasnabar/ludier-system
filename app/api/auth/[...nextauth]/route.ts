@@ -13,23 +13,39 @@ const handler = NextAuth({
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null;
+        console.log("📍 authorize iniciado");
+        console.log("📧 Email recibido:", credentials?.email);
+        console.log("🔑 Password recibida:", credentials?.password ? "****" : "no");
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
-        });
-
-        console.log("Usuario encontrado:", user?.email);
-
-        if (user && credentials.password === "admin123") {
-          return {
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            role: user.role,
-          };
+        if (!credentials?.email || !credentials?.password) {
+          console.log("❌ Credenciales faltantes");
+          return null;
         }
-        return null;
+
+        try {
+          console.log("🔍 Buscando usuario en BD...");
+          const user = await prisma.user.findUnique({
+            where: { email: credentials.email },
+          });
+
+          console.log("👤 Usuario encontrado:", user ? user.email : "NO ENCONTRADO");
+          console.log("📝 Rol del usuario:", user?.role);
+
+          if (user && credentials.password === "admin123") {
+            console.log("✅ Autenticación exitosa");
+            return {
+              id: user.id,
+              email: user.email,
+              name: user.name,
+              role: user.role,
+            };
+          }
+          console.log("❌ Contraseña incorrecta o usuario no existe");
+          return null;
+        } catch (error) {
+          console.error("❌ Error en la base de datos:", error);
+          return null;
+        }
       }
     })
   ],
