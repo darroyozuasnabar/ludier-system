@@ -14,12 +14,20 @@ import {
   TrendingUp,
   Calendar,
   FileCheck,
-  Banknote,
   ChevronDown,
   ChevronUp,
   Pencil,
+  FileText,
+  Download,
+  Upload,
+  X,
+  Building2,
+  Save,
 } from "lucide-react";
 import { createBrowserClient } from "@supabase/ssr";
+import { FacturaElectronicaButton } from "@/components/FacturaElectronicaButton";
+import * as XLSX from "xlsx";
+import Swal from "sweetalert2";
 
 const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -33,16 +41,9 @@ const formatCOP = (v: number) =>
     minimumFractionDigits: 2,
   }).format(v);
 
-// ──────────────────────────────────────────────────────────────────────────────
-// Constantes del contrato Qantua F2
-// ──────────────────────────────────────────────────────────────────────────────
-const IGV_PCT = 0.18;
-const GARANTIA_PCT = 0.05;
-const COSTO_DIRECTO_TOTAL = 484984.2;
-
-// Estados de una valorización y su flujo
+// Estados de una valorización
 const ESTADOS = [
-  { key: "BORRADOR",  label: "Borrador",  color: "gray",   desc: "En preparación" },
+  { key: "BORRADOR",  label: "Borrador",  color: "gray",   desc: "Documento subido, datos extraídos" },
   { key: "EMITIDA",   label: "Emitida",   color: "blue",   desc: "Enviada al cliente" },
   { key: "FIRMADA",   label: "Firmada",   color: "violet", desc: "PDF firmado recibido" },
   { key: "COBRADA",   label: "Cobrada",   color: "emerald",desc: "Dinero en cuenta" },
@@ -57,6 +58,7 @@ const badgeColors: Record<string, string> = {
 };
 
 type ValForm = {
+  projectId: string;
   period: string;
   costoDirecto: string;
   fechaEmision: string;
@@ -66,6 +68,7 @@ type ValForm = {
 };
 
 const FORM_VACIO: ValForm = {
+  projectId: "",
   period: "",
   costoDirecto: "",
   fechaEmision: new Date().toISOString().split("T")[0],
@@ -78,12 +81,16 @@ export default function ValorizacionesPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  const [projectId, setProjectId] = useState("");
-  const [valorizaciones, setValorizaciones] = useState<any[]>([]);
-  const [contratoConfig, setContratoConfig] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [showForm, setShowForm] = useState(false);
+  const [proyectos, setProyectos] = useState<any[]>([]);
+  const [selectedProject, setSelectedProject] = useState<any>(null);
+  const [configContrato, setConfigContrato] = useState<any>(null);
+  const [valorizaciones, setValorizaciones] = useState<any[]>([]);
+  const [showUpload, setShowUpload] = useState(false);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadPreview, setUploadPreview] = useState<any>(null);
+  const [uploading, setUploading] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [form, setForm] = useState<ValForm>(FORM_VACIO);
@@ -96,74 +103,182 @@ export default function ValorizacionesPage() {
 
   const loadData = async () => {
     setLoading(true);
-    const { data: proj } = await supabase
-      .from("Project")
-      .select("id")
-      .eq("name", "Qantua - Fase 02")
-      .maybeSingle();
-
-    if (proj) {
-      setProjectId(proj.id);
-
-      const { data: vals } = await supabase
-        .from("Valorizacion")
+    try {
+      const { data: proyectosData } = await supabase
+        .from("Project")
         .select("*")
-        .eq("projectId", proj.id)
-        .order("fechaEmision", { ascending: true });
-      setValorizaciones(vals || []);
+        .in("status", ["ACTIVO", "EN_PRODUCCION"])
+        .order("name");
+      setProyectos(proyectosData || []);
 
-      const { data: config } = await supabase
-        .from("ConfiguracionContrato")
-        .select("*")
-        .eq("project_id", proj.id)
-        .maybeSingle();
-      setContratoConfig(config);
+      if (proyectosData && proyectosData.length > 0 && !selectedProject) {
+        setSelectedProject(proyectosData[0]);
+        await loadConfigAndValorizaciones(proyectosData[0].id);
+      }
+    } catch (error) {
+      console.error("Error loading data:", error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
-  // Cálculos derivados del monto ingresado
-  const costoNum = parseFloat(form.costoDirecto.replace(",", ".")) || 0;
-  const igvCalc = costoNum * IGV_PCT;
-  const totalFacturaCalc = costoNum + igvCalc;
-  const garantiaCalc = costoNum * GARANTIA_PCT;
-  const netoCalc = totalFacturaCalc - garantiaCalc;
+  const loadConfigAndValorizaciones = async (projectId: string) => {
+    const { data: config } = await supabase
+      .from("ConfiguracionContrato")
+      .select("*")
+      .eq("project_id", projectId)
+      .maybeSingle();
+    setConfigContrato(config);
 
-  // Acumulado valorizado
-  const totalVAlorizado = valorizaciones.reduce(
-    (s, v) => s + Number(v.costoDirecto), 0
-  );
-  const avancePct = COSTO_DIRECTO_TOTAL > 0
-    ? (totalVAlorizado / COSTO_DIRECTO_TOTAL) * 100
-    : 0;
-  const totalCobrado = valorizaciones
-    .filter((v) => v.status === "COBRADA")
-    .reduce((s, v) => s + Number(v.netoCobrar), 0);
-  const totalPendienteCobro = valorizaciones
-    .filter((v) => v.status !== "COBRADA")
-    .reduce((s, v) => s + Number(v.netoCobrar), 0);
+    const { data: vals } = await supabase
+      .from("Valorizacion")
+      .select("*")
+      .eq("projectId", projectId)
+      .order("fechaEmision", { ascending: true });
+    setValorizaciones(vals || []);
+  };
 
-  const handleSave = async () => {
-    if (!projectId) return;
+  const handleProjectChange = async (projectId: string) => {
+    const project = proyectos.find(p => p.id === projectId);
+    setSelectedProject(project);
+    if (project) {
+      await loadConfigAndValorizaciones(project.id);
+    }
+  };
+
+  const extractFromExcel = async (file: File): Promise<any> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = new Uint8Array(e.target?.result as ArrayBuffer);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const sheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[sheetName];
+          const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+          
+          let period = "";
+          let totalFacturar = 0;
+          
+          (jsonData as any[][]).forEach((row) => {
+            row.forEach((cell, colIndex) => {
+              if (typeof cell === 'string') {
+                if (cell.includes("VALORIZACION N°")) {
+                  period = cell.replace("VALORIZACION N°", "").trim();
+                }
+                if (cell.includes("TOTAL A FACTURAR") || cell.includes("TOTAL FINAL A PAGAR")) {
+                  for (let i = colIndex + 1; i < row.length; i++) {
+                    const val = row[i];
+                    if (typeof val === 'number' && val > 0) {
+                      totalFacturar = val;
+                      break;
+                    }
+                    if (typeof val === 'string') {
+                      const num = parseFloat(val.replace(/,/g, ''));
+                      if (!isNaN(num) && num > 0) {
+                        totalFacturar = num;
+                        break;
+                      }
+                    }
+                  }
+                }
+              }
+            });
+          });
+          
+          if (!period) {
+            period = `${new Date().toLocaleString('es-PE', { month: 'long', year: 'numeric' })}`;
+          }
+          
+          const igvPct = configContrato?.igv_porcentaje || 0.18;
+          const costoDirecto = totalFacturar / (1 + igvPct);
+          
+          resolve({
+            period: period.charAt(0).toUpperCase() + period.slice(1),
+            costoDirecto: Math.round(costoDirecto * 100) / 100,
+            totalFactura: totalFacturar,
+            fechaEmision: new Date().toISOString().split("T")[0],
+          });
+        } catch (error) {
+          reject(error);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    });
+  };
+
+  const handleFileUpload = async (file: File) => {
+    setUploadFile(file);
+    setUploading(true);
+    
+    try {
+      let extractedData;
+      if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+        extractedData = await extractFromExcel(file);
+      } else {
+        throw new Error("Formato no soportado. Use archivos Excel (.xlsx o .xls)");
+      }
+      
+      setUploadPreview({
+        ...extractedData,
+        fileName: file.name,
+      });
+      
+      setForm({
+        projectId: selectedProject?.id || "",
+        period: extractedData.period,
+        costoDirecto: String(extractedData.costoDirecto),
+        fechaEmision: extractedData.fechaEmision,
+        status: "BORRADOR",
+        fechaCobro: "",
+        notas: `Documento: ${file.name}`,
+      });
+      
+    } catch (error: any) {
+      Swal.fire({
+        title: 'Error al leer el archivo',
+        text: error.message,
+        icon: 'error',
+        confirmButtonColor: '#dc2626',
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleSaveFromUpload = async () => {
+    if (!form.projectId) {
+      setToast({ type: "err", msg: "Selecciona un proyecto." });
+      setTimeout(() => setToast(null), 4000);
+      return;
+    }
     if (!form.period.trim() || !form.costoDirecto) {
-      setToast({ type: "err", msg: "Completa el período y el monto de costo directo." });
+      setToast({ type: "err", msg: "Completa los datos extraídos o corrígelos manualmente." });
       setTimeout(() => setToast(null), 4000);
       return;
     }
 
     setSaving(true);
 
+    const igvPct = configContrato?.igv_porcentaje || 0.18;
+    const garantiaPct = configContrato?.garantia_porcentaje || 0.05;
+    const costoTotal = configContrato?.costo_directo_total || 0;
+    
+    const costoNum = parseFloat(form.costoDirecto.replace(",", ".")) || 0;
+    const igvCalc = costoNum * igvPct;
+    const totalFacturaCalc = costoNum + igvCalc;
+    const garantiaCalc = costoNum * garantiaPct;
+    const netoCalc = totalFacturaCalc - garantiaCalc;
+
     const payload = {
-      projectId,
+      projectId: form.projectId,
       period: form.period,
       costoDirecto: costoNum,
       igv: igvCalc,
       totalFactura: totalFacturaCalc,
       garantia: garantiaCalc,
       netoCobrar: netoCalc,
-      avancePct: COSTO_DIRECTO_TOTAL > 0
-        ? ((costoNum / COSTO_DIRECTO_TOTAL) * 100).toFixed(2)
-        : "0",
+      avancePct: costoTotal > 0 ? ((costoNum / costoTotal) * 100).toFixed(2) : "0",
       status: form.status,
       fechaEmision: form.fechaEmision,
       fechaCobro: form.fechaCobro || null,
@@ -186,15 +301,20 @@ export default function ValorizacionesPage() {
     } else {
       setToast({ type: "ok", msg: editingId ? "Valorización actualizada." : "Valorización creada correctamente." });
       setForm(FORM_VACIO);
-      setShowForm(false);
+      setShowUpload(false);
+      setUploadFile(null);
+      setUploadPreview(null);
       setEditingId(null);
-      loadData();
+      if (selectedProject) {
+        await loadConfigAndValorizaciones(selectedProject.id);
+      }
     }
     setTimeout(() => setToast(null), 4000);
   };
 
   const handleEdit = (v: any) => {
     setForm({
+      projectId: v.projectId,
       period: v.period,
       costoDirecto: String(v.costoDirecto),
       fechaEmision: v.fechaEmision?.split("T")[0] || "",
@@ -203,7 +323,9 @@ export default function ValorizacionesPage() {
       notas: v.notas || "",
     });
     setEditingId(v.id);
-    setShowForm(true);
+    setShowUpload(true);
+    setUploadPreview(null);
+    setUploadFile(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -213,13 +335,25 @@ export default function ValorizacionesPage() {
       updates.fechaCobro = new Date().toISOString().split("T")[0];
     }
     await supabase.from("Valorizacion").update(updates).eq("id", id);
-    loadData();
+    if (selectedProject) {
+      await loadConfigAndValorizaciones(selectedProject.id);
+    }
   };
 
   const getNextStatus = (current: string) => {
     const idx = ESTADOS.findIndex((e) => e.key === current);
     return idx < ESTADOS.length - 1 ? ESTADOS[idx + 1] : null;
   };
+
+  const totalValorizado = valorizaciones.reduce((s, v) => s + Number(v.costoDirecto), 0);
+  const costoTotal = configContrato?.costo_directo_total || 0;
+  const avancePct = costoTotal > 0 ? (totalValorizado / costoTotal) * 100 : 0;
+  const totalCobrado = valorizaciones
+    .filter((v) => v.status === "COBRADA")
+    .reduce((s, v) => s + Number(v.netoCobrar), 0);
+  const totalPendienteCobro = valorizaciones
+    .filter((v) => v.status !== "COBRADA")
+    .reduce((s, v) => s + Number(v.netoCobrar), 0);
 
   if (status === "loading" || loading) {
     return (
@@ -231,7 +365,6 @@ export default function ValorizacionesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Toast */}
       {toast && (
         <div
           className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg text-sm font-medium ${
@@ -247,9 +380,8 @@ export default function ValorizacionesPage() {
         </div>
       )}
 
-      {/* Header */}
       <header className="bg-white border-b border-gray-100 sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
               onClick={() => router.push("/")}
@@ -261,389 +393,528 @@ export default function ValorizacionesPage() {
             <div className="h-4 w-px bg-gray-200" />
             <div>
               <h1 className="text-base font-bold text-gray-900">Valorizaciones</h1>
-              <p className="text-xs text-gray-500">Qantua Fase 02 · Contrato S/ 543,667.29</p>
+              <p className="text-xs text-gray-500">Sube Excel y genera facturas electrónicas</p>
             </div>
           </div>
           <button
             onClick={() => {
               setForm(FORM_VACIO);
               setEditingId(null);
-              setShowForm(!showForm);
+              setUploadFile(null);
+              setUploadPreview(null);
+              setShowUpload(!showUpload);
             }}
             className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors"
           >
-            <Plus className="h-4 w-4" />
-            Nueva valorización
+            <Upload className="h-4 w-4" />
+            Subir valorización
           </button>
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-6 py-8 space-y-8">
+      <main className="max-w-6xl mx-auto px-6 py-8 space-y-8">
 
-        {/* KPIs del contrato */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
-            <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Avance valorizado</p>
-            <p className="text-xl font-bold text-gray-900">{avancePct.toFixed(2)}%</p>
-            <div className="mt-2 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gray-900 rounded-full"
-                style={{ width: `${Math.min(avancePct, 100)}%` }}
-              />
+        {/* Selector de proyecto */}
+        <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+          <div className="flex items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-2">
+              <Building2 className="h-4 w-4 text-gray-400" />
+              <span className="text-sm text-gray-600">Proyecto:</span>
             </div>
-            <p className="text-xs text-gray-400 mt-1">{formatCOP(totalVAlorizado)} de {formatCOP(COSTO_DIRECTO_TOTAL)}</p>
-          </div>
-          <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
-            <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Valorizaciones</p>
-            <p className="text-xl font-bold text-gray-900">{valorizaciones.length}</p>
-            <p className="text-xs text-gray-400 mt-1">
-              {valorizaciones.filter((v) => v.status === "COBRADA").length} cobradas
-            </p>
-          </div>
-          <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
-            <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Total cobrado</p>
-            <p className="text-xl font-bold text-emerald-700">{formatCOP(totalCobrado)}</p>
-            <p className="text-xs text-gray-400 mt-1">Neto recibido</p>
-          </div>
-          <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
-            <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Pendiente de cobro</p>
-            <p className="text-xl font-bold text-amber-700">{formatCOP(totalPendienteCobro)}</p>
-            <p className="text-xs text-gray-400 mt-1">
-              {valorizaciones.filter((v) => v.status !== "COBRADA").length} valoriz. activas
-            </p>
+            <select
+              value={selectedProject?.id || ""}
+              onChange={(e) => handleProjectChange(e.target.value)}
+              className="px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900"
+            >
+              <option value="">Seleccionar proyecto</option>
+              {proyectos.map((p) => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+            {selectedProject && (
+              <div className="text-sm text-gray-500">
+                Cliente: <span className="font-medium">{selectedProject.client}</span>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Formulario nueva / editar valorización */}
-        {showForm && (
+        {/* Panel de subida de archivo */}
+        {showUpload && (
           <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-            <h2 className="text-sm font-semibold text-gray-900 mb-5">
-              {editingId ? "Editar valorización" : "Nueva valorización"}
-            </h2>
-
-            <div className="grid grid-cols-2 gap-4 mb-5">
-              {/* Período */}
-              <div>
-                <label className="text-xs font-medium text-gray-700 mb-1.5 block">
-                  Período *
-                </label>
-                <input
-                  type="text"
-                  placeholder="Ej: Marzo 2026, Abril 2026..."
-                  value={form.period}
-                  onChange={(e) => setForm({ ...form, period: e.target.value })}
-                  className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
-                />
-              </div>
-
-              {/* Fecha de emisión */}
-              <div>
-                <label className="text-xs font-medium text-gray-700 mb-1.5 block">
-                  Fecha de emisión
-                </label>
-                <input
-                  type="date"
-                  value={form.fechaEmision}
-                  onChange={(e) => setForm({ ...form, fechaEmision: e.target.value })}
-                  className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
-                />
-              </div>
-
-              {/* Costo directo */}
-              <div>
-                <label className="text-xs font-medium text-gray-700 mb-1.5 block">
-                  Costo directo (s/IGV) *
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 font-medium">S/</span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    placeholder="0.00"
-                    value={form.costoDirecto}
-                    onChange={(e) => setForm({ ...form, costoDirecto: e.target.value })}
-                    className="w-full pl-8 pr-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
-                  />
-                </div>
-              </div>
-
-              {/* Estado */}
-              <div>
-                <label className="text-xs font-medium text-gray-700 mb-1.5 block">Estado</label>
-                <select
-                  value={form.status}
-                  onChange={(e) => setForm({ ...form, status: e.target.value })}
-                  className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
-                >
-                  {ESTADOS.map((e) => (
-                    <option key={e.key} value={e.key}>{e.label} — {e.desc}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Fecha cobro (solo si COBRADA) */}
-              {form.status === "COBRADA" && (
-                <div>
-                  <label className="text-xs font-medium text-gray-700 mb-1.5 block">
-                    Fecha de cobro real
-                  </label>
-                  <input
-                    type="date"
-                    value={form.fechaCobro}
-                    onChange={(e) => setForm({ ...form, fechaCobro: e.target.value })}
-                    className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
-                  />
-                </div>
-              )}
-
-              {/* Notas */}
-              <div className={form.status === "COBRADA" ? "" : "col-span-2"}>
-                <label className="text-xs font-medium text-gray-700 mb-1.5 block">
-                  Notas (opcional)
-                </label>
-                <input
-                  type="text"
-                  placeholder="Observaciones, pendientes, etc."
-                  value={form.notas}
-                  onChange={(e) => setForm({ ...form, notas: e.target.value })}
-                  className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
-                />
-              </div>
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-sm font-semibold text-gray-900">
+                {editingId ? "Editar valorización" : "Subir valorización"}
+              </h2>
+              <button
+                onClick={() => { setShowUpload(false); setUploadFile(null); setUploadPreview(null); setEditingId(null); setForm(FORM_VACIO); }}
+                className="p-1 rounded-lg text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-4 w-4" />
+              </button>
             </div>
 
-            {/* Preview de cálculos */}
-            {costoNum > 0 && (
-              <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 mb-5">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-                  Preview — estructura de pago
-                </p>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div>
-                    <p className="text-[10px] text-gray-400">Costo directo</p>
-                    <p className="text-sm font-bold text-gray-900">{formatCOP(costoNum)}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-gray-400">IGV 18%</p>
-                    <p className="text-sm font-semibold text-blue-700">+ {formatCOP(igvCalc)}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-gray-400">Total factura</p>
-                    <p className="text-sm font-semibold text-gray-700">{formatCOP(totalFacturaCalc)}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-gray-400">Fondo garantía 5%</p>
-                    <p className="text-sm font-semibold text-amber-700">− {formatCOP(garantiaCalc)}</p>
-                  </div>
-                </div>
-                <div className="mt-3 pt-3 border-t border-gray-200 flex items-center justify-between">
-                  <p className="text-xs font-semibold text-gray-600">Neto a cobrar</p>
-                  <p className="text-lg font-bold text-teal-700">{formatCOP(netoCalc)}</p>
-                </div>
-                <p className="text-xs text-gray-400 mt-2">
-                  Avance este período: {COSTO_DIRECTO_TOTAL > 0
-                    ? ((costoNum / COSTO_DIRECTO_TOTAL) * 100).toFixed(2)
-                    : "0"}% del contrato
-                </p>
+            {!uploadPreview && !editingId && (
+              <div
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const file = e.dataTransfer.files[0];
+                  if (file) handleFileUpload(file);
+                }}
+                className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-gray-400 transition-colors cursor-pointer"
+                onClick={() => document.getElementById("fileInput")?.click()}
+              >
+                <input
+                  id="fileInput"
+                  type="file"
+                  accept=".xlsx,.xls"
+                  className="hidden"
+                  onChange={(e) => {
+                    if (e.target.files?.[0]) handleFileUpload(e.target.files[0]);
+                  }}
+                />
+                <Upload className="h-10 w-10 text-gray-300 mx-auto mb-3" />
+                <p className="text-sm text-gray-500">Arrastra y suelta tu archivo Excel aquí</p>
+                <p className="text-xs text-gray-400 mt-1">o haz clic para seleccionar</p>
+                <p className="text-xs text-amber-600 mt-3">Formatos soportados: .xlsx, .xls</p>
               </div>
             )}
 
-            <div className="flex gap-3">
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50"
-              >
-                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileCheck className="h-4 w-4" />}
-                {saving ? "Guardando..." : editingId ? "Actualizar" : "Crear valorización"}
-              </button>
-              <button
-                onClick={() => { setShowForm(false); setEditingId(null); setForm(FORM_VACIO); }}
-                className="px-5 py-2.5 border border-gray-200 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Cancelar
-              </button>
+            {uploadPreview && !editingId && (
+              <div className="space-y-4">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <FileText className="h-4 w-4 text-green-600" />
+                    <span className="text-sm font-medium text-green-800">Datos extraídos del archivo: {uploadPreview.fileName}</span>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                    <div>
+                      <p className="text-xs text-gray-500">Período</p>
+                      <p className="font-medium text-gray-900">{uploadPreview.period}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Costo directo (sin IGV)</p>
+                      <p className="font-medium text-gray-900">{formatCOP(uploadPreview.costoDirecto)}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Total factura (con IGV)</p>
+                      <p className="font-medium text-gray-900">{formatCOP(uploadPreview.totalFactura)}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t border-gray-100 pt-4">
+                  <p className="text-xs font-medium text-gray-700 mb-3">Confirma o corrige los datos:</p>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs font-medium text-gray-700 mb-1.5 block">Período *</label>
+                      <input
+                        type="text"
+                        value={form.period}
+                        onChange={(e) => setForm({ ...form, period: e.target.value })}
+                        className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-700 mb-1.5 block">Costo directo (S/ sin IGV) *</label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">S/</span>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={form.costoDirecto}
+                          onChange={(e) => setForm({ ...form, costoDirecto: e.target.value })}
+                          className="w-full pl-8 pr-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-700 mb-1.5 block">Fecha de emisión</label>
+                      <input
+                        type="date"
+                        value={form.fechaEmision}
+                        onChange={(e) => setForm({ ...form, fechaEmision: e.target.value })}
+                        className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-700 mb-1.5 block">Estado inicial</label>
+                      <select
+                        value={form.status}
+                        onChange={(e) => setForm({ ...form, status: e.target.value })}
+                        className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
+                      >
+                        {ESTADOS.map((e) => (
+                          <option key={e.key} value={e.key}>{e.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="col-span-2">
+                      <label className="text-xs font-medium text-gray-700 mb-1.5 block">Notas (opcional)</label>
+                      <input
+                        type="text"
+                        placeholder="Observaciones..."
+                        value={form.notas}
+                        onChange={(e) => setForm({ ...form, notas: e.target.value })}
+                        className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-4 border-t border-gray-100">
+                  <button
+                    onClick={handleSaveFromUpload}
+                    disabled={saving}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50"
+                  >
+                    {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileCheck className="h-4 w-4" />}
+                    {saving ? "Guardando..." : "Guardar valorización"}
+                  </button>
+                  <button
+                    onClick={() => { setShowUpload(false); setUploadFile(null); setUploadPreview(null); setForm(FORM_VACIO); }}
+                    className="px-4 py-2 border border-gray-200 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {editingId && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-medium text-gray-700 mb-1.5 block">Período *</label>
+                    <input
+                      type="text"
+                      value={form.period}
+                      onChange={(e) => setForm({ ...form, period: e.target.value })}
+                      className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-700 mb-1.5 block">Costo directo (S/ sin IGV) *</label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">S/</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={form.costoDirecto}
+                        onChange={(e) => setForm({ ...form, costoDirecto: e.target.value })}
+                        className="w-full pl-8 pr-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-700 mb-1.5 block">Fecha de emisión</label>
+                    <input
+                      type="date"
+                      value={form.fechaEmision}
+                      onChange={(e) => setForm({ ...form, fechaEmision: e.target.value })}
+                      className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-700 mb-1.5 block">Estado</label>
+                    <select
+                      value={form.status}
+                      onChange={(e) => setForm({ ...form, status: e.target.value })}
+                      className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
+                    >
+                      {ESTADOS.map((e) => (
+                        <option key={e.key} value={e.key}>{e.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  {form.status === "COBRADA" && (
+                    <div>
+                      <label className="text-xs font-medium text-gray-700 mb-1.5 block">Fecha de cobro</label>
+                      <input
+                        type="date"
+                        value={form.fechaCobro}
+                        onChange={(e) => setForm({ ...form, fechaCobro: e.target.value })}
+                        className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
+                      />
+                    </div>
+                  )}
+                  <div className={form.status === "COBRADA" ? "" : "col-span-2"}>
+                    <label className="text-xs font-medium text-gray-700 mb-1.5 block">Notas</label>
+                    <input
+                      type="text"
+                      value={form.notas}
+                      onChange={(e) => setForm({ ...form, notas: e.target.value })}
+                      className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
+                    />
+                  </div>
+                </div>
+
+                {parseFloat(form.costoDirecto) > 0 && (
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <p className="text-xs font-semibold text-gray-500 mb-3">Resumen de la valorización:</p>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div>
+                        <p className="text-[10px] text-gray-400">Costo directo</p>
+                        <p className="text-sm font-semibold text-gray-900">{formatCOP(parseFloat(form.costoDirecto))}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-gray-400">IGV ({((configContrato?.igv_porcentaje || 0.18) * 100).toFixed(0)}%)</p>
+                        <p className="text-sm font-semibold text-blue-700">+ {formatCOP(parseFloat(form.costoDirecto) * (configContrato?.igv_porcentaje || 0.18))}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-gray-400">Total factura</p>
+                        <p className="text-sm font-semibold text-gray-900">{formatCOP(parseFloat(form.costoDirecto) * (1 + (configContrato?.igv_porcentaje || 0.18)))}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-gray-400">Garantía ({((configContrato?.garantia_porcentaje || 0.05) * 100).toFixed(0)}%)</p>
+                        <p className="text-sm font-semibold text-amber-700">− {formatCOP(parseFloat(form.costoDirecto) * (configContrato?.garantia_porcentaje || 0.05))}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex gap-3 pt-4 border-t border-gray-100">
+                  <button
+                    onClick={handleSaveFromUpload}
+                    disabled={saving}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50"
+                  >
+                    {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                    {saving ? "Guardando..." : "Actualizar valorización"}
+                  </button>
+                  <button
+                    onClick={() => { setShowUpload(false); setEditingId(null); setForm(FORM_VACIO); }}
+                    className="px-4 py-2 border border-gray-200 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* KPIs del contrato */}
+        {selectedProject && configContrato && (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+              <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Avance valorizado</p>
+              <p className="text-xl font-bold text-gray-900">{avancePct.toFixed(2)}%</p>
+              <div className="mt-2 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-full bg-gray-900 rounded-full" style={{ width: `${Math.min(avancePct, 100)}%` }} />
+              </div>
+              <p className="text-xs text-gray-400 mt-1">{formatCOP(totalValorizado)} de {formatCOP(costoTotal)}</p>
+            </div>
+            <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+              <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Valorizaciones</p>
+              <p className="text-xl font-bold text-gray-900">{valorizaciones.length}</p>
+              <p className="text-xs text-gray-400 mt-1">{valorizaciones.filter((v) => v.status === "COBRADA").length} cobradas</p>
+            </div>
+            <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+              <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Total cobrado</p>
+              <p className="text-xl font-bold text-emerald-700">{formatCOP(totalCobrado)}</p>
+              <p className="text-xs text-gray-400 mt-1">Neto recibido</p>
+            </div>
+            <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+              <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Pendiente de cobro</p>
+              <p className="text-xl font-bold text-amber-700">{formatCOP(totalPendienteCobro)}</p>
+              <p className="text-xs text-gray-400 mt-1">{valorizaciones.filter((v) => v.status !== "COBRADA").length} activas</p>
             </div>
           </div>
         )}
 
         {/* Lista de valorizaciones */}
-        <div className="space-y-4">
-          <h2 className="text-sm font-semibold text-gray-700">
-            Valorizaciones registradas
-          </h2>
+        {selectedProject && (
+          <div className="space-y-4">
+            <h2 className="text-sm font-semibold text-gray-700">
+              Valorizaciones de {selectedProject.name}
+            </h2>
 
-          {valorizaciones.length === 0 ? (
-            <div className="bg-white rounded-xl border border-gray-100 p-12 text-center shadow-sm">
-              <Receipt className="h-12 w-12 text-gray-200 mx-auto mb-3" />
-              <p className="text-sm text-gray-400">No hay valorizaciones registradas aún.</p>
-              <p className="text-xs text-gray-300 mt-1">
-                Crea la primera con el botón "Nueva valorización".
-              </p>
-            </div>
-          ) : (
-            valorizaciones.map((v, idx) => {
-              const estadoInfo = ESTADOS.find((e) => e.key === v.status) || ESTADOS[0];
-              const nextStatus = getNextStatus(v.status);
-              const isExpanded = expandedId === v.id;
+            {valorizaciones.length === 0 ? (
+              <div className="bg-white rounded-xl border border-gray-100 p-12 text-center shadow-sm">
+                <Receipt className="h-12 w-12 text-gray-200 mx-auto mb-3" />
+                <p className="text-sm text-gray-400">No hay valorizaciones registradas aún.</p>
+                <p className="text-xs text-gray-300 mt-1">
+                  Usa el botón "Subir valorización" para comenzar.
+                </p>
+              </div>
+            ) : (
+              valorizaciones.map((v, idx) => {
+                const estadoInfo = ESTADOS.find((e) => e.key === v.status) || ESTADOS[0];
+                const nextStatus = getNextStatus(v.status);
+                const isExpanded = expandedId === v.id;
 
-              return (
-                <div
-                  key={v.id}
-                  className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden"
-                >
-                  {/* Cabecera */}
-                  <div className="p-5">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start gap-3">
-                        {/* Número */}
-                        <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center flex-shrink-0">
-                          <span className="text-xs font-bold text-white">
-                            {String(idx + 1).padStart(2, "0")}
-                          </span>
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="text-sm font-semibold text-gray-900">
-                              Val. N°{String(idx + 1).padStart(2, "0")} · {v.period}
-                            </h3>
-                            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${badgeColors[estadoInfo.color]}`}>
-                              {estadoInfo.label}
-                            </span>
+                return (
+                  <div key={v.id} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                    <div className="p-5">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start gap-3">
+                          <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <span className="text-xs font-bold text-white">{String(idx + 1).padStart(2, "0")}</span>
                           </div>
-                          <p className="text-xs text-gray-400 mt-0.5">
-                            Emitida: {new Date(v.fechaEmision).toLocaleDateString("es-PE")}
-                            {v.fechaCobro && ` · Cobrada: ${new Date(v.fechaCobro).toLocaleDateString("es-PE")}`}
-                          </p>
+                          <div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h3 className="text-sm font-semibold text-gray-900">Val. N°{String(idx + 1).padStart(2, "0")} · {v.period}</h3>
+                              <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${badgeColors[estadoInfo.color]}`}>
+                                {estadoInfo.label}
+                              </span>
+                            </div>
+                            <p className="text-xs text-gray-400 mt-0.5">
+                              Emitida: {new Date(v.fechaEmision).toLocaleDateString("es-PE")}
+                              {v.fechaCobro && ` · Cobrada: ${new Date(v.fechaCobro).toLocaleDateString("es-PE")}`}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                          <div className="text-right">
+                            <p className="text-base font-bold text-teal-700">{formatCOP(Number(v.netoCobrar))}</p>
+                            <p className="text-xs text-gray-400">neto a cobrar</p>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <button onClick={() => handleEdit(v)} className="p-1.5 text-gray-400 hover:text-gray-700 transition-colors">
+                              <Pencil className="h-3.5 w-3.5" />
+                            </button>
+                            <button onClick={() => setExpandedId(isExpanded ? null : v.id)} className="p-1.5 text-gray-400 hover:text-gray-700 transition-colors">
+                              {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                            </button>
+                          </div>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-3">
-                        <div className="text-right">
-                          <p className="text-base font-bold text-teal-700">{formatCOP(Number(v.netoCobrar))}</p>
-                          <p className="text-xs text-gray-400">neto a cobrar</p>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <button
-                            onClick={() => handleEdit(v)}
-                            className="p-1.5 text-gray-400 hover:text-gray-700 transition-colors"
-                          >
-                            <Pencil className="h-3.5 w-3.5" />
-                          </button>
-                          <button
-                            onClick={() => setExpandedId(isExpanded ? null : v.id)}
-                            className="p-1.5 text-gray-400 hover:text-gray-700 transition-colors"
-                          >
-                            {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                          </button>
-                        </div>
+                      <div className="flex items-center gap-1 mt-4">
+                        {ESTADOS.map((e, i) => {
+                          const estadoIdx = ESTADOS.findIndex((s) => s.key === v.status);
+                          const done = i <= estadoIdx;
+                          return (
+                            <div key={e.key} className="flex items-center gap-1 flex-1">
+                              <div className={`flex-1 h-1.5 rounded-full ${done ? "bg-gray-900" : "bg-gray-100"}`} />
+                              {i === ESTADOS.length - 1 && (
+                                <div className={`w-2 h-2 rounded-full ${done ? "bg-gray-900" : "bg-gray-200"}`} />
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div className="flex justify-between mt-1">
+                        {ESTADOS.map((e) => (
+                          <span key={e.key} className="text-[9px] text-gray-400">{e.label}</span>
+                        ))}
                       </div>
                     </div>
 
-                    {/* Flujo de estado visual */}
-                    <div className="flex items-center gap-1 mt-4">
-                      {ESTADOS.map((e, i) => {
-                        const estadoIdx = ESTADOS.findIndex((s) => s.key === v.status);
-                        const done = i <= estadoIdx;
-                        return (
-                          <div key={e.key} className="flex items-center gap-1 flex-1">
-                            <div className={`flex-1 h-1.5 rounded-full ${done ? "bg-gray-900" : "bg-gray-100"}`} />
-                            {i === ESTADOS.length - 1 && (
-                              <div className={`w-2 h-2 rounded-full ${done ? "bg-gray-900" : "bg-gray-200"}`} />
-                            )}
+                    {isExpanded && (
+                      <div className="border-t border-gray-100 px-5 py-4 bg-gray-50">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                          <div>
+                            <p className="text-[10px] text-gray-400">Costo directo</p>
+                            <p className="text-sm font-semibold text-gray-900">{formatCOP(Number(v.costoDirecto))}</p>
                           </div>
-                        );
-                      })}
-                    </div>
-                    <div className="flex justify-between mt-1">
-                      {ESTADOS.map((e) => (
-                        <span key={e.key} className="text-[9px] text-gray-400">{e.label}</span>
-                      ))}
-                    </div>
+                          <div>
+                            <p className="text-[10px] text-gray-400">IGV ({((configContrato?.igv_porcentaje || 0.18) * 100).toFixed(0)}%)</p>
+                            <p className="text-sm font-semibold text-blue-700">+ {formatCOP(Number(v.igv))}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-gray-400">Total factura</p>
+                            <p className="text-sm font-semibold text-gray-900">{formatCOP(Number(v.totalFactura))}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-gray-400">Garantía ({((configContrato?.garantia_porcentaje || 0.05) * 100).toFixed(0)}%)</p>
+                            <p className="text-sm font-semibold text-amber-700">− {formatCOP(Number(v.garantia))}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between bg-white rounded-lg p-3 border border-gray-100">
+                          <div>
+                            <p className="text-xs text-gray-500">Neto a cobrar</p>
+                            <p className="text-base font-bold text-teal-700">{formatCOP(Number(v.netoCobrar))}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-xs text-gray-500">Avance acumulado</p>
+                            <p className="text-base font-bold text-gray-900">{Number(v.avancePct).toFixed(2)}%</p>
+                          </div>
+                        </div>
+                        {v.notas && (
+                          <p className="text-xs text-gray-500 mt-3 italic">📝 {v.notas}</p>
+                        )}
+
+                        {nextStatus && (
+                          <button
+                            onClick={() => handleUpdateStatus(v.id, nextStatus.key)}
+                            className="mt-4 w-full flex items-center justify-center gap-2 py-2 border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-white transition-colors"
+                          >
+                            <TrendingUp className="h-4 w-4" />
+                            Marcar como "{nextStatus.label}" — {nextStatus.desc}
+                          </button>
+                        )}
+
+                        {v.status === "FIRMADA" && (
+                          <div className="mt-4 pt-4 border-t border-gray-200">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="text-xs font-medium text-gray-500">Factura electrónica SUNAT</p>
+                                {v.factura_emitida_sunat ? (
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <span className="text-xs font-mono text-gray-700">
+                                      {v.factura_serie}-{v.factura_numero}
+                                    </span>
+                                    {v.factura_pdf_url && (
+                                      <a href={v.factura_pdf_url} target="_blank" className="text-xs text-blue-600 hover:underline flex items-center gap-1">
+                                        <FileText className="h-3 w-3" /> PDF
+                                      </a>
+                                    )}
+                                    {v.factura_xml_url && (
+                                      <a href={v.factura_xml_url} target="_blank" className="text-xs text-blue-600 hover:underline flex items-center gap-1">
+                                        <Download className="h-3 w-3" /> XML
+                                      </a>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <p className="text-xs text-amber-600 mt-1">Valorización firmada - Lista para emitir factura</p>
+                                )}
+                              </div>
+                              <FacturaElectronicaButton 
+                                valorizacion={v} 
+                                onSuccess={() => selectedProject && loadConfigAndValorizaciones(selectedProject.id)} 
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-
-                  {/* Detalle expandible */}
-                  {isExpanded && (
-                    <div className="border-t border-gray-100 px-5 py-4 bg-gray-50">
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                        <div>
-                          <p className="text-[10px] text-gray-400">Costo directo</p>
-                          <p className="text-sm font-semibold">{formatCOP(Number(v.costoDirecto))}</p>
-                        </div>
-                        <div>
-                          <p className="text-[10px] text-gray-400">IGV (18%)</p>
-                          <p className="text-sm font-semibold text-blue-700">+ {formatCOP(Number(v.igv))}</p>
-                        </div>
-                        <div>
-                          <p className="text-[10px] text-gray-400">Total factura</p>
-                          <p className="text-sm font-semibold">{formatCOP(Number(v.totalFactura))}</p>
-                        </div>
-                        <div>
-                          <p className="text-[10px] text-gray-400">Garantía (5%)</p>
-                          <p className="text-sm font-semibold text-amber-700">− {formatCOP(Number(v.garantia))}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between bg-white rounded-lg p-3 border border-gray-100">
-                        <div>
-                          <p className="text-xs text-gray-500">Neto a cobrar</p>
-                          <p className="text-base font-bold text-teal-700">{formatCOP(Number(v.netoCobrar))}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-xs text-gray-500">Avance acumulado</p>
-                          <p className="text-base font-bold text-gray-900">{Number(v.avancePct).toFixed(2)}%</p>
-                        </div>
-                      </div>
-                      {v.notas && (
-                        <p className="text-xs text-gray-500 mt-3 italic">📝 {v.notas}</p>
-                      )}
-
-                      {/* Avanzar estado */}
-                      {nextStatus && (
-                        <button
-                          onClick={() => handleUpdateStatus(v.id, nextStatus.key)}
-                          className="mt-4 w-full flex items-center justify-center gap-2 py-2 border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-white transition-colors"
-                        >
-                          <TrendingUp className="h-4 w-4" />
-                          Marcar como "{nextStatus.label}" — {nextStatus.desc}
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
-              );
-            })
-          )}
-        </div>
-
-        {/* Barra de progreso del contrato */}
-        <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-gray-900">Progreso del contrato Qantua F2</h3>
-            <span className="text-sm font-bold text-gray-900">{avancePct.toFixed(2)}%</span>
+                );
+              })
+            )}
           </div>
-          <div className="h-3 bg-gray-100 rounded-full overflow-hidden mb-3">
-            <div
-              className="h-full bg-gray-900 rounded-full transition-all duration-500"
-              style={{ width: `${Math.min(avancePct, 100)}%` }}
-            />
-          </div>
-          <div className="grid grid-cols-3 gap-4 text-center">
-            <div>
-              <p className="text-xs text-gray-400">Costo directo total</p>
-              <p className="text-sm font-bold text-gray-900">{formatCOP(COSTO_DIRECTO_TOTAL)}</p>
+        )}
+
+        {selectedProject && configContrato && (
+          <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-gray-900">Progreso del contrato</h3>
+              <span className="text-sm font-bold text-gray-900">{avancePct.toFixed(2)}%</span>
             </div>
-            <div>
-              <p className="text-xs text-gray-400">Valorizado</p>
-              <p className="text-sm font-bold text-gray-900">{formatCOP(totalVAlorizado)}</p>
+            <div className="h-3 bg-gray-100 rounded-full overflow-hidden mb-3">
+              <div className="h-full bg-gray-900 rounded-full transition-all duration-500" style={{ width: `${Math.min(avancePct, 100)}%` }} />
             </div>
-            <div>
-              <p className="text-xs text-gray-400">Saldo por valorizar</p>
-              <p className="text-sm font-bold text-amber-700">
-                {formatCOP(Math.max(0, COSTO_DIRECTO_TOTAL - totalVAlorizado))}
-              </p>
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div>
+                <p className="text-xs text-gray-400">Costo directo total</p>
+                <p className="text-sm font-bold text-gray-900">{formatCOP(costoTotal)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-400">Valorizado</p>
+                <p className="text-sm font-bold text-gray-900">{formatCOP(totalValorizado)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-400">Saldo por valorizar</p>
+                <p className="text-sm font-bold text-amber-700">{formatCOP(Math.max(0, costoTotal - totalValorizado))}</p>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
       </main>
     </div>

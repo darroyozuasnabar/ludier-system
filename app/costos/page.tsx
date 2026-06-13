@@ -18,19 +18,6 @@ const supabase = createBrowserClient(
 const fmt = (n: number) =>
   new Intl.NumberFormat("es-PE", { style: "currency", currency: "PEN", minimumFractionDigits: 2 }).format(n);
 
-const CONTRATOS_REALES = [
-  { id: 1,  nombre: "Carpintería metálica Qantua",    monto: 178926.10, tipo: "CONTRATO"     },
-  { id: 2,  nombre: "Desmontaje malla Raschell",       monto: 1200.00,   tipo: "SERVICIO"     },
-  { id: 3,  nombre: "Adicionales Zendai",              monto: 56370.00,  tipo: "ADENDA"       },
-  { id: 4,  nombre: "Techos metálicos y cercos",       monto: 5470.00,   tipo: "ADENDA"       },
-  { id: 5,  nombre: "Apoyo operativo especializado",   monto: 18668.72,  tipo: "SERVICIO"     },
-  { id: 6,  nombre: "Cerco perimetral Fase 2",         monto: 55000.00,  tipo: "CONTRATO"     },
-  { id: 7,  nombre: "Desmontaje y retiro chutes",      monto: 1300.00,   tipo: "SERVICIO"     },
-  { id: 8,  nombre: "Desmontaje y montaje cerco",      monto: 18000.00,  tipo: "SERVICIO"     },
-  { id: 9,  nombre: "Cerramiento y mantenimiento",     monto: 16600.00,  tipo: "SERVICIO"     },
-  { id: 10, nombre: "Contrato Qantua Fase 2",          monto: 543667.29, tipo: "VALORIZACION" },
-];
-
 // ─── Categorías de costo ──────────────────────────────────────────────────────
 const CATEGORIAS = [
   {
@@ -86,8 +73,6 @@ const colorMap: Record<string, { bg: string; border: string; text: string; icon:
   amber:  { bg: "bg-amber-50",  border: "border-amber-200",  text: "text-amber-800",  icon: "bg-amber-100",  ring: "focus:ring-amber-400"  },
 };
 
-// ─── Clase compartida para TODOS los inputs ───────────────────────────────────
-// text-gray-900 + bg-white forzados para evitar campos invisibles
 const INPUT_BASE = "w-full px-3 py-2 text-sm text-gray-900 placeholder-gray-400 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent";
 const INPUT_MONTO = "w-full pl-8 pr-3 py-2 text-sm text-gray-900 placeholder-gray-400 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent";
 const SELECT_BASE = "w-full px-3 py-2.5 text-sm text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent";
@@ -110,7 +95,7 @@ const VACIO: CamposCosto = {
   transporte: "", instalacion: "", desperdicio: "", retrabajos: "",
 };
 
-function calcMargen(contrato: typeof CONTRATOS_REALES[0], costos: any[]) {
+function calcMargen(contrato: any, costos: any[]) {
   const costo = costos
     .filter(c => c.contratoNombre === contrato.nombre)
     .reduce((s, c) =>
@@ -119,7 +104,7 @@ function calcMargen(contrato: typeof CONTRATOS_REALES[0], costos: any[]) {
         + Number(c.manoObra)
         + Number(c.transporte)  + Number(c.instalacion)
         + Number(c.desperdicio) + Number(c.retrabajos), 0);
-  return { costo, margen: contrato.monto - costo };
+  return { costo, margen: Number(contrato.monto) - costo };
 }
 
 export default function CostosPage() {
@@ -128,6 +113,7 @@ export default function CostosPage() {
 
   const [projectId,        setProjectId]        = useState("");
   const [historial,        setHistorial]        = useState<any[]>([]);
+  const [contratos,        setContratos]        = useState<any[]>([]);
   const [form,             setForm]             = useState<CamposCosto>(VACIO);
   const [saving,           setSaving]           = useState(false);
   const [loading,          setLoading]          = useState(true);
@@ -144,16 +130,39 @@ export default function CostosPage() {
 
   const loadData = async () => {
     setLoading(true);
-    const { data: proj } = await supabase
-      .from("Project").select("id").eq("name", "Qantua - Fase 02").maybeSingle();
-    if (proj) {
-      setProjectId(proj.id);
-      const { data } = await supabase
-        .from("CostoReal").select("*").eq("projectId", proj.id)
-        .order("fecha", { ascending: false });
-      setHistorial(data || []);
+    try {
+      // 1. Obtener proyecto Qantua
+      const { data: proj } = await supabase
+        .from("Project")
+        .select("id")
+        .eq("name", "Qantua - Fase 02")
+        .maybeSingle();
+
+      if (proj) {
+        setProjectId(proj.id);
+        
+        // 2. Obtener costos reales
+        const { data: costosData } = await supabase
+          .from("CostoReal")
+          .select("*")
+          .eq("projectId", proj.id)
+          .order("fecha", { ascending: false });
+        setHistorial(costosData || []);
+      }
+
+      // 3. Obtener contratos ordenados estratégicamente
+      const { data: contratosData } = await supabase
+        .from("Contrato")
+        .select("*")
+        .order("orden_estrategico", { ascending: true, nullsLast: true });
+      
+      setContratos(contratosData || []);
+      
+    } catch (error) {
+      console.error("Error loading data:", error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const parse = (v: string) => parseFloat(v.replace(",", ".")) || 0;
@@ -226,7 +235,7 @@ export default function CostosPage() {
   const totalMO           = historial.reduce((s, c) => s + Number(c.manoObra), 0);
   const totalRetrabajos   = historial.reduce((s, c) => s + Number(c.retrabajos), 0);
 
-  const contratosConCostos = CONTRATOS_REALES.filter(ct => historial.some(c => c.contratoNombre === ct.nombre));
+  const contratosConCostos = contratos.filter(ct => historial.some(c => c.contratoNombre === ct.nombre));
   const historialFiltrado  = filtroContrato === "TODOS" ? historial : historial.filter(c => c.contratoNombre === filtroContrato);
 
   if (status === "loading" || loading) {
@@ -300,7 +309,7 @@ export default function CostosPage() {
             <div className="divide-y divide-slate-50">
               {contratosConCostos.map(ct => {
                 const { costo, margen } = calcMargen(ct, historial);
-                const margenPct = ct.monto > 0 ? (margen / ct.monto) * 100 : 0;
+                const margenPct = Number(ct.monto) > 0 ? (margen / Number(ct.monto)) * 100 : 0;
                 const isExpanded = expandedContrato === ct.nombre;
                 const registros  = historial.filter(c => c.contratoNombre === ct.nombre);
 
@@ -308,73 +317,138 @@ export default function CostosPage() {
                   <div key={ct.id}>
                     <button
                       onClick={() => setExpandedContrato(isExpanded ? null : ct.nombre)}
-                      className="w-full flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition-colors text-left"
+                      className="w-full flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition-colors text-left group"
                     >
-                      <div className="flex items-center gap-3">
-                        <span className="text-[10px] font-bold text-slate-400 w-6">#{ct.id}</span>
-                        <div>
-                          <p className="text-sm font-semibold text-slate-900">{ct.nombre}</p>
+                      <div className="flex items-center gap-4 flex-1 min-w-0">
+                        <span className="text-[10px] font-mono font-bold text-slate-400 w-16 flex-shrink-0">
+                          #{ct.orden_estrategico}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-slate-900 truncate">{ct.nombre}</p>
                           <p className="text-xs text-slate-400 mt-0.5">
-                            Ingreso: {fmt(ct.monto)} · {registros.length} registro{registros.length !== 1 ? "s" : ""}
+                            Ingreso: {fmt(Number(ct.monto))} · {registros.length} registro{registros.length !== 1 ? "s" : ""}
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-5">
-                        {/* Mini barra */}
-                        <div className="hidden sm:block w-24">
-                          <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                      
+                      <div className="flex items-center gap-6 flex-shrink-0">
+                        {/* Barra de progreso */}
+                        <div className="hidden md:block w-48">
+                          <div className="flex justify-between text-[9px] text-slate-400 mb-1">
+                            <span>Gastado</span>
+                            <span>Presupuesto</span>
+                          </div>
+                          <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                             <div
-                              className={`h-full rounded-full ${margen >= 0 ? "bg-emerald-500" : "bg-red-400"}`}
-                              style={{ width: `${Math.min(Math.abs(margenPct), 100)}%` }}
+                              className={`h-full rounded-full transition-all ${costo > Number(ct.monto) ? "bg-red-500" : "bg-emerald-500"}`}
+                              style={{ width: `${Math.min((costo / Number(ct.monto)) * 100, 100)}%` }}
                             />
                           </div>
-                          <div className="flex justify-between text-[9px] text-slate-400 mt-0.5">
+                          <div className="flex justify-between text-[9px] text-slate-400 mt-1">
                             <span>{fmt(costo)}</span>
-                            <span>{fmt(ct.monto)}</span>
+                            <span>{fmt(Number(ct.monto))}</span>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <p className={`text-sm font-bold ${margen >= 0 ? "text-emerald-700" : "text-red-600"}`}>
+
+                        {/* Margen en números */}
+                        <div className="text-right min-w-[100px]">
+                          <p className={`text-base font-bold ${margen >= 0 ? "text-emerald-700" : "text-red-600"}`}>
                             {margen >= 0 ? "+" : ""}{fmt(margen)}
                           </p>
-                          <p className={`text-xs font-semibold ${margen >= 0 ? "text-emerald-500" : "text-red-400"}`}>
+                          <p className={`text-xs font-semibold ${margen >= 0 ? "text-emerald-600" : "text-red-500"}`}>
                             {margenPct.toFixed(1)}% margen
                           </p>
                         </div>
+                        
                         <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform flex-shrink-0 ${isExpanded ? "rotate-180" : ""}`} />
                       </div>
                     </button>
 
                     {isExpanded && (
-                      <div className="bg-slate-50 px-6 pb-4 space-y-2 border-t border-slate-100">
-                        <div className="pt-3" />
-                        {registros.map(r => {
-                          const tot  = totalReg(r);
-                          const mat  = Number(r.fierro) + Number(r.pintura) + Number(r.galvanizado);
-                          const cons = Number(r.discos||0) + Number(r.electrodos||0) + Number(r.oxicorte||0) + Number(r.otrosConsumibles||0);
-                          const mo   = Number(r.manoObra);
-                          const ot   = Number(r.transporte) + Number(r.instalacion) + Number(r.desperdicio) + Number(r.retrabajos);
-                          return (
-                            <div key={r.id} className="bg-white rounded-xl border border-slate-100 p-4 flex items-start justify-between gap-3">
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-semibold text-slate-900 truncate">{r.descripcion}</p>
-                                <p className="text-xs text-slate-400 mt-0.5">{new Date(r.fecha).toLocaleDateString("es-PE")}</p>
-                                <div className="flex gap-1.5 mt-2 flex-wrap">
-                                  {mat  > 0 && <span className="text-[10px] bg-blue-50 text-blue-700 border border-blue-100 px-2 py-0.5 rounded-full font-medium">Mat. {fmt(mat)}</span>}
-                                  {cons > 0 && <span className="text-[10px] bg-rose-50 text-rose-700 border border-rose-100 px-2 py-0.5 rounded-full font-medium">Cons. {fmt(cons)}</span>}
-                                  {mo   > 0 && <span className="text-[10px] bg-violet-50 text-violet-700 border border-violet-100 px-2 py-0.5 rounded-full font-medium">MO {fmt(mo)}</span>}
-                                  {ot   > 0 && <span className="text-[10px] bg-amber-50 text-amber-700 border border-amber-100 px-2 py-0.5 rounded-full font-medium">Otros {fmt(ot)}</span>}
+                      <div className="bg-slate-50/80 px-6 pb-5 pt-2 border-t border-slate-100">
+                        <div className="grid gap-3 mt-2">
+                          {registros.map(r => {
+                            const tot  = totalReg(r);
+                            const mat  = Number(r.fierro) + Number(r.pintura) + Number(r.galvanizado);
+                            const cons = Number(r.discos||0) + Number(r.electrodos||0) + Number(r.oxicorte||0) + Number(r.otrosConsumibles||0);
+                            const mo   = Number(r.manoObra);
+                            const ot   = Number(r.transporte) + Number(r.instalacion) + Number(r.desperdicio) + Number(r.retrabajos);
+                            return (
+                              <div key={r.id} className="bg-white rounded-xl border border-slate-200 p-4 flex items-start justify-between gap-4 hover:shadow-sm transition-shadow">
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-start justify-between gap-3">
+                                    <div className="flex-1">
+                                      <p className="text-sm font-semibold text-slate-900">{r.descripcion}</p>
+                                      <p className="text-xs text-slate-400 mt-1">{new Date(r.fecha).toLocaleDateString("es-PE", { year: 'numeric', month: 'short', day: 'numeric' })}</p>
+                                    </div>
+                                    <button 
+                                      onClick={(e) => { e.stopPropagation(); handleDelete(r.id); }} 
+                                      className="text-slate-300 hover:text-red-500 transition-colors p-1"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </button>
+                                  </div>
+                                  <div className="flex flex-wrap gap-2 mt-3">
+                                    {mat  > 0 && (
+                                      <span className="inline-flex items-center gap-1 text-[10px] bg-blue-50 text-blue-700 border border-blue-100 px-2 py-1 rounded-md font-medium">
+                                        <Package className="h-2.5 w-2.5" />
+                                        Materiales {fmt(mat)}
+                                      </span>
+                                    )}
+                                    {cons > 0 && (
+                                      <span className="inline-flex items-center gap-1 text-[10px] bg-rose-50 text-rose-700 border border-rose-100 px-2 py-1 rounded-md font-medium">
+                                        <Scissors className="h-2.5 w-2.5" />
+                                        Consumibles {fmt(cons)}
+                                      </span>
+                                    )}
+                                    {mo   > 0 && (
+                                      <span className="inline-flex items-center gap-1 text-[10px] bg-violet-50 text-violet-700 border border-violet-100 px-2 py-1 rounded-md font-medium">
+                                        <Users className="h-2.5 w-2.5" />
+                                        Mano de obra {fmt(mo)}
+                                      </span>
+                                    )}
+                                    {ot   > 0 && (
+                                      <span className="inline-flex items-center gap-1 text-[10px] bg-amber-50 text-amber-700 border border-amber-100 px-2 py-1 rounded-md font-medium">
+                                        <Truck className="h-2.5 w-2.5" />
+                                        Otros {fmt(ot)}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                                <div className="text-right flex-shrink-0">
+                                  <p className="text-sm font-bold text-slate-900">{fmt(tot)}</p>
+                                  <p className="text-[10px] text-slate-400 mt-0.5">total registro</p>
                                 </div>
                               </div>
-                              <div className="flex items-center gap-3 flex-shrink-0">
-                                <span className="text-sm font-bold text-slate-900">{fmt(tot)}</span>
-                                <button onClick={() => handleDelete(r.id)} className="text-slate-300 hover:text-red-500 transition-colors">
-                                  <Trash2 className="h-3.5 w-3.5" />
-                                </button>
+                            );
+                          })}
+                          
+                          {/* Resumen del contrato */}
+                          <div className="bg-slate-100 rounded-xl p-4 mt-2">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                              <div>
+                                <p className="text-[10px] text-slate-500 font-semibold uppercase">Total Gastado</p>
+                                <p className="text-lg font-bold text-slate-800">{fmt(costo)}</p>
+                              </div>
+                              <div>
+                                <p className="text-[10px] text-slate-500 font-semibold uppercase">Presupuesto</p>
+                                <p className="text-lg font-bold text-slate-800">{fmt(Number(ct.monto))}</p>
+                              </div>
+                              <div>
+                                <p className="text-[10px] text-slate-500 font-semibold uppercase">Margen</p>
+                                <p className={`text-lg font-bold ${margen >= 0 ? "text-emerald-700" : "text-red-600"}`}>
+                                  {margen >= 0 ? "+" : ""}{fmt(margen)}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-[10px] text-slate-500 font-semibold uppercase">% Margen</p>
+                                <p className={`text-lg font-bold ${margen >= 0 ? "text-emerald-700" : "text-red-600"}`}>
+                                  {margenPct.toFixed(1)}%
+                                </p>
                               </div>
                             </div>
-                          );
-                        })}
+                          </div>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -395,7 +469,7 @@ export default function CostosPage() {
               </div>
               <div className="px-6 py-5 space-y-5">
 
-                {/* Contrato */}
+                {/* Contrato - CARGADO DESDE BD (ordenado estratégicamente) */}
                 <div>
                   <label className={LABEL_BASE}>Contrato / Servicio *</label>
                   <select
@@ -404,9 +478,9 @@ export default function CostosPage() {
                     className={SELECT_BASE}
                   >
                     <option value="" className="text-gray-400">— Selecciona el contrato —</option>
-                    {CONTRATOS_REALES.map(ct => (
+                    {contratos.map(ct => (
                       <option key={ct.id} value={ct.nombre} className="text-gray-900">
-                        #{ct.id} · {ct.nombre} ({fmt(ct.monto)})
+                        #{ct.orden_estrategico} - {ct.nombre} ({fmt(Number(ct.monto))})
                       </option>
                     ))}
                   </select>
@@ -414,7 +488,7 @@ export default function CostosPage() {
                     <div className="mt-2 px-3 py-2.5 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600">
                       Ingreso de referencia:{" "}
                       <span className="font-bold text-slate-900">
-                        {fmt(CONTRATOS_REALES.find(c => c.nombre === form.contratoNombre)?.monto || 0)}
+                        {fmt(contratos.find(c => c.nombre === form.contratoNombre)?.monto || 0)}
                       </span>
                       {" "}· Los costos se restarán de este monto para calcular el margen.
                     </div>
@@ -513,8 +587,10 @@ export default function CostosPage() {
                   className={SELECT_BASE + " mb-4"}
                 >
                   <option value="TODOS" className="text-gray-900">Todos los contratos</option>
-                  {CONTRATOS_REALES.map(ct => (
-                    <option key={ct.id} value={ct.nombre} className="text-gray-900">#{ct.id} · {ct.nombre}</option>
+                  {contratos.map(ct => (
+                    <option key={ct.id} value={ct.nombre} className="text-gray-900">
+                      #{ct.orden_estrategico} - {ct.nombre}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -540,7 +616,6 @@ export default function CostosPage() {
                       <div key={c.id} className={`border rounded-xl p-4 transition-all ${isEditing ? "border-slate-400 bg-slate-50 ring-2 ring-slate-200" : "border-slate-100 hover:border-slate-200"}`}>
 
                         {isEditing ? (
-                          /* ── MODO EDICIÓN ── */
                           <div className="space-y-3">
                             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Editando registro</p>
 
@@ -551,9 +626,9 @@ export default function CostosPage() {
                                 onChange={e => setEditForm({ ...editForm, contratoNombre: e.target.value })}
                                 className={SELECT_BASE}
                               >
-                                {CONTRATOS_REALES.map(ct => (
+                                {contratos.map(ct => (
                                   <option key={ct.id} value={ct.nombre} className="text-gray-900">
-                                    #{ct.id} · {ct.nombre}
+                                    #{ct.orden_estrategico} - {ct.nombre}
                                   </option>
                                 ))}
                               </select>
@@ -598,7 +673,6 @@ export default function CostosPage() {
                             </div>
                           </div>
                         ) : (
-                          /* ── MODO LECTURA ── */
                           <>
                             <div className="flex items-start justify-between gap-2 mb-2">
                               <div className="flex-1 min-w-0">

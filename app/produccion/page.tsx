@@ -27,8 +27,15 @@ import {
   ArrowUp,
   ArrowRight,
   Flame,
-  Shield,
   X,
+  Wrench,
+  Hammer,
+  Paintbrush,
+  Ruler,
+  Settings,
+  GripVertical,
+  PlusCircle,
+  Info,
 } from "lucide-react";
 import { createBrowserClient } from "@supabase/ssr";
 
@@ -37,6 +44,7 @@ const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
+// Estados de orden
 const ESTADOS_ORDEN = [
   { key: "PENDIENTE", label: "Pendiente", color: "neutral" },
   { key: "EN_PRODUCCION", label: "En producción", color: "blue" },
@@ -45,54 +53,6 @@ const ESTADOS_ORDEN = [
   { key: "COMPLETADO", label: "Completado", color: "emerald" },
   { key: "PAUSADO", label: "Pausado", color: "red" },
 ];
-
-const FLUJO_FABRICACION = [
-  { paso: "Corte", fase: "fab" },
-  { paso: "Armado", fase: "fab", bottleneck: true },
-  { paso: "Soldadura", fase: "fab" },
-  { paso: "Esmerilado", fase: "fab" },
-  { paso: "Masillado", fase: "acab" },
-  { paso: "Lijado", fase: "acab" },
-  { paso: "Thinner", fase: "acab" },
-  { paso: "Base epóxica", fase: "acab" },
-  { paso: "Gloss mate", fase: "acab" },
-];
-
-const FLUJO_INSTALACION = [
-  { paso: "Trazado", fase: "inst" },
-  { paso: "Picado / hueco", fase: "inst" },
-  { paso: "Presentación", fase: "inst" },
-  { paso: "Soldadura", fase: "inst" },
-  { paso: "Verificación", fase: "inst" },
-  { paso: "Anclaje", fase: "inst" },
-  { paso: "Poxi", fase: "inst" },
-];
-
-type OrdenForm = {
-  nombre: string;
-  tipo: string;
-  cantidad: string;
-  unidad: string;
-  prioridad: string;
-  estado: string;
-  fechaInicio: string;
-  fechaFin: string;
-  observaciones: string;
-};
-
-const FORM_VACIO: OrdenForm = {
-  nombre: "",
-  tipo: "BARANDA",
-  cantidad: "",
-  unidad: "unidades",
-  prioridad: "MEDIA",
-  estado: "PENDIENTE",
-  fechaInicio: new Date().toISOString().split("T")[0],
-  fechaFin: "",
-  observaciones: "",
-};
-
-// ─── Helpers de estilos ───────────────────────────────────────────────────────
 
 const estadoBadge: Record<string, string> = {
   PENDIENTE: "bg-zinc-100 text-zinc-600 border border-zinc-200",
@@ -112,7 +72,51 @@ const prioridadConfig: Record<string, { style: string; dot: string }> = {
 const getEstadoLabel = (key: string) =>
   ESTADOS_ORDEN.find((e) => e.key === key)?.label ?? key;
 
-// ─── Barra de progreso de flujo ───────────────────────────────────────────────
+const getIconForStep = (paso: string) => {
+  const pasoLower = paso.toLowerCase();
+  if (pasoLower.includes("corte")) return Wrench;
+  if (pasoLower.includes("armado")) return Hammer;
+  if (pasoLower.includes("soldadura")) return Zap;
+  if (pasoLower.includes("esmeril")) return Wrench;
+  if (pasoLower.includes("masilla")) return Paintbrush;
+  if (pasoLower.includes("lijado")) return Wrench;
+  if (pasoLower.includes("thinner")) return Paintbrush;
+  if (pasoLower.includes("epóx")) return Paintbrush;
+  if (pasoLower.includes("gloss")) return Paintbrush;
+  if (pasoLower.includes("trazado")) return Ruler;
+  if (pasoLower.includes("picado")) return Hammer;
+  if (pasoLower.includes("presentación")) return Wrench;
+  if (pasoLower.includes("verificación")) return Ruler;
+  if (pasoLower.includes("anclaje")) return Wrench;
+  if (pasoLower.includes("poxi")) return Paintbrush;
+  return Wrench;
+};
+
+type OrdenForm = {
+  nombre: string;
+  tipo: string;
+  cantidad: string;
+  unidad: string;
+  prioridad: string;
+  estado: string;
+  fechaInicio: string;
+  fechaFin: string;
+  observaciones: string;
+};
+
+const FORM_VACIO: OrdenForm = {
+  nombre: "",
+  tipo: "BARANDA_BALCON",
+  cantidad: "",
+  unidad: "unidades",
+  prioridad: "MEDIA",
+  estado: "PENDIENTE",
+  fechaInicio: new Date().toISOString().split("T")[0],
+  fechaFin: "",
+  observaciones: "",
+};
+
+// Barra de progreso
 const ESTADO_STEP: Record<string, number> = {
   PENDIENTE: 0,
   EN_PRODUCCION: 2,
@@ -124,7 +128,7 @@ const ESTADO_STEP: Record<string, number> = {
 
 function FlujoBadgeLine({ estado }: { estado: string }) {
   const step = ESTADO_STEP[estado] ?? 0;
-  const total = FLUJO_FABRICACION.length;
+  const total = 9;
   const pct = estado === "COMPLETADO" ? 100 : Math.round((step / total) * 100);
   return (
     <div className="flex items-center gap-2 mt-2">
@@ -145,22 +149,7 @@ function FlujoBadgeLine({ estado }: { estado: string }) {
   );
 }
 
-// ─── KPI Card ─────────────────────────────────────────────────────────────────
-function KpiCard({
-  icon: Icon,
-  label,
-  value,
-  sub,
-  accent,
-  trend,
-}: {
-  icon: React.ElementType;
-  label: string;
-  value: string | number;
-  sub?: string;
-  accent?: string;
-  trend?: string;
-}) {
+function KpiCard({ icon: Icon, label, value, sub, accent, trend }: any) {
   return (
     <div className="bg-white rounded-2xl border border-zinc-100 p-5 shadow-sm flex flex-col gap-3 hover:shadow-md transition-shadow">
       <div className="flex items-center justify-between">
@@ -183,7 +172,6 @@ function KpiCard({
   );
 }
 
-// ─── Sección de título ────────────────────────────────────────────────────────
 function SectionTitle({ children, sub }: { children: React.ReactNode; sub?: string }) {
   return (
     <div className="mb-4">
@@ -193,7 +181,241 @@ function SectionTitle({ children, sub }: { children: React.ReactNode; sub?: stri
   );
 }
 
-// ─── Componente principal ─────────────────────────────────────────────────────
+// Componente de paso con tooltip
+function StepWithTooltip({ paso, index, isLast, isBottleneck }: { 
+  paso: any; 
+  index: number; 
+  isLast: boolean;
+  isBottleneck: boolean;
+}) {
+  const [showTooltip, setShowTooltip] = useState(false);
+  const Icon = getIconForStep(paso.paso);
+  
+  return (
+    <div className="relative flex items-center gap-1.5">
+      <div
+        className="group relative"
+        onMouseEnter={() => setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}
+      >
+        <div
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-help ${
+            isBottleneck
+              ? "bg-red-50 border border-red-200 text-red-700"
+              : "bg-zinc-50 border border-zinc-200 text-zinc-700 hover:bg-zinc-100"
+          }`}
+        >
+          <Icon className="h-3 w-3" />
+          <span className="text-[10px] text-zinc-400 font-mono">{String(index + 1).padStart(2, "0")}</span>
+          {paso.paso}
+          {isBottleneck && (
+            <span className="ml-1 text-[9px] bg-red-100 text-red-600 px-1 py-0.5 rounded font-bold uppercase tracking-wider">
+              ⚠ cuello
+            </span>
+          )}
+          {paso.descripcion && (
+            <Info className="h-3 w-3 ml-0.5 text-zinc-400 group-hover:text-zinc-600 transition-colors" />
+          )}
+        </div>
+
+        {/* Tooltip con descripción detallada */}
+        {showTooltip && paso.descripcion && (
+          <div className="absolute bottom-full left-0 mb-2 z-50 w-80 bg-gray-900 text-white text-xs rounded-lg shadow-xl pointer-events-none animate-in fade-in zoom-in-95 duration-100">
+            <div className="p-3">
+              <p className="font-semibold text-gray-200 mb-1">{paso.paso}</p>
+              <p className="text-gray-300 leading-relaxed">{paso.descripcion}</p>
+            </div>
+            <div className="absolute top-full left-4 w-2 h-2 bg-gray-900 rotate-45 -mt-1"></div>
+          </div>
+        )}
+      </div>
+      {!isLast && <ArrowRight className="h-3 w-3 text-zinc-200 shrink-0" />}
+    </div>
+  );
+}
+
+// Modal para editar flujo
+function EditFlowModal({
+  isOpen,
+  onClose,
+  tipoProducto,
+  pasos,
+  onSave,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  tipoProducto: string;
+  pasos: any[];
+  onSave: (pasos: any[]) => void;
+}) {
+  const [editPasos, setEditPasos] = useState<any[]>([]);
+  const [newPaso, setNewPaso] = useState({ paso: "", descripcion: "" });
+
+  useEffect(() => {
+    if (pasos) {
+      setEditPasos([...pasos]);
+    }
+  }, [pasos]);
+
+  const handleAddPaso = () => {
+    if (!newPaso.paso.trim()) return;
+    const newOrden = editPasos.length + 1;
+    setEditPasos([
+      ...editPasos,
+      {
+        id: `temp-${Date.now()}`,
+        paso: newPaso.paso,
+        descripcion: newPaso.descripcion,
+        orden: newOrden,
+        tipo_producto: tipoProducto,
+        isNew: true,
+      },
+    ]);
+    setNewPaso({ paso: "", descripcion: "" });
+  };
+
+  const handleRemovePaso = (index: number) => {
+    const nuevos = editPasos.filter((_, i) => i !== index);
+    nuevos.forEach((p, i) => (p.orden = i + 1));
+    setEditPasos(nuevos);
+  };
+
+  const handleUpdatePaso = (index: number, field: string, value: string) => {
+    const nuevos = [...editPasos];
+    nuevos[index][field] = value;
+    setEditPasos(nuevos);
+  };
+
+  const handleSave = () => {
+    onSave(editPasos);
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-2xl p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold text-gray-900">Editar flujo: {tipoProducto.replace("_", " ")}</h2>
+          <button onClick={onClose} className="p-1 rounded-lg hover:bg-zinc-100">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <p className="text-xs text-zinc-500 mb-4">
+          Define los pasos del proceso de fabricación e instalación. El orden se guardará automáticamente.
+        </p>
+
+        <div className="space-y-3 mb-4">
+          {editPasos.map((paso, idx) => (
+            <div key={paso.id} className="flex items-center gap-2 p-3 bg-zinc-50 rounded-lg">
+              <div className="w-8 text-center text-sm font-bold text-zinc-400">{idx + 1}</div>
+              <div className="flex-1">
+                <input
+                  type="text"
+                  value={paso.paso}
+                  onChange={(e) => handleUpdatePaso(idx, "paso", e.target.value)}
+                  className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg bg-white"
+                  placeholder="Nombre del paso"
+                />
+                <textarea
+                  value={paso.descripcion || ""}
+                  onChange={(e) => handleUpdatePaso(idx, "descripcion", e.target.value)}
+                  className="w-full mt-1 px-3 py-2 text-xs text-gray-900 border border-gray-300 rounded-lg bg-white resize-none"
+                  placeholder="Descripción detallada del paso (herramientas, materiales, precauciones...)"
+                  rows={2}
+                />
+              </div>
+              <button onClick={() => handleRemovePaso(idx)} className="p-1 text-red-400 hover:text-red-600">
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <div className="border-t pt-4 mt-2">
+          <p className="text-xs font-semibold text-zinc-700 mb-2">Agregar nuevo paso</p>
+          <div className="flex flex-col gap-2">
+            <input
+              type="text"
+              placeholder="Nombre del paso"
+              value={newPaso.paso}
+              onChange={(e) => setNewPaso({ ...newPaso, paso: e.target.value })}
+              className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg bg-white"
+            />
+            <textarea
+              placeholder="Descripción detallada del paso (herramientas, materiales, precauciones...)"
+              value={newPaso.descripcion}
+              onChange={(e) => setNewPaso({ ...newPaso, descripcion: e.target.value })}
+              className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg bg-white resize-none"
+              rows={2}
+            />
+            <button onClick={handleAddPaso} className="self-end px-3 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 flex items-center gap-2">
+              <PlusCircle className="h-4 w-4" />
+              Agregar paso
+            </button>
+          </div>
+        </div>
+
+        <div className="flex gap-3 mt-6 pt-4 border-t">
+          <button onClick={handleSave} className="flex-1 bg-gray-900 text-white py-2 rounded-lg hover:bg-gray-800">
+            Guardar cambios
+          </button>
+          <button onClick={onClose} className="flex-1 border border-gray-200 text-gray-700 bg-white py-2 rounded-lg hover:bg-gray-50">
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Modal para nuevo tipo de producto
+function NewTipoModal({
+  isOpen,
+  onClose,
+  onSave,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (nombre: string) => void;
+}) {
+  const [nombre, setNombre] = useState("");
+
+  const handleSave = () => {
+    if (!nombre.trim()) return;
+    onSave(nombre.toUpperCase().replace(/ /g, "_"));
+    setNombre("");
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-2xl p-6 w-full max-w-md">
+        <h2 className="text-lg font-bold text-gray-900 mb-4">Nuevo tipo de producto</h2>
+        <input
+          type="text"
+          placeholder="Ej: CERCO_PERIMETRAL, ESCALERA_METALICA"
+          value={nombre}
+          onChange={(e) => setNombre(e.target.value)}
+          className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg bg-white mb-4"
+        />
+        <div className="flex gap-3">
+          <button onClick={handleSave} className="flex-1 bg-gray-900 text-white py-2 rounded-lg hover:bg-gray-800">
+            Crear
+          </button>
+          <button onClick={onClose} className="flex-1 border border-gray-200 text-gray-700 bg-white py-2 rounded-lg hover:bg-gray-50">
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ProduccionPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -204,12 +426,18 @@ export default function ProduccionPage() {
   const [produccionDiaria, setProduccionDiaria] = useState<any[]>([]);
   const [capacidades, setCapacidades] = useState<any[]>([]);
   const [cuadrillas, setCuadrillas] = useState<any[]>([]);
+  const [flujosPorTipo, setFlujosPorTipo] = useState<Record<string, any[]>>({});
+  const [tiposProducto, setTiposProducto] = useState<string[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [form, setForm] = useState<OrdenForm>(FORM_VACIO);
   const [toast, setToast] = useState<{ type: "ok" | "err"; msg: string } | null>(null);
   const [filterEstado, setFilterEstado] = useState<string>("ALL");
+  const [selectedTipoFlujo, setSelectedTipoFlujo] = useState<string>("BARANDA_BALCON");
+  const [flujoActual, setFlujoActual] = useState<any[]>([]);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showNewTipoModal, setShowNewTipoModal] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
@@ -219,16 +447,40 @@ export default function ProduccionPage() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [ordenesRes, prodRes, capRes, cuadrillasRes] = await Promise.all([
+      const [ordenesRes, prodRes, capRes, cuadrillasRes, flujoRes] = await Promise.all([
         supabase.from("OrdenProduccion").select("*").order("createdAt", { ascending: false }),
         supabase.from("ProduccionDiaria").select("*").order("fecha", { ascending: false }),
         supabase.from("CapacidadProductiva").select("*"),
         supabase.from("Cuadrilla").select("*"),
+        supabase.from("FlujoProduccion").select("*").order("orden", { ascending: true }),
       ]);
+
       setOrdenes(ordenesRes.data || []);
       setProduccionDiaria(prodRes.data || []);
       setCapacidades(capRes.data || []);
       setCuadrillas(cuadrillasRes.data || []);
+
+      const flujosData = flujoRes.data || [];
+      const flujosMap: Record<string, any[]> = {};
+      const tiposSet = new Set<string>();
+
+      flujosData.forEach((f) => {
+        const tipo = f.tipo_producto || "BARANDA_BALCON";
+        if (!flujosMap[tipo]) flujosMap[tipo] = [];
+        flujosMap[tipo].push(f);
+        tiposSet.add(tipo);
+      });
+
+      setFlujosPorTipo(flujosMap);
+      setTiposProducto(Array.from(tiposSet));
+
+      if (tiposSet.size > 0 && !flujosMap[selectedTipoFlujo]) {
+        const primerTipo = Array.from(tiposSet)[0];
+        setSelectedTipoFlujo(primerTipo);
+        setFlujoActual(flujosMap[primerTipo] || []);
+      } else if (flujosMap[selectedTipoFlujo]) {
+        setFlujoActual(flujosMap[selectedTipoFlujo] || []);
+      }
     } catch (error) {
       console.error("Error loading data:", error);
     } finally {
@@ -236,14 +488,14 @@ export default function ProduccionPage() {
     }
   };
 
-  const showToast = (type: "ok" | "err", msg: string) => {
+  const showToastMsg = (type: "ok" | "err", msg: string) => {
     setToast({ type, msg });
     setTimeout(() => setToast(null), 4000);
   };
 
-  const handleSave = async () => {
+  const handleSaveOrden = async () => {
     if (!form.nombre.trim()) {
-      showToast("err", "Completa el nombre de la orden.");
+      showToastMsg("err", "Completa el nombre de la orden.");
       return;
     }
     setSaving(true);
@@ -266,9 +518,9 @@ export default function ProduccionPage() {
     }
     setSaving(false);
     if (error) {
-      showToast("err", "Error al guardar.");
+      showToastMsg("err", "Error al guardar.");
     } else {
-      showToast("ok", editingId ? "Orden actualizada." : "Orden creada.");
+      showToastMsg("ok", editingId ? "Orden actualizada." : "Orden creada.");
       setForm(FORM_VACIO);
       setShowForm(false);
       setEditingId(null);
@@ -281,13 +533,13 @@ export default function ProduccionPage() {
     loadData();
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDeleteOrden = async (id: string) => {
     if (!confirm("¿Eliminar esta orden?")) return;
     await supabase.from("OrdenProduccion").delete().eq("id", id);
     loadData();
   };
 
-  const handleEdit = (orden: any) => {
+  const handleEditOrden = (orden: any) => {
     setForm({
       nombre: orden.nombre,
       tipo: orden.tipo,
@@ -304,6 +556,48 @@ export default function ProduccionPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const handleSaveFlujo = async (pasos: any[]) => {
+    setSaving(true);
+    try {
+      // Eliminar pasos existentes de este tipo
+      await supabase.from("FlujoProduccion").delete().eq("tipo_producto", selectedTipoFlujo);
+
+      // Insertar nuevos pasos
+      for (const paso of pasos) {
+        await supabase.from("FlujoProduccion").insert({
+          paso: paso.paso,
+          orden: paso.orden,
+          descripcion: paso.descripcion || null,
+          tipo_producto: selectedTipoFlujo,
+        });
+      }
+      showToastMsg("ok", `Flujo de ${selectedTipoFlujo} actualizado.`);
+      loadData();
+    } catch (error) {
+      showToastMsg("err", "Error al guardar el flujo.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleNewTipo = async (nombre: string) => {
+    setSaving(true);
+    try {
+      await supabase.from("FlujoProduccion").insert({
+        paso: "Paso 1",
+        orden: 1,
+        descripcion: "Descripción del paso",
+        tipo_producto: nombre,
+      });
+      showToastMsg("ok", `Tipo "${nombre}" creado. Agrega más pasos desde edición.`);
+      loadData();
+    } catch (error) {
+      showToastMsg("err", "Error al crear el tipo.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (status === "loading" || loading) {
     return (
       <div className="min-h-screen bg-zinc-50 flex items-center justify-center">
@@ -315,7 +609,6 @@ export default function ProduccionPage() {
     );
   }
 
-  // ─── KPIs derivados ──────────────────────────────────────────────────────────
   const enProceso = ordenes.filter(
     (o) => o.estado === "EN_PRODUCCION" || o.estado === "EN_PINTURA" || o.estado === "EN_INSTALACION"
   ).length;
@@ -324,26 +617,16 @@ export default function ProduccionPage() {
   const pausados = ordenes.filter((o) => o.estado === "PAUSADO").length;
   const capacidadBaranda = capacidades.find((c) => c.tipo === "BARANDA")?.cantidad_diaria ?? 5;
 
-  // Producción diaria total
   const totalProdDiaria = produccionDiaria.reduce((acc, p) => acc + (p.cantidad ?? 0), 0);
+  const eficiencia = ordenes.length > 0 ? Math.round((completados / ordenes.length) * 100) : 0;
 
-  // Eficiencia (completados / total si hay órdenes)
-  const eficiencia =
-    ordenes.length > 0 ? Math.round((completados / ordenes.length) * 100) : 0;
-
-  // Filtro de órdenes
-  const ordenesFiltradas =
-    filterEstado === "ALL" ? ordenes : ordenes.filter((o) => o.estado === filterEstado);
-
-  // Alta prioridad activa
+  const ordenesFiltradas = filterEstado === "ALL" ? ordenes : ordenes.filter((o) => o.estado === filterEstado);
   const altaPrioridad = ordenes.filter(
     (o) => o.prioridad === "ALTA" && o.estado !== "COMPLETADO" && o.estado !== "PAUSADO"
   );
 
   return (
     <div className="min-h-screen bg-zinc-50 font-sans">
-
-      {/* ── Toast ─────────────────────────────────────────────────────────────── */}
       {toast && (
         <div
           className={`fixed top-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl text-sm font-medium border backdrop-blur-sm ${
@@ -364,7 +647,6 @@ export default function ProduccionPage() {
         </div>
       )}
 
-      {/* ── Header ────────────────────────────────────────────────────────────── */}
       <header className="bg-white border-b border-zinc-100 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -410,7 +692,7 @@ export default function ProduccionPage() {
 
       <main className="max-w-7xl mx-auto px-6 py-8 space-y-10">
 
-        {/* ── Alerta de alta prioridad ──────────────────────────────────────────── */}
+        {/* Alerta de alta prioridad */}
         {altaPrioridad.length > 0 && (
           <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-start gap-3">
             <Flame className="h-5 w-5 text-red-500 mt-0.5 shrink-0" />
@@ -425,46 +707,19 @@ export default function ProduccionPage() {
           </div>
         )}
 
-        {/* ── KPIs principales ──────────────────────────────────────────────────── */}
+        {/* KPIs principales */}
         <section>
           <SectionTitle sub="Métricas clave del período actual">Visión ejecutiva</SectionTitle>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <KpiCard
-              icon={Activity}
-              label="En proceso"
-              value={enProceso}
-              sub="órdenes activas ahora"
-              accent="bg-blue-50"
-            />
-            <KpiCard
-              icon={CheckCircle}
-              label="Completadas"
-              value={completados}
-              sub="este período"
-              accent="bg-emerald-50"
-              trend={completados > 0 ? `${eficiencia}% efic.` : undefined}
-            />
-            <KpiCard
-              icon={Clock}
-              label="Pendientes"
-              value={pendientes}
-              sub="sin iniciar"
-              accent="bg-amber-50"
-            />
-            <KpiCard
-              icon={BarChart3}
-              label="Cap. diaria"
-              value={`${capacidadBaranda} u.`}
-              sub="barandas por día"
-              accent="bg-zinc-50"
-            />
+            <KpiCard icon={Activity} label="En proceso" value={enProceso} sub="órdenes activas ahora" accent="bg-blue-50" />
+            <KpiCard icon={CheckCircle} label="Completadas" value={completados} sub="este período" accent="bg-emerald-50" trend={completados > 0 ? `${eficiencia}% efic.` : undefined} />
+            <KpiCard icon={Clock} label="Pendientes" value={pendientes} sub="sin iniciar" accent="bg-amber-50" />
+            <KpiCard icon={BarChart3} label="Cap. diaria" value={`${capacidadBaranda} u.`} sub="barandas por día" accent="bg-zinc-50" />
           </div>
         </section>
 
-        {/* ── Capacidades + producción registrada ──────────────────────────────── */}
+        {/* Capacidades + producción registrada */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-          {/* Capacidades */}
           <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-6">
             <SectionTitle sub="Rendimiento por tipo de producto">Capacidad productiva</SectionTitle>
             <div className="space-y-3">
@@ -473,447 +728,181 @@ export default function ProduccionPage() {
                 return (
                   <div key={cap.id}>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-semibold text-zinc-700 uppercase tracking-wide">
-                        {cap.tipo.replace("_", " ")}
-                      </span>
-                      <span className="text-xs text-zinc-500">
-                        <span className="font-bold text-zinc-900">{cap.cantidad_diaria}</span>{" "}
-                        {cap.unidad}/día · {cap.personal_requerido} personas
-                      </span>
+                      <span className="text-xs font-semibold text-zinc-700 uppercase tracking-wide">{cap.tipo.replace("_", " ")}</span>
+                      <span className="text-xs text-zinc-500"><span className="font-bold text-zinc-900">{cap.cantidad_diaria}</span> {cap.unidad}/día · {cap.personal_requerido} personas</span>
                     </div>
-                    <div className="h-2 bg-zinc-100 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-zinc-800 rounded-full"
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
+                    <div className="h-2 bg-zinc-100 rounded-full overflow-hidden"><div className="h-full bg-zinc-800 rounded-full" style={{ width: `${pct}%` }} /></div>
                   </div>
                 );
               })}
-              {capacidades.length === 0 && (
-                <p className="text-xs text-zinc-300 py-4 text-center">Sin datos de capacidad</p>
-              )}
+              {capacidades.length === 0 && <p className="text-xs text-zinc-300 py-4 text-center">Sin datos de capacidad</p>}
             </div>
           </div>
 
-          {/* Producción diaria */}
           <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-6">
             <div className="flex items-start justify-between mb-4">
               <SectionTitle sub="Registro histórico de fabricación">Producción diaria</SectionTitle>
-              <div className="text-right">
-                <p className="text-2xl font-bold text-zinc-900">{totalProdDiaria}</p>
-                <p className="text-[10px] text-zinc-400 uppercase tracking-wide">unidades totales</p>
-              </div>
+              <div className="text-right"><p className="text-2xl font-bold text-zinc-900">{totalProdDiaria}</p><p className="text-[10px] text-zinc-400 uppercase tracking-wide">unidades totales</p></div>
             </div>
             <div className="space-y-2">
               {produccionDiaria.slice(0, 5).map((prod) => (
                 <div key={prod.id} className="flex items-center justify-between p-3 rounded-xl bg-zinc-50 hover:bg-zinc-100 transition-colors">
-                  <div>
-                    <p className="text-xs font-semibold text-zinc-800">
-                      {new Date(prod.fecha).toLocaleDateString("es-PE", {
-                        weekday: "short",
-                        day: "numeric",
-                        month: "short",
-                      })}
-                    </p>
-                    <p className="text-[10px] text-zinc-400 mt-0.5">
-                      {prod.trabajadores} · {prod.horas_trabajadas}h
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="h-6 w-px bg-zinc-200" />
-                    <span className="text-base font-bold text-zinc-900">{prod.cantidad}</span>
-                    <span className="text-[10px] text-zinc-400">{prod.tipo.replace("_", " ").toLowerCase()}s</span>
-                  </div>
+                  <div><p className="text-xs font-semibold text-zinc-800">{new Date(prod.fecha).toLocaleDateString("es-PE", { weekday: "short", day: "numeric", month: "short" })}</p><p className="text-[10px] text-zinc-400 mt-0.5">{prod.trabajadores} · {prod.horas_trabajadas}h</p></div>
+                  <div className="flex items-center gap-2"><div className="h-6 w-px bg-zinc-200" /><span className="text-base font-bold text-zinc-900">{prod.cantidad}</span><span className="text-[10px] text-zinc-400">{prod.tipo.replace("_", " ").toLowerCase()}s</span></div>
                 </div>
               ))}
-              {produccionDiaria.length === 0 && (
-                <p className="text-xs text-zinc-300 py-4 text-center">Sin registros de producción diaria</p>
-              )}
+              {produccionDiaria.length === 0 && <p className="text-xs text-zinc-300 py-4 text-center">Sin registros de producción diaria</p>}
             </div>
           </div>
         </section>
 
-        {/* ── Flujo de producción visual ────────────────────────────────────────── */}
+        {/* Flujo de proceso CON TOOLTIPS */}
         <section className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-6">
-          <SectionTitle sub="9 pasos de fabricación + 7 pasos de instalación">Flujo de proceso</SectionTitle>
-          <div className="space-y-5">
-
-            {/* Fabricación */}
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
             <div>
-              <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2">Fabricación</p>
-              <div className="flex flex-wrap gap-2">
-                {FLUJO_FABRICACION.map((paso, i) => (
-                  <div key={i} className="flex items-center gap-1.5">
-                    <div
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                        paso.bottleneck
-                          ? "bg-red-50 border border-red-200 text-red-700"
-                          : "bg-zinc-50 border border-zinc-200 text-zinc-700"
-                      }`}
-                    >
-                      <span className="text-[10px] text-zinc-300 font-mono">{String(i + 1).padStart(2, "0")}</span>
-                      {paso.paso}
-                      {paso.bottleneck && (
-                        <span className="ml-1 text-[9px] bg-red-100 text-red-600 px-1 py-0.5 rounded font-bold uppercase tracking-wider">
-                          ⚠ cuello
-                        </span>
-                      )}
-                    </div>
-                    {i < FLUJO_FABRICACION.length - 1 && (
-                      <ArrowRight className="h-3 w-3 text-zinc-200 shrink-0" />
-                    )}
-                  </div>
-                ))}
-              </div>
+              <SectionTitle sub="Pasos definidos por tipo de producto (pasa el mouse para ver detalles)">Flujo de proceso</SectionTitle>
             </div>
-
-            {/* Instalación */}
-            <div>
-              <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2">Instalación</p>
-              <div className="flex flex-wrap gap-2">
-                {FLUJO_INSTALACION.map((paso, i) => (
-                  <div key={i} className="flex items-center gap-1.5">
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 border border-blue-100 text-xs font-medium text-blue-700">
-                      <span className="text-[10px] text-blue-300 font-mono">{String(i + 1).padStart(2, "0")}</span>
-                      {paso.paso}
-                    </div>
-                    {i < FLUJO_INSTALACION.length - 1 && (
-                      <ArrowRight className="h-3 w-3 text-zinc-200 shrink-0" />
-                    )}
-                  </div>
+            <div className="flex items-center gap-2">
+              <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Ver flujo de:</label>
+              <select
+                value={selectedTipoFlujo}
+                onChange={(e) => {
+                  setSelectedTipoFlujo(e.target.value);
+                  setFlujoActual(flujosPorTipo[e.target.value] || []);
+                }}
+                className="px-3 py-1.5 text-xs border border-zinc-200 rounded-lg bg-white text-zinc-700 font-medium focus:outline-none focus:ring-2 focus:ring-zinc-900"
+              >
+                {tiposProducto.map((tipo) => (
+                  <option key={tipo} value={tipo}>{tipo.replace("_", " ")}</option>
                 ))}
-              </div>
+                {tiposProducto.length === 0 && <option>Sin tipos definidos</option>}
+              </select>
+             <button
+  onClick={() => setShowNewTipoModal(true)}
+  className="px-3 py-1.5 text-xs bg-zinc-900 text-white rounded-lg hover:bg-zinc-800 transition-colors flex items-center gap-1"
+>
+  <PlusCircle className="h-3 w-3" />
+  Nuevo tipo
+</button>
+              <button
+                onClick={() => setShowEditModal(true)}
+                className="px-3 py-1.5 text-xs bg-zinc-900 text-white rounded-lg hover:bg-zinc-800 transition-colors flex items-center gap-1"
+              >
+                <Settings className="h-3 w-3" />
+                Editar flujo
+              </button>
             </div>
           </div>
+
+          {flujoActual.length > 0 ? (
+            <div className="space-y-5">
+              <div className="flex flex-wrap gap-2">
+                {flujoActual.map((paso, i) => {
+                  const isBottleneck = paso.paso.toLowerCase().includes("armado");
+                  return (
+                    <StepWithTooltip
+                      key={paso.id}
+                      paso={paso}
+                      index={i}
+                      isLast={i === flujoActual.length - 1}
+                      isBottleneck={isBottleneck}
+                    />
+                  );
+                })}
+              </div>
+              <div className="mt-3 p-3 bg-zinc-50 rounded-lg">
+                <p className="text-xs text-zinc-500">
+                  <span className="font-semibold">💡 Tip:</span> Pasa el mouse sobre cualquier paso para ver la descripción detallada con herramientas, materiales y precauciones.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-sm text-zinc-400">No hay flujo definido para este tipo de producto.</p>
+              <p className="text-xs text-zinc-300 mt-1">
+                Usa el botón <span className="font-mono">"Editar flujo"</span> para crear los pasos.
+              </p>
+            </div>
+          )}
         </section>
 
-        {/* ── Cuadrillas ───────────────────────────────────────────────────────── */}
+        {/* Cuadrillas */}
         {cuadrillas.length > 0 && (
           <section className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-6">
             <SectionTitle sub="Equipos operativos activos">Cuadrillas</SectionTitle>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {cuadrillas.map((c) => (
                 <div key={c.id} className="flex items-center gap-3 p-4 rounded-xl bg-zinc-50 border border-zinc-100">
-                  <div className="w-9 h-9 rounded-xl bg-zinc-200 flex items-center justify-center">
-                    <Users className="h-4 w-4 text-zinc-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-zinc-800">{c.nombre}</p>
-                    <p className="text-xs text-zinc-400">{c.ubicacion}</p>
-                  </div>
-                  <div className="ml-auto">
-                    <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-full uppercase tracking-wide">
-                      Activa
-                    </span>
-                  </div>
+                  <div className="w-9 h-9 rounded-xl bg-zinc-200 flex items-center justify-center"><Users className="h-4 w-4 text-zinc-600" /></div>
+                  <div><p className="text-sm font-semibold text-zinc-800">{c.nombre}</p><p className="text-xs text-zinc-400">{c.ubicacion}</p></div>
+                  <div className="ml-auto"><span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-full uppercase tracking-wide">Activa</span></div>
                 </div>
               ))}
             </div>
           </section>
         )}
 
-        {/* ── Formulario nueva / editar orden ───────────────────────────────────── */}
+        {/* Formulario nueva orden */}
         {showForm && (
           <section className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-6">
             <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-sm font-bold text-zinc-900 uppercase tracking-wider">
-                  {editingId ? "Editar orden" : "Nueva orden de producción"}
-                </h2>
-                <p className="text-xs text-zinc-400 mt-0.5">Completa los datos del pedido</p>
-              </div>
-              <button
-                onClick={() => { setShowForm(false); setEditingId(null); setForm(FORM_VACIO); }}
-                className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors"
-              >
-                <X className="h-4 w-4" />
-              </button>
+              <div><h2 className="text-sm font-bold text-zinc-900 uppercase tracking-wider">{editingId ? "Editar orden" : "Nueva orden de producción"}</h2><p className="text-xs text-zinc-400 mt-0.5">Completa los datos del pedido</p></div>
+              <button onClick={() => { setShowForm(false); setEditingId(null); setForm(FORM_VACIO); }} className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors"><X className="h-4 w-4" /></button>
             </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="md:col-span-2">
-                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">
-                  Nombre / producto *
-                </label>
-                <input
-                  type="text"
-                  value={form.nombre}
-                  onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-                  className="w-full px-4 py-2.5 text-sm text-zinc-900 border border-zinc-200 rounded-xl bg-zinc-50 focus:bg-white focus:border-zinc-400 focus:outline-none transition-colors"
-                  placeholder="Ej: Barandas Torre A, Cercos perimetrales..."
-                />
-              </div>
-
-              {(
-                [
-                  {
-                    label: "Tipo",
-                    field: "tipo",
-                    type: "select",
-                    options: [
-                      { value: "BARANDA", label: "Baranda" },
-                      { value: "CERCO", label: "Cerco" },
-                      { value: "ESTRUCTURA", label: "Estructura" },
-                      { value: "ESCALERA", label: "Escalera" },
-                    ],
-                  },
-                  {
-                    label: "Cantidad",
-                    field: "cantidad",
-                    type: "number",
-                  },
-                  {
-                    label: "Prioridad",
-                    field: "prioridad",
-                    type: "select",
-                    options: [
-                      { value: "BAJA", label: "Baja" },
-                      { value: "MEDIA", label: "Media" },
-                      { value: "ALTA", label: "Alta" },
-                    ],
-                  },
-                  {
-                    label: "Estado",
-                    field: "estado",
-                    type: "select",
-                    options: ESTADOS_ORDEN.map((e) => ({ value: e.key, label: e.label })),
-                  },
-                  { label: "Fecha inicio", field: "fechaInicio", type: "date" },
-                  { label: "Fecha fin estimada", field: "fechaFin", type: "date" },
-                ] as any[]
-              ).map((item) => (
-                <div key={item.field}>
-                  <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">
-                    {item.label}
-                  </label>
-                  {item.type === "select" ? (
-                    <select
-                      value={(form as any)[item.field]}
-                      onChange={(e) => setForm({ ...form, [item.field]: e.target.value })}
-                      className="w-full px-4 py-2.5 text-sm text-zinc-900 border border-zinc-200 rounded-xl bg-zinc-50 focus:bg-white focus:border-zinc-400 focus:outline-none transition-colors"
-                    >
-                      {item.options.map((o: any) => (
-                        <option key={o.value} value={o.value}>{o.label}</option>
-                      ))}
-                    </select>
-                  ) : (
-                    <input
-                      type={item.type}
-                      min={item.type === "number" ? "0" : undefined}
-                      value={(form as any)[item.field]}
-                      onChange={(e) => setForm({ ...form, [item.field]: e.target.value })}
-                      className="w-full px-4 py-2.5 text-sm text-zinc-900 border border-zinc-200 rounded-xl bg-zinc-50 focus:bg-white focus:border-zinc-400 focus:outline-none transition-colors"
-                    />
-                  )}
-                </div>
-              ))}
-
-              <div className="md:col-span-2">
-                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">
-                  Observaciones
-                </label>
-                <textarea
-                  rows={2}
-                  value={form.observaciones}
-                  onChange={(e) => setForm({ ...form, observaciones: e.target.value })}
-                  className="w-full px-4 py-2.5 text-sm text-zinc-900 border border-zinc-200 rounded-xl bg-zinc-50 focus:bg-white focus:border-zinc-400 focus:outline-none transition-colors resize-none"
-                  placeholder="Detalles adicionales..."
-                />
-              </div>
+              <div className="md:col-span-2"><label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">Nombre / producto *</label><input type="text" value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} className="w-full px-4 py-2.5 text-sm text-zinc-900 border border-zinc-200 rounded-xl bg-zinc-50 focus:bg-white focus:border-zinc-400 focus:outline-none transition-colors" placeholder="Ej: Barandas Torre A, Cercos perimetrales..." /></div>
+              <div><label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">Tipo</label><select value={form.tipo} onChange={(e) => setForm({ ...form, tipo: e.target.value })} className="w-full px-4 py-2.5 text-sm text-zinc-900 border border-zinc-200 rounded-xl bg-zinc-50 focus:bg-white focus:border-zinc-400 focus:outline-none transition-colors">{tiposProducto.map((t) => (<option key={t} value={t}>{t.replace("_", " ")}</option>))}{tiposProducto.length === 0 && <option value="BARANDA_BALCON">BARANDA_BALCON</option>}</select></div>
+              <div><label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">Cantidad</label><input type="number" min="0" value={form.cantidad} onChange={(e) => setForm({ ...form, cantidad: e.target.value })} className="w-full px-4 py-2.5 text-sm text-zinc-900 border border-zinc-200 rounded-xl bg-zinc-50 focus:bg-white focus:border-zinc-400 focus:outline-none transition-colors" /></div>
+              <div><label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">Prioridad</label><select value={form.prioridad} onChange={(e) => setForm({ ...form, prioridad: e.target.value })} className="w-full px-4 py-2.5 text-sm text-zinc-900 border border-zinc-200 rounded-xl bg-zinc-50 focus:bg-white focus:border-zinc-400 focus:outline-none transition-colors"><option value="BAJA">Baja</option><option value="MEDIA">Media</option><option value="ALTA">Alta</option></select></div>
+              <div><label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">Estado</label><select value={form.estado} onChange={(e) => setForm({ ...form, estado: e.target.value })} className="w-full px-4 py-2.5 text-sm text-zinc-900 border border-zinc-200 rounded-xl bg-zinc-50 focus:bg-white focus:border-zinc-400 focus:outline-none transition-colors">{ESTADOS_ORDEN.map((e) => (<option key={e.key} value={e.key}>{e.label}</option>))}</select></div>
+              <div><label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">Fecha inicio</label><input type="date" value={form.fechaInicio} onChange={(e) => setForm({ ...form, fechaInicio: e.target.value })} className="w-full px-4 py-2.5 text-sm text-zinc-900 border border-zinc-200 rounded-xl bg-zinc-50 focus:bg-white focus:border-zinc-400 focus:outline-none transition-colors" /></div>
+              <div><label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">Fecha fin estimada</label><input type="date" value={form.fechaFin} onChange={(e) => setForm({ ...form, fechaFin: e.target.value })} className="w-full px-4 py-2.5 text-sm text-zinc-900 border border-zinc-200 rounded-xl bg-zinc-50 focus:bg-white focus:border-zinc-400 focus:outline-none transition-colors" /></div>
+              <div className="md:col-span-2"><label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">Observaciones</label><textarea rows={2} value={form.observaciones} onChange={(e) => setForm({ ...form, observaciones: e.target.value })} className="w-full px-4 py-2.5 text-sm text-zinc-900 border border-zinc-200 rounded-xl bg-zinc-50 focus:bg-white focus:border-zinc-400 focus:outline-none transition-colors resize-none" placeholder="Detalles adicionales..." /></div>
             </div>
-
-            <div className="flex gap-3 mt-6 pt-6 border-t border-zinc-100">
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="flex items-center gap-2 px-6 py-2.5 bg-zinc-900 text-white text-xs font-bold rounded-xl hover:bg-zinc-800 transition-colors uppercase tracking-wide disabled:opacity-60"
-              >
-                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                {saving ? "Guardando..." : editingId ? "Actualizar" : "Crear orden"}
-              </button>
-              <button
-                onClick={() => { setShowForm(false); setEditingId(null); setForm(FORM_VACIO); }}
-                className="px-5 py-2.5 border border-zinc-200 text-zinc-600 bg-white rounded-xl hover:bg-zinc-50 text-xs font-semibold uppercase tracking-wide transition-colors"
-              >
-                Cancelar
-              </button>
-            </div>
+            <div className="flex gap-3 mt-6 pt-6 border-t border-zinc-100"><button onClick={handleSaveOrden} disabled={saving} className="flex items-center gap-2 px-6 py-2.5 bg-zinc-900 text-white text-xs font-bold rounded-xl hover:bg-zinc-800 transition-colors uppercase tracking-wide disabled:opacity-60">{saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}{saving ? "Guardando..." : editingId ? "Actualizar" : "Crear orden"}</button><button onClick={() => { setShowForm(false); setEditingId(null); setForm(FORM_VACIO); }} className="px-5 py-2.5 border border-zinc-200 text-zinc-600 bg-white rounded-xl hover:bg-zinc-50 text-xs font-semibold uppercase tracking-wide transition-colors">Cancelar</button></div>
           </section>
         )}
 
-        {/* ── Lista de órdenes ──────────────────────────────────────────────────── */}
+        {/* Lista de órdenes */}
         <section>
-          <div className="flex items-center justify-between mb-4">
-            <SectionTitle sub={`${ordenesFiltradas.length} de ${ordenes.length} órdenes`}>
-              Órdenes de producción
-            </SectionTitle>
-
-            {/* Filtros rápidos */}
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+            <SectionTitle sub={`${ordenesFiltradas.length} de ${ordenes.length} órdenes`}>Órdenes de producción</SectionTitle>
             <div className="flex items-center gap-1.5 flex-wrap justify-end">
-              {[
-                { key: "ALL", label: "Todas" },
-                { key: "EN_PRODUCCION", label: "En prod." },
-                { key: "EN_INSTALACION", label: "Instalac." },
-                { key: "PENDIENTE", label: "Pendiente" },
-                { key: "COMPLETADO", label: "Completadas" },
-              ].map((f) => (
-                <button
-                  key={f.key}
-                  onClick={() => setFilterEstado(f.key)}
-                  className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-colors ${
-                    filterEstado === f.key
-                      ? "bg-zinc-900 text-white"
-                      : "bg-white border border-zinc-200 text-zinc-500 hover:border-zinc-400"
-                  }`}
-                >
-                  {f.label}
+              {["ALL", "EN_PRODUCCION", "EN_INSTALACION", "PENDIENTE", "COMPLETADO"].map((f) => (
+                <button key={f} onClick={() => setFilterEstado(f)} className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-colors ${filterEstado === f ? "bg-zinc-900 text-white" : "bg-white border border-zinc-200 text-zinc-500 hover:border-zinc-400"}`}>
+                  {f === "ALL" ? "Todas" : f === "EN_PRODUCCION" ? "En prod." : f === "EN_INSTALACION" ? "Instalac." : f === "PENDIENTE" ? "Pendiente" : "Completadas"}
                 </button>
               ))}
             </div>
           </div>
 
           {ordenesFiltradas.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-zinc-100 p-16 text-center">
-              <div className="w-14 h-14 rounded-2xl bg-zinc-50 flex items-center justify-center mx-auto mb-4">
-                <Factory className="h-7 w-7 text-zinc-200" />
-              </div>
-              <p className="text-sm text-zinc-400">No hay órdenes en este filtro.</p>
-              <p className="text-xs text-zinc-300 mt-1">
-                {filterEstado === "ALL"
-                  ? 'Crea la primera con "Nueva orden".'
-                  : "Prueba con otro filtro."}
-              </p>
-            </div>
+            <div className="bg-white rounded-2xl border border-zinc-100 p-16 text-center"><div className="w-14 h-14 rounded-2xl bg-zinc-50 flex items-center justify-center mx-auto mb-4"><Factory className="h-7 w-7 text-zinc-200" /></div><p className="text-sm text-zinc-400">No hay órdenes en este filtro.</p><p className="text-xs text-zinc-300 mt-1">{filterEstado === "ALL" ? 'Crea la primera con "Nueva orden".' : "Prueba con otro filtro."}</p></div>
           ) : (
             <div className="space-y-3">
               {ordenesFiltradas.map((orden) => {
                 const isExpanded = expandedId === orden.id;
                 const pConfig = prioridadConfig[orden.prioridad] ?? prioridadConfig.BAJA;
-
                 return (
-                  <div
-                    key={orden.id}
-                    className="bg-white rounded-2xl border border-zinc-100 shadow-sm overflow-hidden hover:border-zinc-200 transition-colors"
-                  >
+                  <div key={orden.id} className="bg-white rounded-2xl border border-zinc-100 shadow-sm overflow-hidden hover:border-zinc-200 transition-colors">
                     <div className="p-5">
                       <div className="flex items-start gap-4">
-
-                        {/* Indicador de prioridad */}
-                        <div className="flex flex-col items-center gap-1 pt-0.5">
-                          <div className={`w-2 h-2 rounded-full ${pConfig.dot}`} />
-                          <div className="w-px flex-1 bg-zinc-100 min-h-[24px]" />
-                        </div>
-
-                        {/* Contenido principal */}
+                        <div className="flex flex-col items-center gap-1 pt-0.5"><div className={`w-2 h-2 rounded-full ${pConfig.dot}`} /><div className="w-px flex-1 bg-zinc-100 min-h-[24px]" /></div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <h3 className="text-sm font-bold text-zinc-900 truncate">{orden.nombre}</h3>
-                                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${estadoBadge[orden.estado] ?? "bg-zinc-100 text-zinc-600"}`}>
-                                  {getEstadoLabel(orden.estado)}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-3 mt-1 flex-wrap">
-                                <span className="text-xs text-zinc-500">
-                                  <span className="font-semibold text-zinc-700">{orden.cantidad}</span> {orden.unidad}
-                                </span>
-                                <span className="text-[10px] text-zinc-300">·</span>
-                                <span className="text-xs text-zinc-400 uppercase tracking-wide">{orden.tipo}</span>
-                                <span className="text-[10px] text-zinc-300">·</span>
-                                <span className={`text-xs ${pConfig.style}`}>
-                                  ↑ {orden.prioridad}
-                                </span>
-                                <span className="text-[10px] text-zinc-300">·</span>
-                                <span className="text-xs text-zinc-400 flex items-center gap-1">
-                                  <Clock className="h-3 w-3" />
-                                  {new Date(orden.fechaInicio).toLocaleDateString("es-PE", {
-                                    day: "2-digit", month: "short"
-                                  })}
-                                </span>
-                              </div>
+                              <div className="flex items-center gap-2 flex-wrap"><h3 className="text-sm font-bold text-zinc-900 truncate">{orden.nombre}</h3><span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${estadoBadge[orden.estado] ?? "bg-zinc-100 text-zinc-600"}`}>{getEstadoLabel(orden.estado)}</span></div>
+                              <div className="flex items-center gap-3 mt-1 flex-wrap"><span className="text-xs text-zinc-500"><span className="font-semibold text-zinc-700">{orden.cantidad}</span> {orden.unidad}</span><span className="text-[10px] text-zinc-300">·</span><span className="text-xs text-zinc-400 uppercase tracking-wide">{orden.tipo}</span><span className="text-[10px] text-zinc-300">·</span><span className={`text-xs ${pConfig.style}`}>↑ {orden.prioridad}</span><span className="text-[10px] text-zinc-300">·</span><span className="text-xs text-zinc-400 flex items-center gap-1"><Clock className="h-3 w-3" />{new Date(orden.fechaInicio).toLocaleDateString("es-PE", { day: "2-digit", month: "short" })}</span></div>
                               <FlujoBadgeLine estado={orden.estado} />
                             </div>
-
-                            {/* Acciones */}
-                            <div className="flex items-center gap-0.5 shrink-0">
-                              <button
-                                onClick={() => handleEdit(orden)}
-                                className="p-1.5 text-zinc-300 hover:text-zinc-700 hover:bg-zinc-100 rounded-lg transition-colors"
-                                title="Editar"
-                              >
-                                <Pencil className="h-3.5 w-3.5" />
-                              </button>
-                              <button
-                                onClick={() => handleDelete(orden.id)}
-                                className="p-1.5 text-zinc-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                                title="Eliminar"
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </button>
-                              <button
-                                onClick={() => setExpandedId(isExpanded ? null : orden.id)}
-                                className="p-1.5 text-zinc-300 hover:text-zinc-700 hover:bg-zinc-100 rounded-lg transition-colors"
-                              >
-                                {isExpanded ? (
-                                  <ChevronUp className="h-4 w-4" />
-                                ) : (
-                                  <ChevronDown className="h-4 w-4" />
-                                )}
-                              </button>
-                            </div>
+                            <div className="flex items-center gap-0.5 shrink-0"><button onClick={() => handleEditOrden(orden)} className="p-1.5 text-zinc-300 hover:text-zinc-700 hover:bg-zinc-100 rounded-lg transition-colors"><Pencil className="h-3.5 w-3.5" /></button><button onClick={() => handleDeleteOrden(orden.id)} className="p-1.5 text-zinc-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="h-3.5 w-3.5" /></button><button onClick={() => setExpandedId(isExpanded ? null : orden.id)} className="p-1.5 text-zinc-300 hover:text-zinc-700 hover:bg-zinc-100 rounded-lg transition-colors">{isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}</button></div>
                           </div>
                         </div>
                       </div>
-
-                      {/* Expandido */}
                       {isExpanded && (
                         <div className="mt-4 pt-4 border-t border-zinc-50 pl-6">
-                          <div className="grid grid-cols-2 gap-4 mb-4">
-                            <div>
-                              <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">
-                                Observaciones
-                              </p>
-                              <p className="text-xs text-zinc-600">
-                                {orden.observaciones || "Sin observaciones registradas."}
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">
-                                Fecha fin estimada
-                              </p>
-                              <p className="text-xs text-zinc-600">
-                                {orden.fechaFin
-                                  ? new Date(orden.fechaFin).toLocaleDateString("es-PE", {
-                                      weekday: "long", day: "numeric", month: "long",
-                                    })
-                                  : "No definida"}
-                              </p>
-                            </div>
-                          </div>
-
-                          {/* Cambiar estado */}
-                          <div>
-                            <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2">
-                              Cambiar estado
-                            </p>
-                            <div className="flex flex-wrap gap-1.5">
-                              {ESTADOS_ORDEN.map((e) => (
-                                <button
-                                  key={e.key}
-                                  onClick={() => handleUpdateStatus(orden.id, e.key)}
-                                  className={`text-[10px] px-3 py-1.5 rounded-full font-semibold uppercase tracking-wide transition-all ${
-                                    orden.estado === e.key
-                                      ? `${estadoBadge[e.key]} ring-2 ring-offset-1 ring-zinc-300`
-                                      : "bg-zinc-50 text-zinc-500 border border-zinc-200 hover:border-zinc-400 hover:text-zinc-700"
-                                  }`}
-                                >
-                                  {e.label}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
+                          <div className="grid grid-cols-2 gap-4 mb-4"><div><p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Observaciones</p><p className="text-xs text-zinc-600">{orden.observaciones || "Sin observaciones registradas."}</p></div><div><p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Fecha fin estimada</p><p className="text-xs text-zinc-600">{orden.fechaFin ? new Date(orden.fechaFin).toLocaleDateString("es-PE", { weekday: "long", day: "numeric", month: "long" }) : "No definida"}</p></div></div>
+                          <div><p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2">Cambiar estado</p><div className="flex flex-wrap gap-1.5">{ESTADOS_ORDEN.map((e) => (<button key={e.key} onClick={() => handleUpdateStatus(orden.id, e.key)} className={`text-[10px] px-3 py-1.5 rounded-full font-semibold uppercase tracking-wide transition-all ${orden.estado === e.key ? `${estadoBadge[e.key]} ring-2 ring-offset-1 ring-zinc-300` : "bg-zinc-50 text-zinc-500 border border-zinc-200 hover:border-zinc-400 hover:text-zinc-700"}`}>{e.label}</button>))}</div></div>
                         </div>
                       )}
                     </div>
@@ -925,6 +914,22 @@ export default function ProduccionPage() {
         </section>
 
       </main>
+
+      {/* Modal para editar flujo */}
+      <EditFlowModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        tipoProducto={selectedTipoFlujo}
+        pasos={flujoActual}
+        onSave={handleSaveFlujo}
+      />
+
+      {/* Modal para nuevo tipo de producto */}
+      <NewTipoModal
+        isOpen={showNewTipoModal}
+        onClose={() => setShowNewTipoModal(false)}
+        onSave={handleNewTipo}
+      />
     </div>
   );
-} 
+}

@@ -25,6 +25,7 @@ import {
   HardHat,
 } from "lucide-react";
 import { createBrowserClient } from "@supabase/ssr";
+import Swal from "sweetalert2";
 
 const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -139,10 +140,14 @@ export default function ObrasPage() {
     }
   };
 
+  const showToastMsg = (type: "ok" | "err", msg: string) => {
+    setToast({ type, msg });
+    setTimeout(() => setToast(null), 4000);
+  };
+
   const handleSave = async () => {
     if (!form.name.trim() || !form.client.trim()) {
-      setToast({ type: "err", msg: "Completa el nombre de la obra y el cliente." });
-      setTimeout(() => setToast(null), 4000);
+      showToastMsg("err", "Completa el nombre de la obra y el cliente.");
       return;
     }
 
@@ -172,15 +177,14 @@ export default function ObrasPage() {
 
     setSaving(false);
     if (error) {
-      setToast({ type: "err", msg: "Error al guardar. Intenta de nuevo." });
+      showToastMsg("err", "Error al guardar. Intenta de nuevo.");
     } else {
-      setToast({ type: "ok", msg: editingId ? "Obra actualizada." : "Obra creada correctamente." });
+      showToastMsg("ok", editingId ? "Obra actualizada." : "Obra creada correctamente.");
       setForm(FORM_VACIO);
       setShowForm(false);
       setEditingId(null);
       loadData();
     }
-    setTimeout(() => setToast(null), 4000);
   };
 
   const handleEdit = (obra: any) => {
@@ -200,10 +204,63 @@ export default function ObrasPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("¿Eliminar esta obra? Se perderán los datos asociados.")) return;
-    await supabase.from("Project").delete().eq("id", id);
-    loadData();
+  const handleDelete = async (id: string, name: string) => {
+    // SweetAlert de confirmación
+    const result = await Swal.fire({
+      title: '¿Eliminar obra?',
+      html: `Estás por eliminar <strong>${name}</strong>.<br>Se perderán los datos asociados (contratos, trabajos, costos).`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc2626',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+      reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) return;
+
+    setSaving(true);
+    
+    try {
+      // Primero eliminar los contratos asociados
+      const { error: contratosError } = await supabase
+        .from("Contrato")
+        .delete()
+        .eq("project_id", id);
+      
+      if (contratosError) throw contratosError;
+
+      // Luego eliminar la obra
+      const { error: projectError } = await supabase
+        .from("Project")
+        .delete()
+        .eq("id", id);
+      
+      if (projectError) throw projectError;
+
+      await Swal.fire({
+        title: '¡Eliminada!',
+        text: 'La obra ha sido eliminada correctamente.',
+        icon: 'success',
+        confirmButtonColor: '#10b981',
+        timer: 2000,
+        showConfirmButton: true,
+      });
+      
+      loadData();
+    } catch (error: any) {
+      console.error("Error deleting:", error);
+      
+      await Swal.fire({
+        title: 'No se puede eliminar',
+        html: 'Esta obra tiene <strong>costos registrados</strong> u otros datos asociados.<br>Primero elimina los costos y luego la obra.',
+        icon: 'error',
+        confirmButtonColor: '#dc2626',
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleUpdateStatus = async (id: string, newStatus: string) => {
@@ -512,7 +569,7 @@ export default function ObrasPage() {
                             <Pencil className="h-3.5 w-3.5" />
                           </button>
                           <button
-                            onClick={() => handleDelete(obra.id)}
+                            onClick={() => handleDelete(obra.id, obra.name)}
                             className="p-1.5 text-gray-400 hover:text-red-500 transition-colors"
                           >
                             <Trash2 className="h-3.5 w-3.5" />

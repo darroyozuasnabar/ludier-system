@@ -71,112 +71,6 @@ const getBadgeClass = (color: string) => {
 };
 
 // ──────────────────────────────────────────────────────────────────────────────
-// CONTRATOS REALES — 10 contratos corregidos
-// Regla: COBRADO = ya ingresó dinero. PENDIENTE = aún no cobrado.
-//
-// Contratos cobrados (8):
-//   Carpintería metálica Qantua   178,926.10
-//   Desmontaje malla Raschell       1,200.00
-//   Adicionales Zendai             56,370.00
-//   Techos metálicos y cercos       5,470.00
-//   Apoyo operativo especializado  18,668.72
-//   Cerco perimetral Fase 2        55,000.00
-//   Desmontaje y montaje cerco     18,000.00
-//   Cerramiento y mantenimiento    16,600.00
-//   TOTAL COBRADO                 350,234.82  ← suma real de los 8
-//
-// Contratos pendientes (2):
-//   Desmontaje y retiro chutes      1,300.00  (servicio pendiente)
-//   Contrato Qantua Fase 2        543,667.29  (total del contrato de valorizaciones)
-//
-// NOTA: La Valorización N°01 (S/91,361.50 neto) está PENDIENTE de cobro y forma
-// parte del "Contrato Qantua Fase 2". No se muestra como una fila separada porque
-// ya está contenida en ese contrato; se detalla en la sección "Avance del contrato".
-// ──────────────────────────────────────────────────────────────────────────────
-const CONTRATOS_REALES = [
-  {
-    id: 1,
-    nombre: "Carpintería metálica Qantua",
-    monto: 178926.10,
-    fecha: "2025-11-11",
-    estado: "COBRADO",
-    tipo: "CONTRATO",
-  },
-  {
-    id: 2,
-    nombre: "Desmontaje malla Raschell",
-    monto: 1200.00,
-    fecha: "2026-01-07",
-    estado: "COBRADO",
-    tipo: "SERVICIO",
-  },
-  {
-    id: 3,
-    nombre: "Adicionales Zendai",
-    monto: 56370.00,
-    fecha: "2026-02-27",
-    estado: "COBRADO",
-    tipo: "ADENDA",
-  },
-  {
-    id: 4,
-    nombre: "Techos metálicos y cercos",
-    monto: 5470.00,
-    fecha: "2026-03-03",
-    estado: "COBRADO",
-    tipo: "ADENDA",
-  },
-  {
-    id: 5,
-    nombre: "Apoyo operativo especializado",
-    monto: 18668.72,
-    fecha: "2026-03-23",
-    estado: "COBRADO",
-    tipo: "SERVICIO",
-  },
-  {
-    id: 6,
-    nombre: "Cerco perimetral Fase 2",
-    monto: 55000.00,
-    fecha: "2026-04-09",
-    estado: "COBRADO",
-    tipo: "CONTRATO",
-  },
-  {
-    id: 7,
-    nombre: "Desmontaje y retiro chutes",
-    monto: 1300.00,
-    fecha: "2026-04-30",
-    estado: "PENDIENTE",
-    tipo: "SERVICIO",
-  },
-  {
-    id: 8,
-    nombre: "Desmontaje y montaje cerco",
-    monto: 18000.00,
-    fecha: "2026-05-11",
-    estado: "COBRADO",
-    tipo: "SERVICIO",
-  },
-  {
-    id: 9,
-    nombre: "Cerramiento y mantenimiento",
-    monto: 16600.00,
-    fecha: "2026-05-11",
-    estado: "COBRADO",
-    tipo: "SERVICIO",
-  },
-  {
-    id: 10,
-    nombre: "Contrato Qantua Fase 2",
-    monto: 543667.29,
-    fecha: "2026-05-29",
-    estado: "PENDIENTE",
-    tipo: "VALORIZACION",
-  },
-];
-
-// ──────────────────────────────────────────────────────────────────────────────
 // Componente Principal
 // ──────────────────────────────────────────────────────────────────────────────
 export default function DashboardPage() {
@@ -196,8 +90,8 @@ export default function DashboardPage() {
   const [hitos, setHitos] = useState<any[]>([]);
   const [trabajos, setTrabajos] = useState<any[]>([]);
   const [costos, setCostos] = useState<any[]>([]);
-
-  const contratos = CONTRATOS_REALES;
+  // Contratos desde BD (reemplaza el array hardcodeado)
+  const [contratos, setContratos] = useState<any[]>([]);
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
@@ -214,13 +108,22 @@ export default function DashboardPage() {
         .maybeSingle();
       setProject(projectData);
 
+      // ── Cargar TODOS los contratos de BD (todas las tablas Contrato) ──
+      const { data: contratosData } = await supabase
+        .from("Contrato")
+        .select("*")
+        .order("fecha", { ascending: true });
+      setContratos(contratosData || []);
+
       if (projectData) {
         const projectId = projectData.id;
 
+        // ConfiguracionContrato del proyecto principal (Qantua F2)
         const { data: configData } = await supabase
           .from("ConfiguracionContrato")
           .select("*")
           .eq("project_id", projectId)
+          .eq("nombre", "Qantua Fase 2")
           .maybeSingle();
         setContratoConfig(configData);
 
@@ -296,46 +199,36 @@ export default function DashboardPage() {
   if (!session) return null;
 
   // ────────────────────────────────────────────────────────────────────────────
-  // CÁLCULOS FINANCIEROS CORREGIDOS
+  // CÁLCULOS FINANCIEROS — 100% desde BD
   // ────────────────────────────────────────────────────────────────────────────
 
-  // Solo contratos donde ya entró el dinero (excluye PENDIENTE)
   const contratosCobrados = contratos.filter((c) => c.estado === "COBRADO");
-  const totalHistoricoCobrado = contratosCobrados.reduce(
-    (sum, c) => sum + c.monto,
-    0
-  );
-  // = 178,926.10 + 1,200 + 56,370 + 5,470 + 18,668.72 + 55,000 + 18,000 + 16,600
-  // = 350,234.82
-
-  // Contratos pendientes de cobro
   const contratosPendientes = contratos.filter((c) => c.estado === "PENDIENTE");
-  const totalPorCobrar = contratosPendientes.reduce(
-    (sum, c) => sum + c.monto,
+
+  const totalHistoricoCobrado = contratosCobrados.reduce(
+    (sum, c) => sum + Number(c.monto),
     0
   );
-  // = 1,300 (chutes) + 543,667.29 (Qantua F2 total) = 544,967.29
-  // PERO para el resumen financiero mostramos solo la próxima cobranza real:
-  // Val. N°01 neto = S/ 91,361.50 (que se cobra el viernes 29/05)
+  const totalPorCobrar = contratosPendientes.reduce(
+    (sum, c) => sum + Number(c.monto),
+    0
+  );
 
   // Configuración del contrato Qantua F2 (desde BD)
-  const totalContratoQantua = contratoConfig?.total_pagar || 543667.29;
-  const garantiaTotal = contratoConfig?.garantia || 28614.07;
-  const costoDirectoTotal = contratoConfig?.costo_directo || 484984.20;
+  const totalContratoQantua = Number(contratoConfig?.total_pagar || 0);
+  const garantiaTotal = Number(contratoConfig?.garantia || 0);
+  const costoDirectoTotal = Number(contratoConfig?.costo_directo || 0);
 
-  // Última valorización (desde BD) — Val. N°01, Marzo 2026
+  // Última valorización (desde BD)
   const ultimaVal = valorizaciones[0];
   const avancePorcentaje = ultimaVal ? Number(ultimaVal.avancePct) : 0;
-  // = 16.80%
   const netoCobrarVal01 = ultimaVal ? Number(ultimaVal.netoCobrar) : 0;
-  // = 91,361.50
   const ultimaValPeriodo = ultimaVal?.period || "Sin valorizaciones";
 
-  // Próxima cobranza real = Val. N°01 neto (status PENDIENTE en BD, se cobra 29/05)
+  // Próxima cobranza = neto de la última val pendiente
   const proximoMonto = netoCobrarVal01;
-  const proximaFecha = "viernes 29 de mayo de 2026";
 
-  // Costos reales (desde tabla CostoReal)
+  // Costos reales
   const totalMateriales = costos.reduce(
     (sum, c) =>
       sum + Number(c.fierro) + Number(c.pintura) + Number(c.galvanizado),
@@ -354,39 +247,30 @@ export default function DashboardPage() {
   const totalCostos = totalMateriales + totalManoObra + totalOtros;
   const tieneCostos = totalCostos > 0;
   const margenBruto = tieneCostos
-    ? (ultimaVal?.costoDirecto || 0) - totalCostos
+    ? Number(ultimaVal?.costoDirecto || 0) - totalCostos
     : 0;
   const margenPorcentaje =
     tieneCostos && ultimaVal?.costoDirecto
       ? (margenBruto / Number(ultimaVal.costoDirecto)) * 100
       : 0;
 
-  // ────────────────────────────────────────────────────────────────────────────
-  // FLUJO DE CAJA
-  // Muestra los 10 contratos ordenados cronológicamente.
-  // Para el contrato "Qantua Fase 2" (PENDIENTE) usamos el neto de la Val. N°01
-  // cashFlowData: exactamente los mismos 10 contratos que la tabla,
-  // en el mismo orden cronológico, con los mismos montos y estados.
-  // Usamos "#N dd mmm" como label del eje X para que cada barra sea única,
-  // incluso cuando dos contratos caen en la misma fecha (ej: 10/05).
-  const cashFlowData = [...contratos]
-    .sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime())
-    .map((c, idx) => {
-      const d = new Date(c.fecha);
-      const mesCorto = d.toLocaleDateString("es-PE", {
-        day: "2-digit",
-        month: "short",
-      });
-      return {
-        label: `#${idx + 1} ${mesCorto}`,
-        monto: c.monto,
-        estado: c.estado,
-        nombre: c.nombre,
-        tipo: c.tipo,
-        fecha: new Date(c.fecha).toLocaleDateString("es-PE"),
-        id: c.id,
-      };
+  // Flujo de caja — todos los contratos de BD ordenados por fecha
+  const cashFlowData = contratos.map((c, idx) => {
+    const d = new Date(c.fecha);
+    const mesCorto = d.toLocaleDateString("es-PE", {
+      day: "2-digit",
+      month: "short",
     });
+    return {
+      label: `#${idx + 1} ${mesCorto}`,
+      monto: Number(c.monto),
+      estado: c.estado,
+      nombre: c.nombre,
+      tipo: c.tipo,
+      fecha: d.toLocaleDateString("es-PE"),
+      id: c.id,
+    };
+  });
 
   const alertasUrgentes = alertas.filter((a) => a.priority === "ALTA").length;
 
@@ -402,17 +286,6 @@ export default function DashboardPage() {
   );
 
   const totalWorkers = workers.length + direccion.length;
-
-  // ────────────────────────────────────────────────────────────────────────────
-  // RESUMEN FINANCIERO — lógica corregida
-  //
-  // "Total contratos ejecutados" = dinero YA cobrado (8 contratos) = S/ 350,234.82
-  // "Por cobrar inmediato"       = Val. N°01 neta (viernes 29/05) = S/ 91,361.50
-  // "Otros pendientes"           = chutes S/ 1,300 + saldo Qantua F2
-  // "Garantía retenida"          = S/ 28,614.07 (se libera al cierre del contrato)
-  // ────────────────────────────────────────────────────────────────────────────
-  const saldoQantuaF2 =
-    totalContratoQantua - netoCobrarVal01 - (contratoConfig?.historico_cobrado || 0);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -451,7 +324,7 @@ export default function DashboardPage() {
       <main className="max-w-7xl mx-auto px-6 py-8 space-y-8">
         {/* KPIs principales */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-          {/* Histórico cobrado — solo los 8 contratos con dinero real */}
+          {/* Histórico cobrado */}
           <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex justify-between items-start">
               <div>
@@ -491,7 +364,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Próxima cobranza — Val. N°01 neto, viernes 29/05 */}
+          {/* Próxima cobranza */}
           <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex justify-between items-start">
               <div>
@@ -502,7 +375,7 @@ export default function DashboardPage() {
                   {formatCOP(proximoMonto)}
                 </p>
                 <p className="text-xs text-gray-400 mt-1">
-                  Val. N°01 neta · {proximaFecha}
+                  Val. N°01 neta · {ultimaValPeriodo}
                 </p>
               </div>
               <div className="p-3 rounded-lg bg-amber-50">
@@ -511,7 +384,7 @@ export default function DashboardPage() {
             </div>
             <div className="mt-3 inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 text-xs font-medium px-2 py-1 rounded-full">
               <Calendar className="h-3 w-3" />
-              Viernes 29 mayo · LAR
+              Pendiente de cobro · LAR
             </div>
           </div>
 
@@ -545,11 +418,7 @@ export default function DashboardPage() {
 
         {/* Avance del contrato + Resumen financiero */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* ── Avance del contrato ──
-              Muestra el progreso de la Valorización del contrato Qantua F2.
-              Val. N°01 = 16.80% avance, S/81,500 costo directo valorizado.
-              Saldo = 83.20% restante = S/403,484.20.
-              El neto a cobrar de Val. N°01 es S/91,361.50 (se cobra el 29/05). */}
+          {/* Avance del contrato */}
           <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
             <div className="flex justify-between items-start mb-4">
               <div>
@@ -579,7 +448,7 @@ export default function DashboardPage() {
               <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
                 <p className="text-xs text-gray-500 mb-1">Valorizado (Val. N°01)</p>
                 <p className="text-xl font-bold text-gray-900">
-                  {formatCOP(ultimaVal?.costoDirecto || 0)}
+                  {formatCOP(Number(ultimaVal?.costoDirecto || 0))}
                 </p>
                 <p className="text-xs text-emerald-600 mt-1">
                   {avancePorcentaje}% del total
@@ -588,7 +457,7 @@ export default function DashboardPage() {
               <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
                 <p className="text-xs text-gray-500 mb-1">Saldo por valorizar</p>
                 <p className="text-xl font-bold text-gray-900">
-                  {formatCOP(costoDirectoTotal - (ultimaVal?.costoDirecto || 0))}
+                  {formatCOP(costoDirectoTotal - Number(ultimaVal?.costoDirecto || 0))}
                 </p>
                 <p className="text-xs text-amber-600 mt-1">
                   {(100 - avancePorcentaje).toFixed(2)}% del total
@@ -596,7 +465,6 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Detalle de la última valorización */}
             {ultimaVal && (
               <div className="mt-4 pt-4 border-t border-gray-100">
                 <div className="flex items-center justify-between mb-3">
@@ -604,7 +472,7 @@ export default function DashboardPage() {
                     Val. N°01 · {ultimaValPeriodo}
                   </p>
                   <span className="text-xs bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full font-medium">
-                    Cobro viernes 29/05
+                    {ultimaVal.status}
                   </span>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -637,13 +505,7 @@ export default function DashboardPage() {
             )}
           </div>
 
-          {/* ── Resumen financiero ──
-              Muestra la fotografía financiera real:
-              - Cobrado = 8 contratos ya pagados
-              - Próximo cobro = Val. N°01 neta (viernes 29/05)
-              - Pendiente adicional = chutes S/1,300 + saldo Qantua F2
-              - Garantía retenida = S/28,614.07 (se libera al final)
-              - Total general = todo lo que LUDIER facturará con este cliente */}
+          {/* Resumen financiero */}
           <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
             <h3 className="text-base font-semibold text-gray-900 mb-4">
               Resumen financiero
@@ -663,31 +525,35 @@ export default function DashboardPage() {
                 </span>
               </div>
 
-              <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                <div>
-                  <span className="text-sm text-gray-600">
-                    Val. N°01 · Cobro viernes 29/05
+              {ultimaVal && (
+                <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                  <div>
+                    <span className="text-sm text-gray-600">
+                      Val. N°01 · {ultimaValPeriodo}
+                    </span>
+                    <p className="text-xs text-amber-500 font-medium">
+                      Pendiente de cobro
+                    </p>
+                  </div>
+                  <span className="font-semibold text-amber-700">
+                    {formatCOP(netoCobrarVal01)}
                   </span>
-                  <p className="text-xs text-amber-500 font-medium">
-                    Pendiente de cobro
-                  </p>
                 </div>
-                <span className="font-semibold text-amber-700">
-                  {formatCOP(netoCobrarVal01)}
-                </span>
-              </div>
+              )}
 
-              <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                <div>
-                  <span className="text-sm text-gray-600">
-                    Desmontaje chutes (pendiente)
-                  </span>
-                  <p className="text-xs text-gray-400">Por confirmar cobro</p>
-                </div>
-                <span className="font-semibold text-gray-500">
-                  {formatCOP(1300)}
-                </span>
-              </div>
+              {contratosPendientes
+                .filter((c) => c.tipo !== "CONTRATO")
+                .map((c) => (
+                  <div key={c.id} className="flex justify-between items-center py-2 border-b border-gray-100">
+                    <div>
+                      <span className="text-sm text-gray-600">{c.nombre}</span>
+                      <p className="text-xs text-gray-400">Por confirmar cobro</p>
+                    </div>
+                    <span className="font-semibold text-gray-500">
+                      {formatCOP(Number(c.monto))}
+                    </span>
+                  </div>
+                ))}
 
               <div className="flex justify-between items-center py-2 border-b border-gray-100">
                 <div>
@@ -695,11 +561,11 @@ export default function DashboardPage() {
                     Saldo Qantua F2 (Val. N°02 en adelante)
                   </span>
                   <p className="text-xs text-gray-400">
-                    83.20% restante por valorizar
+                    {(100 - avancePorcentaje).toFixed(2)}% restante por valorizar
                   </p>
                 </div>
                 <span className="font-semibold text-gray-600">
-                  {formatCOP(costoDirectoTotal - (ultimaVal?.costoDirecto || 0))}
+                  {formatCOP(costoDirectoTotal - Number(ultimaVal?.costoDirecto || 0))}
                 </span>
               </div>
 
@@ -718,19 +584,14 @@ export default function DashboardPage() {
               <div className="flex justify-between items-center py-3 border-t-2 border-gray-200 mt-2">
                 <div>
                   <span className="text-sm font-semibold text-gray-900">
-                    Total facturado (contratos + Qantua F2)
+                    Total contratado (todos los proyectos)
                   </span>
                   <p className="text-xs text-gray-400">
-                    Incluyendo saldo por valorizar
+                    {contratos.length} contratos registrados en BD
                   </p>
                 </div>
                 <span className="text-xl font-bold text-gray-900">
-                  {formatCOP(
-                    totalHistoricoCobrado +
-                      netoCobrarVal01 +
-                      1300 +
-                      (costoDirectoTotal - (ultimaVal?.costoDirecto || 0))
-                  )}
+                  {formatCOP(contratos.reduce((sum, c) => sum + Number(c.monto), 0))}
                 </span>
               </div>
             </div>
@@ -768,7 +629,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* ── Tabla de contratos — 10 filas, orden cronológico ── */}
+        {/* Tabla de contratos — datos 100% desde BD */}
         <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
           <div className="flex items-center gap-2 mb-4">
             <Receipt className="h-5 w-5 text-gray-600" />
@@ -801,56 +662,48 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody>
-                {[...contratos]
-                  .sort(
-                    (a, b) =>
-                      new Date(a.fecha).getTime() - new Date(b.fecha).getTime()
-                  )
-                  .map((c, idx) => (
-                    <tr
-                      key={idx}
-                      className={`border-b border-gray-50 hover:bg-gray-50 ${
-                        c.estado === "PENDIENTE" ? "bg-amber-50/30" : ""
-                      }`}
-                    >
-                      <td className="py-2.5 text-gray-600">
-                        {new Date(c.fecha).toLocaleDateString("es-PE")}
-                      </td>
-                      <td className="py-2.5 text-gray-800 font-medium">
-                        {c.nombre}
-                      </td>
-                      <td className="py-2.5 text-center">
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
-                          {c.tipo}
-                        </span>
-                      </td>
-                      <td className="py-2.5 text-right font-medium">
-                        {formatCOP(c.monto)}
-                      </td>
-                      <td className="py-2.5 text-center">
-                        <span
-                          className={`text-xs px-2 py-1 rounded-full ${
-                            c.estado === "COBRADO"
-                              ? "bg-emerald-100 text-emerald-700"
-                              : "bg-amber-100 text-amber-700"
-                          }`}
-                        >
-                          {c.estado === "COBRADO" ? "Cobrado" : "Pendiente"}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                {contratos.map((c, idx) => (
+                  <tr
+                    key={c.id || idx}
+                    className={`border-b border-gray-50 hover:bg-gray-50 ${
+                      c.estado === "PENDIENTE" ? "bg-amber-50/30" : ""
+                    }`}
+                  >
+                    <td className="py-2.5 text-gray-600">
+                      {new Date(c.fecha).toLocaleDateString("es-PE")}
+                    </td>
+                    <td className="py-2.5 text-gray-800 font-medium">
+                      {c.nombre}
+                    </td>
+                    <td className="py-2.5 text-center">
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
+                        {c.tipo}
+                      </span>
+                    </td>
+                    <td className="py-2.5 text-right font-medium">
+                      {formatCOP(Number(c.monto))}
+                    </td>
+                    <td className="py-2.5 text-center">
+                      <span
+                        className={`text-xs px-2 py-1 rounded-full ${
+                          c.estado === "COBRADO"
+                            ? "bg-emerald-100 text-emerald-700"
+                            : "bg-amber-100 text-amber-700"
+                        }`}
+                      >
+                        {c.estado === "COBRADO" ? "Cobrado" : "Pendiente"}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
               <tfoot className="border-t-2 border-gray-200 bg-gray-50">
                 <tr>
-                  <td
-                    colSpan={3}
-                    className="py-3 pl-2 font-semibold text-gray-900"
-                  >
+                  <td colSpan={3} className="py-3 pl-2 font-semibold text-gray-900">
                     TOTAL
                   </td>
                   <td className="py-3 text-right font-bold text-gray-900">
-                    {formatCOP(contratos.reduce((sum, c) => sum + c.monto, 0))}
+                    {formatCOP(contratos.reduce((sum, c) => sum + Number(c.monto), 0))}
                   </td>
                   <td></td>
                 </tr>
@@ -877,7 +730,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Flujo de caja: 10 barras = 10 contratos, mismo orden y montos que la tabla */}
+        {/* Flujo de caja */}
         <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
           <div className="flex items-center gap-2 mb-4">
             <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
@@ -934,11 +787,7 @@ export default function DashboardPage() {
                     return null;
                   }}
                 />
-                <Bar
-                  dataKey="monto"
-                  radius={[4, 4, 0, 0]}
-                  barSize={28}
-                >
+                <Bar dataKey="monto" radius={[4, 4, 0, 0]} barSize={28}>
                   {cashFlowData.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
@@ -972,13 +821,13 @@ export default function DashboardPage() {
                 </span>
               </p>
               <p className="text-xs text-gray-500">
-                Val. N°01 · Viernes 29 mayo · LAR
+                Val. N°01 · {ultimaValPeriodo} · LAR
               </p>
             </div>
           </div>
         </div>
 
-        {/* Gráficos: Distribución + Personal por rol */}
+        {/* Gráficos: Personal + Distribución */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Personal por rol */}
           <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
@@ -1025,7 +874,7 @@ export default function DashboardPage() {
             )}
           </div>
 
-          {/* Distribución de ingresos por tipo de contrato */}
+          {/* Distribución por tipo de contrato */}
           <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
@@ -1035,11 +884,10 @@ export default function DashboardPage() {
                 Distribución por tipo
               </h3>
             </div>
-            {contratos.length > 0 ? (
+            {contratosCobrados.length > 0 ? (
               (() => {
-                // Solo contratos cobrados para la distribución real
                 const porTipo = contratosCobrados.reduce((acc, c) => {
-                  acc[c.tipo] = (acc[c.tipo] || 0) + c.monto;
+                  acc[c.tipo] = (acc[c.tipo] || 0) + Number(c.monto);
                   return acc;
                 }, {} as Record<string, number>);
                 const pieData = Object.entries(porTipo).map(
@@ -1081,9 +929,7 @@ export default function DashboardPage() {
                         <div key={i} className="flex items-center gap-2">
                           <div
                             className="w-3 h-3 rounded-full"
-                            style={{
-                              backgroundColor: COLORS[i % COLORS.length],
-                            }}
+                            style={{ backgroundColor: COLORS[i % COLORS.length] }}
                           />
                           <span className="text-xs text-gray-600">
                             {item.name}
@@ -1227,9 +1073,7 @@ export default function DashboardPage() {
                           <p className="text-xs text-gray-500">{w.role}</p>
                         </div>
                       </div>
-                      <span className="text-xs text-gray-400">
-                        {w.location}
-                      </span>
+                      <span className="text-xs text-gray-400">{w.location}</span>
                     </div>
                   ))}
                 </div>
@@ -1278,9 +1122,7 @@ export default function DashboardPage() {
                         <p className="text-xs text-gray-500">{p.role}</p>
                       </div>
                     </div>
-                    <span className="text-xs text-violet-500">
-                      {p.location}
-                    </span>
+                    <span className="text-xs text-violet-500">{p.location}</span>
                   </div>
                 ))}
               </div>
