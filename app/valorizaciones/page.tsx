@@ -146,6 +146,101 @@ export default function ValorizacionesPage() {
     }
   };
 
+  // --- Lógica común de parseo de texto/celdas ---------------------------
+  // Recibe un arreglo de "filas", donde cada fila es un arreglo de
+  // celdas/tokens (igual que las filas de un Excel).
+  //
+  // La tabla de valorización tiene 4 grupos de columnas de montos:
+  //   1. Acumulado Hasta Valorización Anterior
+  //   2. Valorización actual            <-- el que necesitamos
+  //   3. Acumulado hasta Valorización Actual
+  //   4. Saldo por valorizar
+  //
+  // Cada grupo aporta normalmente 1 monto válido en las filas de totales
+  // (la columna "Metrado" viene vacía). Por eso, de los números detectados
+  // en la fila "TOTAL A FACTURAR", el segundo corresponde a "Valorización
+  // actual" (que es el que coincide con el "Importe Total" de la factura).
+  const parsePeriodAndTotal = (rows: any[][]) => {
+    let period = "";
+    let totalFacturar = 0;
+    let foundOnTotalAFacturar = false;
+
+    // Acepta números tipo "96,170.00", "81000", "543,667.29"
+    const numRe = /^-?\d{1,3}(?:,\d{3})*(?:\.\d{1,2})?$/;
+
+    rows.forEach((row) => {
+      const lineText = row
+        .map((c) => (typeof c === "string" ? c : ""))
+        .join(" ");
+
+      // --- Período ---
+      if (!period) {
+        const periodMatch = lineText.match(/VALORIZACION\s*N[°ºO]?\.?\s*(\d+)/i);
+        if (periodMatch) {
+          period = `Valorización N° ${periodMatch[1].padStart(2, "0")}`;
+        }
+      }
+
+      // --- Total a facturar ---
+      const isTotalAFacturar = /TOTAL\s+A\s+FACTURAR/i.test(lineText);
+      const isTotalFinalAPagar = /TOTAL\s+FINAL\s+A\s+PAGAR/i.test(lineText);
+
+      if (isTotalAFacturar || (isTotalFinalAPagar && !foundOnTotalAFacturar)) {
+        const numbers: number[] = [];
+
+        row.forEach((cell) => {
+          if (typeof cell === "number") {
+            if (cell >= 1) numbers.push(cell);
+          } else if (typeof cell === "string") {
+            const cleaned = cell.trim();
+            if (numRe.test(cleaned)) {
+              const n = parseFloat(cleaned.replace(/,/g, ""));
+              if (n >= 1) numbers.push(n);
+            }
+          }
+        });
+
+        // La fila tiene normalmente 5 montos:
+        //   [0] Metrado y Precios -> Parcial S/. (presupuesto de la línea)
+        //   [1] Acumulado Hasta Valorización Anterior -> Parcial S/.
+        //   [2] Valorización actual -> Parcial S/.        <-- el que queremos
+        //   [3] Acumulado hasta Valorización Actual -> Parcial S/.
+        //   [4] Saldo por valorizar -> Parcial S/.
+        let valor = 0;
+        if (numbers.length >= 3) {
+          valor = numbers[2];
+        } else if (numbers.length === 2) {
+          valor = numbers[1];
+        } else if (numbers.length === 1) {
+          valor = numbers[0];
+        }
+
+        if (valor > 0) {
+          totalFacturar = valor;
+          if (isTotalAFacturar) foundOnTotalAFacturar = true;
+        }
+      }
+    });
+
+    return { period, totalFacturar };
+  };
+
+  const buildExtractedData = (period: string, totalFacturar: number) => {
+    if (!period) {
+      period = `${new Date().toLocaleString('es-PE', { month: 'long', year: 'numeric' })}`;
+    }
+
+    const igvPct = configContrato?.igv_porcentaje || 0.18;
+    const costoDirecto = totalFacturar / (1 + igvPct);
+
+    return {
+      period: period.charAt(0).toUpperCase() + period.slice(1),
+      costoDirecto: Math.round(costoDirecto * 100) / 100,
+      totalFactura: totalFacturar,
+      fechaEmision: new Date().toISOString().split("T")[0],
+    };
+  };
+
   const extractFromExcel = async (file: File): Promise<any> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -156,49 +251,9 @@ export default function ValorizacionesPage() {
           const sheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[sheetName];
           const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-          
-          let period = "";
-          let totalFacturar = 0;
-          
-          (jsonData as any[][]).forEach((row) => {
-            row.forEach((cell, colIndex) => {
-              if (typeof cell === 'string') {
-                if (cell.includes("VALORIZACION N°")) {
-                  period = cell.replace("VALORIZACION N°", "").trim();
-                }
-                if (cell.includes("TOTAL A FACTURAR") || cell.includes("TOTAL FINAL A PAGAR")) {
-                  for (let i = colIndex + 1; i < row.length; i++) {
-                    const val = row[i];
-                    if (typeof val === 'number' && val > 0) {
-                      totalFacturar = val;
-                      break;
-                    }
-                    if (typeof val === 'string') {
-                      const num = parseFloat(val.replace(/,/g, ''));
-                      if (!isNaN(num) && num > 0) {
-                        totalFacturar = num;
-                        break;
-                      }
-                    }
-                  }
-                }
-              }
-            });
-          });
-          
-          if (!period) {
-            period = `${new Date().toLocaleString('es-PE', { month: 'long', year: 'numeric' })}`;
-          }
-          
-          const igvPct = configContrato?.igv_porcentaje || 0.18;
-          const costoDirecto = totalFacturar / (1 + igvPct);
-          
-          resolve({
-            period: period.charAt(0).toUpperCase() + period.slice(1),
-            costoDirecto: Math.round(costoDirecto * 100) / 100,
-            totalFactura: totalFacturar,
-            fechaEmision: new Date().toISOString().split("T")[0],
-          });
+
+          const { period, totalFacturar } = parsePeriodAndTotal(jsonData as any[][]);
+          resolve(buildExtractedData(period, totalFacturar));
         } catch (error) {
           reject(error);
         }
@@ -207,23 +262,127 @@ export default function ValorizacionesPage() {
     });
   };
 
+  // Extrae texto del PDF y lo organiza por "líneas" agrupando los items
+  // de pdf.js según su posición vertical (Y), igual que filas de Excel.
+  const extractFromPDF = async (file: File): Promise<any> => {
+    // Carga dinámica: evita que pdf.js se evalúe durante el SSR (donde no
+    // existe DOMMatrix ni otras APIs de navegador que pdf.js necesita).
+    const pdfjsLib = await import("pdfjs-dist");
+    pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+      "pdfjs-dist/build/pdf.worker.min.mjs",
+      import.meta.url
+    ).toString();
+
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+    // Cada "fila" será un arreglo de strings (celdas/tokens de esa línea)
+    const rows: any[][] = [];
+
+    // Tolerancia (en unidades de PDF) para considerar que dos items
+    // pertenecen a la misma fila visual, aunque su Y difiera ligeramente
+    // (ej. 450.3 vs 450.6, que con Math.round caerían en filas distintas).
+    const Y_TOLERANCE = 6;
+
+    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+      const page = await pdf.getPage(pageNum);
+      const content = await page.getTextContent();
+
+      type Item = { x: number; y: number; text: string };
+      const items: Item[] = [];
+
+      content.items.forEach((item: any) => {
+        const str = item.str;
+        if (!str || !str.trim()) return;
+        items.push({
+          x: item.transform[4],
+          y: item.transform[5],
+          text: str,
+        });
+      });
+
+      // Ordenar de arriba hacia abajo (Y descendente en coords PDF)
+      items.sort((a, b) => b.y - a.y);
+
+      // Agrupar por clusters de Y con tolerancia
+      const clusters: Item[][] = [];
+      items.forEach((it) => {
+        const last = clusters[clusters.length - 1];
+        if (last && Math.abs(it.y - last[0].y) <= Y_TOLERANCE) {
+          last.push(it);
+        } else {
+          clusters.push([it]);
+        }
+      });
+
+      // Construir entradas {fullLine, cells} por cada cluster
+      const numRe = /^-?\d{1,3}(?:,\d{3})*(?:\.\d{1,2})?$/;
+      const totalRe = /TOTAL\s+A\s+FACTURAR|TOTAL\s+FINAL\s+A\s+PAGAR/i;
+
+      const lineEntries = clusters.map((cluster) => {
+        const sorted = cluster.slice().sort((a, b) => a.x - b.x);
+        const cells: string[] = [];
+        sorted.forEach((it) => {
+          const trimmed = it.text.trim();
+          if (trimmed) cells.push(trimmed);
+        });
+        const fullLine = sorted.map((it) => it.text).join(" ").trim();
+        return { fullLine, cells };
+      });
+
+      // Segunda pasada: si la fila "TOTAL A FACTURAR"/"TOTAL FINAL A PAGAR"
+      // quedó con menos de 2 valores numéricos (porque alguna columna de
+      // monto cayó en una línea contigua por diferencia de baseline),
+      // fusionamos las celdas numéricas de las líneas siguientes.
+      lineEntries.forEach((entry, i) => {
+        if (!totalRe.test(entry.fullLine)) return;
+
+        let numericCount = entry.cells.filter((c) => numRe.test(c)).length;
+        let j = i + 1;
+        while (numericCount < 2 && j < lineEntries.length && j <= i + 2) {
+          const extraNumeric = lineEntries[j].cells.filter((c) => numRe.test(c));
+          if (extraNumeric.length > 0) {
+            entry.cells.push(...extraNumeric);
+            numericCount += extraNumeric.length;
+          }
+          j++;
+        }
+      });
+
+      lineEntries.forEach(({ fullLine, cells }) => {
+        if (fullLine) {
+          rows.push([fullLine, ...cells]);
+        } else if (cells.length) {
+          rows.push(cells);
+        }
+      });
+    }
+
+    const { period, totalFacturar } = parsePeriodAndTotal(rows);
+    return buildExtractedData(period, totalFacturar);
+  };
+
   const handleFileUpload = async (file: File) => {
     setUploadFile(file);
     setUploading(true);
-    
+
     try {
       let extractedData;
-      if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+      const lowerName = file.name.toLowerCase();
+
+      if (lowerName.endsWith('.xlsx') || lowerName.endsWith('.xls')) {
         extractedData = await extractFromExcel(file);
+      } else if (lowerName.endsWith('.pdf')) {
+        extractedData = await extractFromPDF(file);
       } else {
-        throw new Error("Formato no soportado. Use archivos Excel (.xlsx o .xls)");
+        throw new Error("Formato no soportado. Use archivos Excel (.xlsx, .xls) o PDF (.pdf)");
       }
-      
+
       setUploadPreview({
         ...extractedData,
         fileName: file.name,
       });
-      
+
       setForm({
         projectId: selectedProject?.id || "",
         period: extractedData.period,
@@ -233,7 +392,7 @@ export default function ValorizacionesPage() {
         fechaCobro: "",
         notas: `Documento: ${file.name}`,
       });
-      
+
     } catch (error: any) {
       Swal.fire({
         title: 'Error al leer el archivo',
@@ -263,7 +422,7 @@ export default function ValorizacionesPage() {
     const igvPct = configContrato?.igv_porcentaje || 0.18;
     const garantiaPct = configContrato?.garantia_porcentaje || 0.05;
     const costoTotal = configContrato?.costo_directo_total || 0;
-    
+
     const costoNum = parseFloat(form.costoDirecto.replace(",", ".")) || 0;
     const igvCalc = costoNum * igvPct;
     const totalFacturaCalc = costoNum + igvCalc;
@@ -393,7 +552,7 @@ export default function ValorizacionesPage() {
             <div className="h-4 w-px bg-gray-200" />
             <div>
               <h1 className="text-base font-bold text-gray-900">Valorizaciones</h1>
-              <p className="text-xs text-gray-500">Sube Excel y genera facturas electrónicas</p>
+              <p className="text-xs text-gray-500">Sube Excel o PDF y genera facturas electrónicas</p>
             </div>
           </div>
           <button
@@ -468,16 +627,25 @@ export default function ValorizacionesPage() {
                 <input
                   id="fileInput"
                   type="file"
-                  accept=".xlsx,.xls"
+                  accept=".xlsx,.xls,.pdf"
                   className="hidden"
                   onChange={(e) => {
                     if (e.target.files?.[0]) handleFileUpload(e.target.files[0]);
                   }}
                 />
-                <Upload className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-                <p className="text-sm text-gray-500">Arrastra y suelta tu archivo Excel aquí</p>
-                <p className="text-xs text-gray-400 mt-1">o haz clic para seleccionar</p>
-                <p className="text-xs text-amber-600 mt-3">Formatos soportados: .xlsx, .xls</p>
+                {uploading ? (
+                  <>
+                    <Loader2 className="h-10 w-10 text-gray-300 mx-auto mb-3 animate-spin" />
+                    <p className="text-sm text-gray-500">Leyendo archivo...</p>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="h-10 w-10 text-gray-300 mx-auto mb-3" />
+                    <p className="text-sm text-gray-500">Arrastra y suelta tu archivo aquí</p>
+                    <p className="text-xs text-gray-400 mt-1">o haz clic para seleccionar</p>
+                    <p className="text-xs text-amber-600 mt-3">Formatos soportados: .xlsx, .xls, .pdf</p>
+                  </>
+                )}
               </div>
             )}
 
@@ -502,11 +670,16 @@ export default function ValorizacionesPage() {
                       <p className="font-medium text-gray-900">{formatCOP(uploadPreview.totalFactura)}</p>
                     </div>
                   </div>
+                  {uploadPreview.totalFactura === 0 && (
+                    <p className="text-xs text-amber-700 mt-3">
+                      No se encontraron automáticamente los valores en el documento. Verifica/corrige los campos abajo.
+                    </p>
+                  )}
                 </div>
 
                 <div className="border-t border-gray-100 pt-4">
                   <p className="text-xs font-medium text-gray-700 mb-3">Confirma o corrige los datos:</p>
-                  
+
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="text-xs font-medium text-gray-700 mb-1.5 block">Período *</label>

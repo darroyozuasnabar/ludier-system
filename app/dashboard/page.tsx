@@ -14,13 +14,13 @@ import {
   Wrench,
   Target,
   Banknote,
-  ShieldCheck,
   ChevronRight,
   Hammer,
   BarChart3,
   Calendar,
   Building2,
   Receipt,
+  ChevronDown,
 } from "lucide-react";
 import {
   BarChart,
@@ -40,7 +40,7 @@ import { createBrowserClient } from "@supabase/ssr";
 // ──────────────────────────────────────────────────────────────────────────────
 const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
 );
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -79,10 +79,13 @@ export default function DashboardPage() {
 
   const [loading, setLoading] = useState(true);
   const [showAllWorkers, setShowAllWorkers] = useState(false);
+  const [selectedProjectId, setSelectedProjectId] = useState<string>("");
+  const [selectedContratoId, setSelectedContratoId] = useState<string>("");
 
   // Datos desde Supabase
-  const [project, setProject] = useState<any>(null);
-  const [contratoConfig, setContratoConfig] = useState<any>(null);
+  const [allProjects, setAllProjects] = useState<any[]>([]);
+  const [selectedProject, setSelectedProject] = useState<any>(null);
+  const [contratosDelProyecto, setContratosDelProyecto] = useState<any[]>([]);
   const [workers, setWorkers] = useState<any[]>([]);
   const [direccion, setDireccion] = useState<any[]>([]);
   const [valorizaciones, setValorizaciones] = useState<any[]>([]);
@@ -90,7 +93,6 @@ export default function DashboardPage() {
   const [hitos, setHitos] = useState<any[]>([]);
   const [trabajos, setTrabajos] = useState<any[]>([]);
   const [costos, setCostos] = useState<any[]>([]);
-  // Contratos desde BD (reemplaza el array hardcodeado)
   const [contratos, setContratos] = useState<any[]>([]);
 
   useEffect(() => {
@@ -98,70 +100,39 @@ export default function DashboardPage() {
     if (status === "authenticated") loadData();
   }, [status, router]);
 
+  useEffect(() => {
+    if (selectedProjectId && allProjects.length > 0) {
+      const project = allProjects.find((p) => p.id === selectedProjectId);
+      setSelectedProject(project);
+      loadProjectData(selectedProjectId);
+      loadContratosDelProyecto(selectedProjectId);
+    }
+  }, [selectedProjectId, allProjects]);
+
   const loadData = async () => {
     setLoading(true);
     try {
-      const { data: projectData } = await supabase
+      // 1. Cargar todos los proyectos activos
+      const { data: proyectosData } = await supabase
         .from("Project")
         .select("*")
-        .eq("name", "Qantua - Fase 02")
-        .maybeSingle();
-      setProject(projectData);
+        .in("status", ["ACTIVO", "EN_PRODUCCION"])
+        .order("name");
 
-      // ── Cargar TODOS los contratos de BD (todas las tablas Contrato) ──
+      setAllProjects(proyectosData || []);
+
+      if (proyectosData && proyectosData.length > 0 && !selectedProjectId) {
+        setSelectedProjectId(proyectosData[0].id);
+      }
+
+      // 2. Cargar todos los contratos para el historial
       const { data: contratosData } = await supabase
         .from("Contrato")
         .select("*")
         .order("fecha", { ascending: true });
       setContratos(contratosData || []);
 
-      if (projectData) {
-        const projectId = projectData.id;
-
-        // ConfiguracionContrato del proyecto principal (Qantua F2)
-        const { data: configData } = await supabase
-          .from("ConfiguracionContrato")
-          .select("*")
-          .eq("project_id", projectId)
-          .eq("nombre", "Qantua Fase 2")
-          .maybeSingle();
-        setContratoConfig(configData);
-
-        const { data: valData } = await supabase
-          .from("Valorizacion")
-          .select("*")
-          .eq("projectId", projectId)
-          .order("fechaEmision", { ascending: false });
-        setValorizaciones(valData || []);
-
-        const { data: alertData } = await supabase
-          .from("Alert")
-          .select("*")
-          .eq("projectId", projectId)
-          .order("priority", { ascending: false });
-        setAlertas(alertData || []);
-
-        const { data: costosData } = await supabase
-          .from("CostoReal")
-          .select("*")
-          .eq("projectId", projectId);
-        setCostos(costosData || []);
-
-        const { data: hitosData } = await supabase
-          .from("Hito")
-          .select("*")
-          .eq("project_id", projectId)
-          .order("orden", { ascending: true });
-        setHitos(hitosData || []);
-
-        const { data: trabajosData } = await supabase
-          .from("Trabajo")
-          .select("*")
-          .eq("project_id", projectId)
-          .order("orden", { ascending: true });
-        setTrabajos(trabajosData || []);
-      }
-
+      // 3. Cargar personal
       const { data: workersData } = await supabase
         .from("Worker")
         .select("*")
@@ -170,12 +141,10 @@ export default function DashboardPage() {
       if (workersData) {
         const managementRoles = ["Dirección", "Coordinación", "Oficina"];
         setWorkers(
-          workersData.filter(
-            (w: any) => !managementRoles.includes(w.location)
-          )
+          workersData.filter((w: any) => !managementRoles.includes(w.location)),
         );
         setDireccion(
-          workersData.filter((w: any) => managementRoles.includes(w.location))
+          workersData.filter((w: any) => managementRoles.includes(w.location)),
         );
       }
     } catch (error) {
@@ -183,6 +152,60 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadContratosDelProyecto = async (projectId: string) => {
+    const { data } = await supabase
+      .from("Contrato")
+      .select("*")
+      .eq("project_id", projectId)
+      .order("monto", { ascending: false });
+
+    setContratosDelProyecto(data || []);
+    if (data && data.length > 0 && !selectedContratoId) {
+      setSelectedContratoId(data[0].id);
+    }
+  };
+
+  const loadProjectData = async (projectId: string) => {
+    // Cargar valorizaciones del proyecto
+    const { data: valData } = await supabase
+      .from("Valorizacion")
+      .select("*")
+      .eq("projectId", projectId)
+      .order("fechaEmision", { ascending: false });
+    setValorizaciones(valData || []);
+
+    // Cargar alertas
+    const { data: alertData } = await supabase
+      .from("Alert")
+      .select("*")
+      .eq("projectId", projectId)
+      .order("priority", { ascending: false });
+    setAlertas(alertData || []);
+
+    // Cargar costos
+    const { data: costosData } = await supabase
+      .from("CostoReal")
+      .select("*")
+      .eq("projectId", projectId);
+    setCostos(costosData || []);
+
+    // Cargar hitos
+    const { data: hitosData } = await supabase
+      .from("Hito")
+      .select("*")
+      .eq("project_id", projectId)
+      .order("orden", { ascending: true });
+    setHitos(hitosData || []);
+
+    // Cargar trabajos
+    const { data: trabajosData } = await supabase
+      .from("Trabajo")
+      .select("*")
+      .eq("project_id", projectId)
+      .order("orden", { ascending: true });
+    setTrabajos(trabajosData || []);
   };
 
   if (status === "loading" || loading) {
@@ -199,40 +222,89 @@ export default function DashboardPage() {
   if (!session) return null;
 
   // ────────────────────────────────────────────────────────────────────────────
-  // CÁLCULOS FINANCIEROS — 100% desde BD
+  // CÁLCULOS FINANCIEROS — desde el contrato seleccionado
   // ────────────────────────────────────────────────────────────────────────────
+
+  const contratoSeleccionado = contratosDelProyecto.find(
+    (c) => c.id === selectedContratoId,
+  );
 
   const contratosCobrados = contratos.filter((c) => c.estado === "COBRADO");
   const contratosPendientes = contratos.filter((c) => c.estado === "PENDIENTE");
 
   const totalHistoricoCobrado = contratosCobrados.reduce(
     (sum, c) => sum + Number(c.monto),
-    0
+    0,
   );
   const totalPorCobrar = contratosPendientes.reduce(
     (sum, c) => sum + Number(c.monto),
-    0
+    0,
   );
 
-  // Configuración del contrato Qantua F2 (desde BD)
-  const totalContratoQantua = Number(contratoConfig?.total_pagar || 0);
-  const garantiaTotal = Number(contratoConfig?.garantia || 0);
-  const costoDirectoTotal = Number(contratoConfig?.costo_directo || 0);
+  // Datos del contrato seleccionado
+  const montoContrato = contratoSeleccionado?.monto || 0;
+  const garantiaContrato = montoContrato * 0.05;
+  const costoDirectoContrato = montoContrato / 1.18;
 
-  // Última valorización (desde BD)
-  const ultimaVal = valorizaciones[0];
-  const avancePorcentaje = ultimaVal ? Number(ultimaVal.avancePct) : 0;
-  const netoCobrarVal01 = ultimaVal ? Number(ultimaVal.netoCobrar) : 0;
-  const ultimaValPeriodo = ultimaVal?.period || "Sin valorizaciones";
+  // Calcular avance según estado del contrato
+  let totalCobradoContrato = 0;
+  let avanceContrato = 0;
+  let ultimaVal = null;
+  let netoCobrarUltimaVal = 0;
+  let ultimaValPeriodo = "Sin valorizaciones";
+  let proximoMonto = 0;
 
-  // Próxima cobranza = neto de la última val pendiente
-  const proximoMonto = netoCobrarVal01;
+  if (contratoSeleccionado?.estado === "COBRADO") {
+    // Si el contrato está cobrado, avance 100%
+    totalCobradoContrato = Number(contratoSeleccionado.monto);
+    avanceContrato = 100;
+    // No hay próxima cobranza
+    proximoMonto = 0;
+  } else {
+    // Si está pendiente, buscar valorizaciones asociadas por contrato_id
+    const valorizacionesContrato = valorizaciones.filter(
+      (v) => v.contrato_id === contratoSeleccionado?.id,
+    );
+
+    // Sumar las valorizaciones cobradas
+    totalCobradoContrato = valorizacionesContrato
+      .filter((v) => v.status === "COBRADA")
+      .reduce((sum, v) => sum + Number(v.netoCobrar), 0);
+
+    // Calcular avance
+    avanceContrato =
+      montoContrato > 0 ? (totalCobradoContrato / montoContrato) * 100 : 0;
+
+    // Buscar la PRÓXIMA valorización pendiente (no cobrada)
+    const proximaVal = valorizacionesContrato.find(
+      (v) => v.status !== "COBRADA",
+    );
+
+    if (proximaVal) {
+      // Hay una valorización pendiente
+      ultimaVal = proximaVal;
+      netoCobrarUltimaVal = Number(proximaVal.netoCobrar);
+      ultimaValPeriodo = proximaVal.period || "Valorización pendiente";
+      proximoMonto = netoCobrarUltimaVal;
+    } else if (valorizacionesContrato.length > 0) {
+      // Todas las valorizaciones están cobradas, mostrar la última como referencia
+      ultimaVal = valorizacionesContrato[0];
+      netoCobrarUltimaVal = 0;
+      ultimaValPeriodo = ultimaVal?.period || "Sin valorizaciones";
+      proximoMonto = 0;
+    } else {
+      // No hay valorizaciones
+      ultimaVal = null;
+      ultimaValPeriodo = "Sin valorizaciones";
+      proximoMonto = totalPorCobrar;
+    }
+  }
 
   // Costos reales
   const totalMateriales = costos.reduce(
     (sum, c) =>
       sum + Number(c.fierro) + Number(c.pintura) + Number(c.galvanizado),
-    0
+    0,
   );
   const totalManoObra = costos.reduce((sum, c) => sum + Number(c.manoObra), 0);
   const totalOtros = costos.reduce(
@@ -242,19 +314,20 @@ export default function DashboardPage() {
       Number(c.instalacion) +
       Number(c.desperdicio) +
       Number(c.retrabajos),
-    0
+    0,
   );
   const totalCostos = totalMateriales + totalManoObra + totalOtros;
   const tieneCostos = totalCostos > 0;
-  const margenBruto = tieneCostos
-    ? Number(ultimaVal?.costoDirecto || 0) - totalCostos
-    : 0;
+  const margenBruto =
+    tieneCostos && ultimaVal
+      ? Number(ultimaVal?.costoDirecto || 0) - totalCostos
+      : 0;
   const margenPorcentaje =
     tieneCostos && ultimaVal?.costoDirecto
       ? (margenBruto / Number(ultimaVal.costoDirecto)) * 100
       : 0;
 
-  // Flujo de caja — todos los contratos de BD ordenados por fecha
+  // Flujo de caja
   const cashFlowData = contratos.map((c, idx) => {
     const d = new Date(c.fecha);
     const mesCorto = d.toLocaleDateString("es-PE", {
@@ -278,12 +351,10 @@ export default function DashboardPage() {
     acc[w.role] = (acc[w.role] || 0) + 1;
     return acc;
   }, {});
-  const roleChartData = Object.entries(workersByRole).map(
-    ([role, count]) => ({
-      name: role,
-      value: count,
-    })
-  );
+  const roleChartData = Object.entries(workersByRole).map(([role, count]) => ({
+    name: role,
+    value: count,
+  }));
 
   const totalWorkers = workers.length + direccion.length;
 
@@ -322,9 +393,64 @@ export default function DashboardPage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+        {/* Selector de proyecto y contrato dinámico */}
+        <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-2">
+              <Building2 className="h-4 w-4 text-gray-400" />
+              <span className="text-sm text-gray-600 font-medium">
+                Proyecto:
+              </span>
+            </div>
+            <select
+              value={selectedProjectId}
+              onChange={(e) => {
+                setSelectedProjectId(e.target.value);
+                setSelectedContratoId("");
+              }}
+              className="px-4 py-2 text-sm border border-gray-300 rounded-lg bg-white text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-gray-900 min-w-[280px]"
+            >
+              {allProjects.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name} · {formatCOP(p.valorization)}
+                </option>
+              ))}
+            </select>
+
+            {contratosDelProyecto.length > 0 && (
+              <>
+                <div className="hidden md:block h-6 w-px bg-gray-200" />
+                <div className="flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-gray-400" />
+                  <span className="text-sm text-gray-600 font-medium">
+                    Contrato:
+                  </span>
+                </div>
+                <select
+                  value={selectedContratoId}
+                  onChange={(e) => setSelectedContratoId(e.target.value)}
+                  className="px-4 py-2 text-sm border border-gray-300 rounded-lg bg-white text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-gray-900 min-w-[300px]"
+                >
+                  {contratosDelProyecto.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.nombre.substring(0, 50)} · {formatCOP(c.monto)} ·{" "}
+                      {c.estado}
+                    </option>
+                  ))}
+                </select>
+              </>
+            )}
+            {selectedProject && (
+              <div className="text-sm text-gray-500">
+                Cliente:{" "}
+                <span className="font-medium">{selectedProject.client}</span>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* KPIs principales */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-          {/* Histórico cobrado */}
           <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex justify-between items-start">
               <div>
@@ -344,18 +470,17 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Contrato Qantua F2 */}
           <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">
-                  Contrato Qantua F2
+                  Contrato seleccionado
                 </p>
                 <p className="text-2xl font-bold text-gray-900 mt-2">
-                  {formatCOP(totalContratoQantua)}
+                  {formatCOP(montoContrato)}
                 </p>
                 <p className="text-xs text-gray-400 mt-1">
-                  Garantía: {formatCOP(garantiaTotal)}
+                  Garantía: {formatCOP(garantiaContrato)}
                 </p>
               </div>
               <div className="p-3 rounded-lg bg-blue-50">
@@ -372,53 +497,51 @@ export default function DashboardPage() {
                   Próxima cobranza
                 </p>
                 <p className="text-2xl font-bold text-amber-700 mt-2">
-                  {formatCOP(proximoMonto)}
+                  {proximoMonto > 0 ? formatCOP(proximoMonto) : "—"}
                 </p>
                 <p className="text-xs text-gray-400 mt-1">
-                  Val. N°01 neta · {ultimaValPeriodo}
+                  {proximoMonto > 0
+                    ? ultimaVal
+                      ? ultimaValPeriodo
+                      : "Por definir"
+                    : "No hay valorizaciones pendientes"}
                 </p>
               </div>
               <div className="p-3 rounded-lg bg-amber-50">
                 <Banknote className="h-5 w-5 text-amber-600" />
               </div>
             </div>
-            <div className="mt-3 inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 text-xs font-medium px-2 py-1 rounded-full">
-              <Calendar className="h-3 w-3" />
-              Pendiente de cobro · LAR
-            </div>
+            {proximoMonto > 0 && (
+              <div className="mt-3 inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 text-xs font-medium px-2 py-1 rounded-full">
+                <Calendar className="h-3 w-3" />
+                Pendiente de cobro ·{" "}
+                {selectedProject?.client?.split(" ")[0] || "Cliente"}
+              </div>
+            )}
           </div>
 
-          {/* Margen estimado */}
           <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">
-                  Margen estimado
+                  Avance del contrato
                 </p>
                 <p className="text-2xl font-bold text-gray-900 mt-2">
-                  {tieneCostos ? formatCOP(margenBruto) : "—"}
+                  {avanceContrato.toFixed(2)}%
                 </p>
                 <p className="text-xs text-gray-400 mt-1">
-                  {tieneCostos
-                    ? `${margenPorcentaje.toFixed(1)}% sobre ingreso`
-                    : "Registra costos reales"}
+                  Cobrado: {formatCOP(totalCobradoContrato)}
                 </p>
               </div>
               <div className="p-3 rounded-lg bg-gray-100">
                 <Target className="h-5 w-5 text-gray-600" />
               </div>
             </div>
-            {!tieneCostos && (
-              <div className="mt-3 text-xs text-amber-600 font-medium">
-                ⚠ Completar en /costos
-              </div>
-            )}
           </div>
         </div>
 
         {/* Avance del contrato + Resumen financiero */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Avance del contrato */}
           <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
             <div className="flex justify-between items-start mb-4">
               <div>
@@ -426,12 +549,13 @@ export default function DashboardPage() {
                   Avance del contrato
                 </h3>
                 <p className="text-sm text-gray-500">
-                  Qantua Fase 02 · Costo directo: {formatCOP(costoDirectoTotal)}
+                  {contratoSeleccionado?.nombre?.substring(0, 60) || "Contrato"}{" "}
+                  · Costo directo: {formatCOP(costoDirectoContrato)}
                 </p>
               </div>
               <div className="text-right">
                 <p className="text-2xl font-bold text-gray-900">
-                  {avancePorcentaje.toFixed(2)}%
+                  {avanceContrato.toFixed(2)}%
                 </p>
                 <p className="text-xs text-gray-500">avance acumulado</p>
               </div>
@@ -440,27 +564,27 @@ export default function DashboardPage() {
             <div className="relative h-3 bg-gray-100 rounded-full overflow-hidden mb-6">
               <div
                 className="absolute left-0 top-0 h-full bg-gray-900 rounded-full transition-all duration-500"
-                style={{ width: `${avancePorcentaje}%` }}
+                style={{ width: `${Math.min(avanceContrato, 100)}%` }}
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
-                <p className="text-xs text-gray-500 mb-1">Valorizado (Val. N°01)</p>
+                <p className="text-xs text-gray-500 mb-1">Cobrado</p>
                 <p className="text-xl font-bold text-gray-900">
-                  {formatCOP(Number(ultimaVal?.costoDirecto || 0))}
+                  {formatCOP(totalCobradoContrato)}
                 </p>
                 <p className="text-xs text-emerald-600 mt-1">
-                  {avancePorcentaje}% del total
+                  {avanceContrato.toFixed(2)}% del total
                 </p>
               </div>
               <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
-                <p className="text-xs text-gray-500 mb-1">Saldo por valorizar</p>
+                <p className="text-xs text-gray-500 mb-1">Saldo por cobrar</p>
                 <p className="text-xl font-bold text-gray-900">
-                  {formatCOP(costoDirectoTotal - Number(ultimaVal?.costoDirecto || 0))}
+                  {formatCOP(montoContrato - totalCobradoContrato)}
                 </p>
                 <p className="text-xs text-amber-600 mt-1">
-                  {(100 - avancePorcentaje).toFixed(2)}% del total
+                  {(100 - avanceContrato).toFixed(2)}% del total
                 </p>
               </div>
             </div>
@@ -469,10 +593,18 @@ export default function DashboardPage() {
               <div className="mt-4 pt-4 border-t border-gray-100">
                 <div className="flex items-center justify-between mb-3">
                   <p className="text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    Val. N°01 · {ultimaValPeriodo}
+                    Última valorización
                   </p>
-                  <span className="text-xs bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full font-medium">
-                    {ultimaVal.status}
+                  <span
+                    className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                      ultimaVal.status === "COBRADA"
+                        ? "bg-emerald-100 text-emerald-700"
+                        : "bg-amber-50 text-amber-700"
+                    }`}
+                  >
+                    {ultimaVal.status === "COBRADA"
+                      ? "Cobrada"
+                      : ultimaVal.status}
                   </span>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -525,61 +657,65 @@ export default function DashboardPage() {
                 </span>
               </div>
 
-              {ultimaVal && (
+              {totalCobradoContrato > 0 && (
                 <div className="flex justify-between items-center py-2 border-b border-gray-100">
                   <div>
                     <span className="text-sm text-gray-600">
-                      Val. N°01 · {ultimaValPeriodo}
+                      Cobrado de este contrato
                     </span>
-                    <p className="text-xs text-amber-500 font-medium">
-                      Pendiente de cobro
+                    <p className="text-xs text-gray-400">
+                      {avanceContrato.toFixed(1)}% del total
                     </p>
                   </div>
-                  <span className="font-semibold text-amber-700">
-                    {formatCOP(netoCobrarVal01)}
+                  <span className="font-semibold text-emerald-700">
+                    {formatCOP(totalCobradoContrato)}
                   </span>
                 </div>
               )}
 
-              {contratosPendientes
-                .filter((c) => c.tipo !== "CONTRATO")
-                .map((c) => (
-                  <div key={c.id} className="flex justify-between items-center py-2 border-b border-gray-100">
-                    <div>
-                      <span className="text-sm text-gray-600">{c.nombre}</span>
-                      <p className="text-xs text-gray-400">Por confirmar cobro</p>
-                    </div>
-                    <span className="font-semibold text-gray-500">
-                      {formatCOP(Number(c.monto))}
+              {ultimaVal && ultimaVal.status !== "COBRADA" && (
+                <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                  <div>
+                    <span className="text-sm text-gray-600">
+                      Última valorización pendiente
                     </span>
+                    <p className="text-xs text-amber-500 font-medium">
+                      Por cobrar
+                    </p>
                   </div>
-                ))}
+                  <span className="font-semibold text-amber-700">
+                    {formatCOP(netoCobrarUltimaVal)}
+                  </span>
+                </div>
+              )}
 
               <div className="flex justify-between items-center py-2 border-b border-gray-100">
                 <div>
                   <span className="text-sm text-gray-600">
-                    Saldo Qantua F2 (Val. N°02 en adelante)
+                    Saldo por cobrar del contrato
                   </span>
                   <p className="text-xs text-gray-400">
-                    {(100 - avancePorcentaje).toFixed(2)}% restante por valorizar
+                    {(100 - avanceContrato).toFixed(2)}% restante
                   </p>
                 </div>
                 <span className="font-semibold text-gray-600">
-                  {formatCOP(costoDirectoTotal - Number(ultimaVal?.costoDirecto || 0))}
+                  {formatCOP(montoContrato - totalCobradoContrato)}
                 </span>
               </div>
 
-              <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                <div>
-                  <span className="text-sm text-gray-600">
-                    Garantía retenida
+              {garantiaContrato > 0 && (
+                <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                  <div>
+                    <span className="text-sm text-gray-600">
+                      Garantía retenida
+                    </span>
+                    <p className="text-xs text-gray-400">Se libera al cierre</p>
+                  </div>
+                  <span className="font-semibold text-gray-500">
+                    {formatCOP(garantiaContrato)}
                   </span>
-                  <p className="text-xs text-gray-400">Se libera al cierre</p>
                 </div>
-                <span className="font-semibold text-gray-500">
-                  {formatCOP(garantiaTotal)}
-                </span>
-              </div>
+              )}
 
               <div className="flex justify-between items-center py-3 border-t-2 border-gray-200 mt-2">
                 <div>
@@ -591,7 +727,9 @@ export default function DashboardPage() {
                   </p>
                 </div>
                 <span className="text-xl font-bold text-gray-900">
-                  {formatCOP(contratos.reduce((sum, c) => sum + Number(c.monto), 0))}
+                  {formatCOP(
+                    contratos.reduce((sum, c) => sum + Number(c.monto), 0),
+                  )}
                 </span>
               </div>
             </div>
@@ -629,7 +767,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Tabla de contratos — datos 100% desde BD */}
+        {/* Tabla de contratos */}
         <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
           <div className="flex items-center gap-2 mb-4">
             <Receipt className="h-5 w-5 text-gray-600" />
@@ -665,9 +803,10 @@ export default function DashboardPage() {
                 {contratos.map((c, idx) => (
                   <tr
                     key={c.id || idx}
-                    className={`border-b border-gray-50 hover:bg-gray-50 ${
-                      c.estado === "PENDIENTE" ? "bg-amber-50/30" : ""
-                    }`}
+                    className={`border-b border-gray-50 hover:bg-gray-50 cursor-pointer ${
+                      c.id === selectedContratoId ? "bg-blue-50/30" : ""
+                    } ${c.estado === "PENDIENTE" ? "bg-amber-50/30" : ""}`}
+                    onClick={() => setSelectedContratoId(c.id)}
                   >
                     <td className="py-2.5 text-gray-600">
                       {new Date(c.fecha).toLocaleDateString("es-PE")}
@@ -699,13 +838,20 @@ export default function DashboardPage() {
               </tbody>
               <tfoot className="border-t-2 border-gray-200 bg-gray-50">
                 <tr>
-                  <td colSpan={3} className="py-3 pl-2 font-semibold text-gray-900">
+                  <td
+                    colSpan={3}
+                    className="py-3 pl-2 font-semibold text-gray-900"
+                  >
                     TOTAL
                   </td>
                   <td className="py-3 text-right font-bold text-gray-900">
-                    {formatCOP(contratos.reduce((sum, c) => sum + Number(c.monto), 0))}
+                    {formatCOP(
+                      contratos.reduce((sum, c) => sum + Number(c.monto), 0),
+                    )}
                   </td>
-                  <td></td>
+                  <td>
+                    <td />
+                  </td>
                 </tr>
                 <tr>
                   <td colSpan={3} className="pb-2 pl-2 text-xs text-gray-500">
@@ -714,7 +860,9 @@ export default function DashboardPage() {
                   <td className="pb-2 text-right text-xs font-semibold text-emerald-700">
                     {formatCOP(totalHistoricoCobrado)}
                   </td>
-                  <td></td>
+                  <td>
+                    <td />
+                  </td>
                 </tr>
                 <tr>
                   <td colSpan={3} className="pb-3 pl-2 text-xs text-gray-500">
@@ -723,7 +871,9 @@ export default function DashboardPage() {
                   <td className="pb-3 text-right text-xs font-semibold text-amber-700">
                     {formatCOP(totalPorCobrar)}
                   </td>
-                  <td></td>
+                  <td>
+                    <td />
+                  </td>
                 </tr>
               </tfoot>
             </table>
@@ -768,7 +918,9 @@ export default function DashboardPage() {
                           <p className="font-semibold text-gray-900 text-xs leading-tight mb-1">
                             {data.nombre}
                           </p>
-                          <p className="text-gray-500 text-xs mb-1">{data.fecha} · {data.tipo}</p>
+                          <p className="text-gray-500 text-xs mb-1">
+                            {data.fecha} · {data.tipo}
+                          </p>
                           <p className="font-bold text-gray-900">
                             {formatCOP(data.monto)}
                           </p>
@@ -779,7 +931,9 @@ export default function DashboardPage() {
                                 : "text-amber-600"
                             }`}
                           >
-                            {data.estado === "COBRADO" ? "✓ Cobrado" : "⏳ Pendiente"}
+                            {data.estado === "COBRADO"
+                              ? "✓ Cobrado"
+                              : "⏳ Pendiente"}
                           </p>
                         </div>
                       );
@@ -820,9 +974,12 @@ export default function DashboardPage() {
                   {formatCOP(proximoMonto)}
                 </span>
               </p>
-              <p className="text-xs text-gray-500">
-                Val. N°01 · {ultimaValPeriodo} · LAR
-              </p>
+              {ultimaVal && (
+                <p className="text-xs text-gray-500">
+                  {ultimaValPeriodo.substring(0, 30)} ·{" "}
+                  {selectedProject?.client?.split(" ")[0] || "Cliente"}
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -886,12 +1043,15 @@ export default function DashboardPage() {
             </div>
             {contratosCobrados.length > 0 ? (
               (() => {
-                const porTipo = contratosCobrados.reduce((acc, c) => {
-                  acc[c.tipo] = (acc[c.tipo] || 0) + Number(c.monto);
-                  return acc;
-                }, {} as Record<string, number>);
+                const porTipo = contratosCobrados.reduce(
+                  (acc, c) => {
+                    acc[c.tipo] = (acc[c.tipo] || 0) + Number(c.monto);
+                    return acc;
+                  },
+                  {} as Record<string, number>,
+                );
                 const pieData = Object.entries(porTipo).map(
-                  ([name, value]) => ({ name, value })
+                  ([name, value]) => ({ name, value }),
                 );
                 const COLORS = ["#1e293b", "#475569", "#64748b", "#94a3b8"];
                 return (
@@ -922,14 +1082,17 @@ export default function DashboardPage() {
                       </PieChart>
                     </ResponsiveContainer>
                     <p className="text-xs text-gray-400 text-center mb-2">
-                      Solo contratos cobrados · {formatCOP(totalHistoricoCobrado)}
+                      Solo contratos cobrados ·{" "}
+                      {formatCOP(totalHistoricoCobrado)}
                     </p>
                     <div className="flex justify-center gap-4 flex-wrap">
                       {pieData.map((item, i) => (
                         <div key={i} className="flex items-center gap-2">
                           <div
                             className="w-3 h-3 rounded-full"
-                            style={{ backgroundColor: COLORS[i % COLORS.length] }}
+                            style={{
+                              backgroundColor: COLORS[i % COLORS.length],
+                            }}
                           />
                           <span className="text-xs text-gray-600">
                             {item.name}
@@ -999,7 +1162,7 @@ export default function DashboardPage() {
             </div>
             {alertas.length > 0 ? (
               <div className="space-y-3">
-                {alertas.map((a, idx) => (
+                {alertas.slice(0, 3).map((a, idx) => (
                   <div
                     key={idx}
                     className="flex items-start gap-3 p-3 bg-red-50 rounded-lg border border-red-200"
@@ -1018,6 +1181,11 @@ export default function DashboardPage() {
                     </span>
                   </div>
                 ))}
+                {alertas.length > 3 && (
+                  <p className="text-xs text-gray-500 text-center pt-2">
+                    +{alertas.length - 3} alertas más
+                  </p>
+                )}
               </div>
             ) : (
               <div className="text-center py-6">
@@ -1055,27 +1223,31 @@ export default function DashboardPage() {
                 }`}
               >
                 <div className="space-y-2">
-                  {workers.map((w, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
-                          <span className="text-xs font-medium text-gray-600">
-                            {w.name.charAt(0)}
-                          </span>
+                  {(showAllWorkers ? workers : workers.slice(0, 6)).map(
+                    (w, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                            <span className="text-xs font-medium text-gray-600">
+                              {w.name.charAt(0)}
+                            </span>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">
+                              {w.name}
+                            </p>
+                            <p className="text-xs text-gray-500">{w.role}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">
-                            {w.name}
-                          </p>
-                          <p className="text-xs text-gray-500">{w.role}</p>
-                        </div>
+                        <span className="text-xs text-gray-400">
+                          {w.location}
+                        </span>
                       </div>
-                      <span className="text-xs text-gray-400">{w.location}</span>
-                    </div>
-                  ))}
+                    ),
+                  )}
                 </div>
               </div>
             ) : (
@@ -1122,7 +1294,9 @@ export default function DashboardPage() {
                         <p className="text-xs text-gray-500">{p.role}</p>
                       </div>
                     </div>
-                    <span className="text-xs text-violet-500">{p.location}</span>
+                    <span className="text-xs text-violet-500">
+                      {p.location}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -1135,20 +1309,20 @@ export default function DashboardPage() {
         </div>
 
         {/* Hitos del proyecto */}
-        <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
-          <div className="flex items-center gap-2 mb-4">
-            <Clock className="h-5 w-5 text-gray-600" />
-            <h3 className="text-base font-semibold text-gray-900">
-              Próximos hitos
-            </h3>
-          </div>
-          {hitos.length > 0 ? (
+        {hitos.length > 0 && (
+          <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
+            <div className="flex items-center gap-2 mb-4">
+              <Clock className="h-5 w-5 text-gray-600" />
+              <h3 className="text-base font-semibold text-gray-900">
+                Próximos hitos
+              </h3>
+            </div>
             <div className="space-y-4">
               {hitos.map((h, idx) => (
                 <div key={idx} className="flex items-start gap-3">
                   <div
                     className="w-1 h-12 rounded-full mt-1"
-                    style={{ background: h.acento }}
+                    style={{ background: h.acento || "#1e293b" }}
                   />
                   <div>
                     <p className="text-sm font-medium text-gray-900">
@@ -1157,23 +1331,21 @@ export default function DashboardPage() {
                     <p className="text-xs text-gray-500 mt-0.5">
                       {h.description}
                     </p>
-                    <span
-                      className={`inline-block text-xs font-medium px-2 py-0.5 rounded-full mt-2 ${getBadgeClass(
-                        h.badge_color
-                      )}`}
-                    >
-                      {h.badge}
-                    </span>
+                    {h.badge && (
+                      <span
+                        className={`inline-block text-xs font-medium px-2 py-0.5 rounded-full mt-2 ${getBadgeClass(
+                          h.badge_color || "blue",
+                        )}`}
+                      >
+                        {h.badge}
+                      </span>
+                    )}
                   </div>
                 </div>
               ))}
             </div>
-          ) : (
-            <p className="text-sm text-gray-400 text-center py-8">
-              No hay hitos programados
-            </p>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Footer Actions */}
         <div className="flex justify-end gap-3 pt-4">
