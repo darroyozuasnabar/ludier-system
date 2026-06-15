@@ -5,9 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   ChevronLeft,
-  Plus,
   CheckCircle2,
-  Clock,
   AlertCircle,
   Loader2,
   Receipt,
@@ -23,6 +21,7 @@ import {
   X,
   Building2,
   Save,
+  Link2,
 } from "lucide-react";
 import { createBrowserClient } from "@supabase/ssr";
 import { FacturaElectronicaButton } from "@/components/FacturaElectronicaButton";
@@ -41,7 +40,6 @@ const formatCOP = (v: number) =>
     minimumFractionDigits: 2,
   }).format(v);
 
-// Estados de una valorización
 const ESTADOS = [
   { key: "BORRADOR",  label: "Borrador",  color: "gray",   desc: "Documento subido, datos extraídos" },
   { key: "EMITIDA",   label: "Emitida",   color: "blue",   desc: "Enviada al cliente" },
@@ -65,6 +63,7 @@ type ValForm = {
   status: string;
   fechaCobro: string;
   notas: string;
+  contrato_id: string;
 };
 
 const FORM_VACIO: ValForm = {
@@ -75,6 +74,7 @@ const FORM_VACIO: ValForm = {
   status: "BORRADOR",
   fechaCobro: "",
   notas: "",
+  contrato_id: "",
 };
 
 export default function ValorizacionesPage() {
@@ -87,6 +87,7 @@ export default function ValorizacionesPage() {
   const [selectedProject, setSelectedProject] = useState<any>(null);
   const [configContrato, setConfigContrato] = useState<any>(null);
   const [valorizaciones, setValorizaciones] = useState<any[]>([]);
+  const [contratosDelProyecto, setContratosDelProyecto] = useState<any[]>([]);
   const [showUpload, setShowUpload] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadPreview, setUploadPreview] = useState<any>(null);
@@ -101,6 +102,11 @@ export default function ValorizacionesPage() {
     if (status === "authenticated") loadData();
   }, [status]);
 
+  const showToast = (type: "ok" | "err", msg: string) => {
+    setToast({ type, msg });
+    setTimeout(() => setToast(null), 4000);
+  };
+
   const loadData = async () => {
     setLoading(true);
     try {
@@ -111,7 +117,7 @@ export default function ValorizacionesPage() {
         .order("name");
       setProyectos(proyectosData || []);
 
-      if (proyectosData && proyectosData.length > 0 && !selectedProject) {
+      if (proyectosData && proyectosData.length > 0) {
         setSelectedProject(proyectosData[0]);
         await loadConfigAndValorizaciones(proyectosData[0].id);
       }
@@ -123,49 +129,44 @@ export default function ValorizacionesPage() {
   };
 
   const loadConfigAndValorizaciones = async (projectId: string) => {
-    const { data: config } = await supabase
-      .from("ConfiguracionContrato")
-      .select("*")
-      .eq("project_id", projectId)
-      .maybeSingle();
-    setConfigContrato(config);
+    const [configRes, valsRes, contratosRes] = await Promise.all([
+      supabase
+        .from("ConfiguracionContrato")
+        .select("*")
+        .eq("project_id", projectId)
+        .maybeSingle(),
+      supabase
+        .from("Valorizacion")
+        .select("*")
+        .eq("projectId", projectId)
+        .order("fechaEmision", { ascending: true }),
+      supabase
+        .from("Contrato")
+        .select("*")
+        .eq("project_id", projectId)
+        .order("orden_estrategico", { ascending: true }),
+    ]);
 
-    const { data: vals } = await supabase
-      .from("Valorizacion")
-      .select("*")
-      .eq("projectId", projectId)
-      .order("fechaEmision", { ascending: true });
-    setValorizaciones(vals || []);
+    setConfigContrato(configRes.data);
+    setValorizaciones(valsRes.data || []);
+    setContratosDelProyecto(contratosRes.data || []);
   };
 
   const handleProjectChange = async (projectId: string) => {
-    const project = proyectos.find(p => p.id === projectId);
+    const project = proyectos.find((p) => p.id === projectId);
     setSelectedProject(project);
     if (project) {
       await loadConfigAndValorizaciones(project.id);
     }
   };
 
-  // --- Lógica común de parseo de texto/celdas ---------------------------
-  // Recibe un arreglo de "filas", donde cada fila es un arreglo de
-  // celdas/tokens (igual que las filas de un Excel).
-  //
-  // La tabla de valorización tiene 4 grupos de columnas de montos:
-  //   1. Acumulado Hasta Valorización Anterior
-  //   2. Valorización actual            <-- el que necesitamos
-  //   3. Acumulado hasta Valorización Actual
-  //   4. Saldo por valorizar
-  //
-  // Cada grupo aporta normalmente 1 monto válido en las filas de totales
-  // (la columna "Metrado" viene vacía). Por eso, de los números detectados
-  // en la fila "TOTAL A FACTURAR", el segundo corresponde a "Valorización
-  // actual" (que es el que coincide con el "Importe Total" de la factura).
+  // ── Parseo Excel / PDF ──────────────────────────────────────────────────────
+
   const parsePeriodAndTotal = (rows: any[][]) => {
     let period = "";
     let totalFacturar = 0;
     let foundOnTotalAFacturar = false;
 
-    // Acepta números tipo "96,170.00", "81000", "543,667.29"
     const numRe = /^-?\d{1,3}(?:,\d{3})*(?:\.\d{1,2})?$/;
 
     rows.forEach((row) => {
@@ -173,7 +174,6 @@ export default function ValorizacionesPage() {
         .map((c) => (typeof c === "string" ? c : ""))
         .join(" ");
 
-      // --- Período ---
       if (!period) {
         const periodMatch = lineText.match(/VALORIZACION\s*N[°ºO]?\.?\s*(\d+)/i);
         if (periodMatch) {
@@ -181,13 +181,11 @@ export default function ValorizacionesPage() {
         }
       }
 
-      // --- Total a facturar ---
       const isTotalAFacturar = /TOTAL\s+A\s+FACTURAR/i.test(lineText);
       const isTotalFinalAPagar = /TOTAL\s+FINAL\s+A\s+PAGAR/i.test(lineText);
 
       if (isTotalAFacturar || (isTotalFinalAPagar && !foundOnTotalAFacturar)) {
         const numbers: number[] = [];
-
         row.forEach((cell) => {
           if (typeof cell === "number") {
             if (cell >= 1) numbers.push(cell);
@@ -200,20 +198,10 @@ export default function ValorizacionesPage() {
           }
         });
 
-        // La fila tiene normalmente 5 montos:
-        //   [0] Metrado y Precios -> Parcial S/. (presupuesto de la línea)
-        //   [1] Acumulado Hasta Valorización Anterior -> Parcial S/.
-        //   [2] Valorización actual -> Parcial S/.        <-- el que queremos
-        //   [3] Acumulado hasta Valorización Actual -> Parcial S/.
-        //   [4] Saldo por valorizar -> Parcial S/.
         let valor = 0;
-        if (numbers.length >= 3) {
-          valor = numbers[2];
-        } else if (numbers.length === 2) {
-          valor = numbers[1];
-        } else if (numbers.length === 1) {
-          valor = numbers[0];
-        }
+        if (numbers.length >= 3) valor = numbers[2];
+        else if (numbers.length === 2) valor = numbers[1];
+        else if (numbers.length === 1) valor = numbers[0];
 
         if (valor > 0) {
           totalFacturar = valor;
@@ -227,12 +215,10 @@ export default function ValorizacionesPage() {
 
   const buildExtractedData = (period: string, totalFacturar: number) => {
     if (!period) {
-      period = `${new Date().toLocaleString('es-PE', { month: 'long', year: 'numeric' })}`;
+      period = new Date().toLocaleString("es-PE", { month: "long", year: "numeric" });
     }
-
     const igvPct = configContrato?.igv_porcentaje || 0.18;
     const costoDirecto = totalFacturar / (1 + igvPct);
-
     return {
       period: period.charAt(0).toUpperCase() + period.slice(1),
       costoDirecto: Math.round(costoDirecto * 100) / 100,
@@ -247,11 +233,9 @@ export default function ValorizacionesPage() {
       reader.onload = (e) => {
         try {
           const data = new Uint8Array(e.target?.result as ArrayBuffer);
-          const workbook = XLSX.read(data, { type: 'array' });
-          const sheetName = workbook.SheetNames[0];
-          const worksheet = workbook.Sheets[sheetName];
+          const workbook = XLSX.read(data, { type: "array" });
+          const worksheet = workbook.Sheets[workbook.SheetNames[0]];
           const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-
           const { period, totalFacturar } = parsePeriodAndTotal(jsonData as any[][]);
           resolve(buildExtractedData(period, totalFacturar));
         } catch (error) {
@@ -262,11 +246,7 @@ export default function ValorizacionesPage() {
     });
   };
 
-  // Extrae texto del PDF y lo organiza por "líneas" agrupando los items
-  // de pdf.js según su posición vertical (Y), igual que filas de Excel.
   const extractFromPDF = async (file: File): Promise<any> => {
-    // Carga dinámica: evita que pdf.js se evalúe durante el SSR (donde no
-    // existe DOMMatrix ni otras APIs de navegador que pdf.js necesita).
     const pdfjsLib = await import("pdfjs-dist");
     pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
       "pdfjs-dist/build/pdf.worker.min.mjs",
@@ -275,13 +255,7 @@ export default function ValorizacionesPage() {
 
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-
-    // Cada "fila" será un arreglo de strings (celdas/tokens de esa línea)
     const rows: any[][] = [];
-
-    // Tolerancia (en unidades de PDF) para considerar que dos items
-    // pertenecen a la misma fila visual, aunque su Y difiera ligeramente
-    // (ej. 450.3 vs 450.6, que con Math.round caerían en filas distintas).
     const Y_TOLERANCE = 6;
 
     for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
@@ -290,21 +264,14 @@ export default function ValorizacionesPage() {
 
       type Item = { x: number; y: number; text: string };
       const items: Item[] = [];
-
       content.items.forEach((item: any) => {
         const str = item.str;
         if (!str || !str.trim()) return;
-        items.push({
-          x: item.transform[4],
-          y: item.transform[5],
-          text: str,
-        });
+        items.push({ x: item.transform[4], y: item.transform[5], text: str });
       });
 
-      // Ordenar de arriba hacia abajo (Y descendente en coords PDF)
       items.sort((a, b) => b.y - a.y);
 
-      // Agrupar por clusters de Y con tolerancia
       const clusters: Item[][] = [];
       items.forEach((it) => {
         const last = clusters[clusters.length - 1];
@@ -315,28 +282,19 @@ export default function ValorizacionesPage() {
         }
       });
 
-      // Construir entradas {fullLine, cells} por cada cluster
       const numRe = /^-?\d{1,3}(?:,\d{3})*(?:\.\d{1,2})?$/;
       const totalRe = /TOTAL\s+A\s+FACTURAR|TOTAL\s+FINAL\s+A\s+PAGAR/i;
 
       const lineEntries = clusters.map((cluster) => {
         const sorted = cluster.slice().sort((a, b) => a.x - b.x);
         const cells: string[] = [];
-        sorted.forEach((it) => {
-          const trimmed = it.text.trim();
-          if (trimmed) cells.push(trimmed);
-        });
+        sorted.forEach((it) => { if (it.text.trim()) cells.push(it.text.trim()); });
         const fullLine = sorted.map((it) => it.text).join(" ").trim();
         return { fullLine, cells };
       });
 
-      // Segunda pasada: si la fila "TOTAL A FACTURAR"/"TOTAL FINAL A PAGAR"
-      // quedó con menos de 2 valores numéricos (porque alguna columna de
-      // monto cayó en una línea contigua por diferencia de baseline),
-      // fusionamos las celdas numéricas de las líneas siguientes.
       lineEntries.forEach((entry, i) => {
         if (!totalRe.test(entry.fullLine)) return;
-
         let numericCount = entry.cells.filter((c) => numRe.test(c)).length;
         let j = i + 1;
         while (numericCount < 2 && j < lineEntries.length && j <= i + 2) {
@@ -350,11 +308,8 @@ export default function ValorizacionesPage() {
       });
 
       lineEntries.forEach(({ fullLine, cells }) => {
-        if (fullLine) {
-          rows.push([fullLine, ...cells]);
-        } else if (cells.length) {
-          rows.push(cells);
-        }
+        if (fullLine) rows.push([fullLine, ...cells]);
+        else if (cells.length) rows.push(cells);
       });
     }
 
@@ -365,24 +320,18 @@ export default function ValorizacionesPage() {
   const handleFileUpload = async (file: File) => {
     setUploadFile(file);
     setUploading(true);
-
     try {
       let extractedData;
       const lowerName = file.name.toLowerCase();
-
-      if (lowerName.endsWith('.xlsx') || lowerName.endsWith('.xls')) {
+      if (lowerName.endsWith(".xlsx") || lowerName.endsWith(".xls")) {
         extractedData = await extractFromExcel(file);
-      } else if (lowerName.endsWith('.pdf')) {
+      } else if (lowerName.endsWith(".pdf")) {
         extractedData = await extractFromPDF(file);
       } else {
         throw new Error("Formato no soportado. Use archivos Excel (.xlsx, .xls) o PDF (.pdf)");
       }
 
-      setUploadPreview({
-        ...extractedData,
-        fileName: file.name,
-      });
-
+      setUploadPreview({ ...extractedData, fileName: file.name });
       setForm({
         projectId: selectedProject?.id || "",
         period: extractedData.period,
@@ -391,14 +340,14 @@ export default function ValorizacionesPage() {
         status: "BORRADOR",
         fechaCobro: "",
         notas: `Documento: ${file.name}`,
+        contrato_id: "",
       });
-
     } catch (error: any) {
       Swal.fire({
-        title: 'Error al leer el archivo',
+        title: "Error al leer el archivo",
         text: error.message,
-        icon: 'error',
-        confirmButtonColor: '#dc2626',
+        icon: "error",
+        confirmButtonColor: "#dc2626",
       });
     } finally {
       setUploading(false);
@@ -407,18 +356,15 @@ export default function ValorizacionesPage() {
 
   const handleSaveFromUpload = async () => {
     if (!form.projectId) {
-      setToast({ type: "err", msg: "Selecciona un proyecto." });
-      setTimeout(() => setToast(null), 4000);
+      showToast("err", "Selecciona un proyecto.");
       return;
     }
     if (!form.period.trim() || !form.costoDirecto) {
-      setToast({ type: "err", msg: "Completa los datos extraídos o corrígelos manualmente." });
-      setTimeout(() => setToast(null), 4000);
+      showToast("err", "Completa los datos extraídos o corrígelos manualmente.");
       return;
     }
 
     setSaving(true);
-
     const igvPct = configContrato?.igv_porcentaje || 0.18;
     const garantiaPct = configContrato?.garantia_porcentaje || 0.05;
     const costoTotal = configContrato?.costo_directo_total || 0;
@@ -429,7 +375,7 @@ export default function ValorizacionesPage() {
     const garantiaCalc = costoNum * garantiaPct;
     const netoCalc = totalFacturaCalc - garantiaCalc;
 
-    const payload = {
+    const payload: any = {
       projectId: form.projectId,
       period: form.period,
       costoDirecto: costoNum,
@@ -442,33 +388,28 @@ export default function ValorizacionesPage() {
       fechaEmision: form.fechaEmision,
       fechaCobro: form.fechaCobro || null,
       notas: form.notas || null,
+      contrato_id: form.contrato_id || null,
     };
 
     let error;
     if (editingId) {
-      ({ error } = await supabase
-        .from("Valorizacion")
-        .update(payload)
-        .eq("id", editingId));
+      ({ error } = await supabase.from("Valorizacion").update(payload).eq("id", editingId));
     } else {
       ({ error } = await supabase.from("Valorizacion").insert(payload));
     }
 
     setSaving(false);
     if (error) {
-      setToast({ type: "err", msg: "Error al guardar. Revisa los datos." });
+      showToast("err", "Error al guardar. Revisa los datos.");
     } else {
-      setToast({ type: "ok", msg: editingId ? "Valorización actualizada." : "Valorización creada correctamente." });
+      showToast("ok", editingId ? "Valorización actualizada." : "Valorización creada correctamente.");
       setForm(FORM_VACIO);
       setShowUpload(false);
       setUploadFile(null);
       setUploadPreview(null);
       setEditingId(null);
-      if (selectedProject) {
-        await loadConfigAndValorizaciones(selectedProject.id);
-      }
+      if (selectedProject) await loadConfigAndValorizaciones(selectedProject.id);
     }
-    setTimeout(() => setToast(null), 4000);
   };
 
   const handleEdit = (v: any) => {
@@ -480,6 +421,7 @@ export default function ValorizacionesPage() {
       status: v.status,
       fechaCobro: v.fechaCobro?.split("T")[0] || "",
       notas: v.notas || "",
+      contrato_id: v.contrato_id || "",
     });
     setEditingId(v.id);
     setShowUpload(true);
@@ -494,15 +436,15 @@ export default function ValorizacionesPage() {
       updates.fechaCobro = new Date().toISOString().split("T")[0];
     }
     await supabase.from("Valorizacion").update(updates).eq("id", id);
-    if (selectedProject) {
-      await loadConfigAndValorizaciones(selectedProject.id);
-    }
+    if (selectedProject) await loadConfigAndValorizaciones(selectedProject.id);
   };
 
   const getNextStatus = (current: string) => {
     const idx = ESTADOS.findIndex((e) => e.key === current);
     return idx < ESTADOS.length - 1 ? ESTADOS[idx + 1] : null;
   };
+
+  // ── KPIs ────────────────────────────────────────────────────────────────────
 
   const totalValorizado = valorizaciones.reduce((s, v) => s + Number(v.costoDirecto), 0);
   const costoTotal = configContrato?.costo_directo_total || 0;
@@ -513,6 +455,43 @@ export default function ValorizacionesPage() {
   const totalPendienteCobro = valorizaciones
     .filter((v) => v.status !== "COBRADA")
     .reduce((s, v) => s + Number(v.netoCobrar), 0);
+
+  // ── Selector de contrato en formulario ──────────────────────────────────────
+
+  const ContratoSelector = ({ value, onChange }: { value: string; onChange: (v: string) => void }) => (
+    <div>
+      <label className="text-xs font-medium text-gray-700 mb-1.5 flex items-center gap-1.5 block">
+        <Link2 className="h-3.5 w-3.5 text-gray-400" />
+        Contrato asociado
+        <span className="text-gray-400 font-normal">(afecta Próxima cobranza)</span>
+      </label>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
+      >
+        <option value="">— Sin asignar —</option>
+        {contratosDelProyecto.map((c) => (
+          <option key={c.id} value={c.id}>
+            {c.nombre.length > 60 ? c.nombre.substring(0, 60) + "…" : c.nombre}
+            {" "}· {formatCOP(Number(c.monto))} · {c.estado}
+          </option>
+        ))}
+      </select>
+      {value && (
+        <p className="text-xs text-teal-600 mt-1 flex items-center gap-1">
+          <CheckCircle2 className="h-3 w-3" />
+          Esta valorización aparecerá en "Próxima cobranza" del contrato seleccionado
+        </p>
+      )}
+      {!value && (
+        <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
+          <AlertCircle className="h-3 w-3" />
+          Sin contrato asignado no se reflejará en el dashboard
+        </p>
+      )}
+    </div>
+  );
 
   if (status === "loading" || loading) {
     return (
@@ -557,7 +536,7 @@ export default function ValorizacionesPage() {
           </div>
           <button
             onClick={() => {
-              setForm(FORM_VACIO);
+              setForm({ ...FORM_VACIO, projectId: selectedProject?.id || "" });
               setEditingId(null);
               setUploadFile(null);
               setUploadPreview(null);
@@ -598,7 +577,7 @@ export default function ValorizacionesPage() {
           </div>
         </div>
 
-        {/* Panel de subida de archivo */}
+        {/* Panel de subida / edición */}
         {showUpload && (
           <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
             <div className="flex items-center justify-between mb-5">
@@ -606,13 +585,20 @@ export default function ValorizacionesPage() {
                 {editingId ? "Editar valorización" : "Subir valorización"}
               </h2>
               <button
-                onClick={() => { setShowUpload(false); setUploadFile(null); setUploadPreview(null); setEditingId(null); setForm(FORM_VACIO); }}
+                onClick={() => {
+                  setShowUpload(false);
+                  setUploadFile(null);
+                  setUploadPreview(null);
+                  setEditingId(null);
+                  setForm(FORM_VACIO);
+                }}
                 className="p-1 rounded-lg text-gray-400 hover:text-gray-600"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
+            {/* Drop zone — solo cuando es nuevo y sin preview */}
             {!uploadPreview && !editingId && (
               <div
                 onDragOver={(e) => e.preventDefault()}
@@ -649,12 +635,15 @@ export default function ValorizacionesPage() {
               </div>
             )}
 
+            {/* Preview tras subir archivo */}
             {uploadPreview && !editingId && (
               <div className="space-y-4">
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <FileText className="h-4 w-4 text-green-600" />
-                    <span className="text-sm font-medium text-green-800">Datos extraídos del archivo: {uploadPreview.fileName}</span>
+                    <span className="text-sm font-medium text-green-800">
+                      Datos extraídos del archivo: {uploadPreview.fileName}
+                    </span>
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                     <div>
@@ -672,14 +661,13 @@ export default function ValorizacionesPage() {
                   </div>
                   {uploadPreview.totalFactura === 0 && (
                     <p className="text-xs text-amber-700 mt-3">
-                      No se encontraron automáticamente los valores en el documento. Verifica/corrige los campos abajo.
+                      No se encontraron automáticamente los valores. Corrígelos manualmente.
                     </p>
                   )}
                 </div>
 
                 <div className="border-t border-gray-100 pt-4">
                   <p className="text-xs font-medium text-gray-700 mb-3">Confirma o corrige los datos:</p>
-
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="text-xs font-medium text-gray-700 mb-1.5 block">Período *</label>
@@ -724,6 +712,13 @@ export default function ValorizacionesPage() {
                         ))}
                       </select>
                     </div>
+                    {/* ── SELECTOR DE CONTRATO ── */}
+                    <div className="col-span-2">
+                      <ContratoSelector
+                        value={form.contrato_id}
+                        onChange={(v) => setForm({ ...form, contrato_id: v })}
+                      />
+                    </div>
                     <div className="col-span-2">
                       <label className="text-xs font-medium text-gray-700 mb-1.5 block">Notas (opcional)</label>
                       <input
@@ -747,7 +742,12 @@ export default function ValorizacionesPage() {
                     {saving ? "Guardando..." : "Guardar valorización"}
                   </button>
                   <button
-                    onClick={() => { setShowUpload(false); setUploadFile(null); setUploadPreview(null); setForm(FORM_VACIO); }}
+                    onClick={() => {
+                      setShowUpload(false);
+                      setUploadFile(null);
+                      setUploadPreview(null);
+                      setForm(FORM_VACIO);
+                    }}
                     className="px-4 py-2 border border-gray-200 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors"
                   >
                     Cancelar
@@ -756,6 +756,7 @@ export default function ValorizacionesPage() {
               </div>
             )}
 
+            {/* Formulario de edición */}
             {editingId && (
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
@@ -813,6 +814,13 @@ export default function ValorizacionesPage() {
                       />
                     </div>
                   )}
+                  {/* ── SELECTOR DE CONTRATO ── */}
+                  <div className="col-span-2">
+                    <ContratoSelector
+                      value={form.contrato_id}
+                      onChange={(v) => setForm({ ...form, contrato_id: v })}
+                    />
+                  </div>
                   <div className={form.status === "COBRADA" ? "" : "col-span-2"}>
                     <label className="text-xs font-medium text-gray-700 mb-1.5 block">Notas</label>
                     <input
@@ -834,15 +842,21 @@ export default function ValorizacionesPage() {
                       </div>
                       <div>
                         <p className="text-[10px] text-gray-400">IGV ({((configContrato?.igv_porcentaje || 0.18) * 100).toFixed(0)}%)</p>
-                        <p className="text-sm font-semibold text-blue-700">+ {formatCOP(parseFloat(form.costoDirecto) * (configContrato?.igv_porcentaje || 0.18))}</p>
+                        <p className="text-sm font-semibold text-blue-700">
+                          + {formatCOP(parseFloat(form.costoDirecto) * (configContrato?.igv_porcentaje || 0.18))}
+                        </p>
                       </div>
                       <div>
                         <p className="text-[10px] text-gray-400">Total factura</p>
-                        <p className="text-sm font-semibold text-gray-900">{formatCOP(parseFloat(form.costoDirecto) * (1 + (configContrato?.igv_porcentaje || 0.18)))}</p>
+                        <p className="text-sm font-semibold text-gray-900">
+                          {formatCOP(parseFloat(form.costoDirecto) * (1 + (configContrato?.igv_porcentaje || 0.18)))}
+                        </p>
                       </div>
                       <div>
                         <p className="text-[10px] text-gray-400">Garantía ({((configContrato?.garantia_porcentaje || 0.05) * 100).toFixed(0)}%)</p>
-                        <p className="text-sm font-semibold text-amber-700">− {formatCOP(parseFloat(form.costoDirecto) * (configContrato?.garantia_porcentaje || 0.05))}</p>
+                        <p className="text-sm font-semibold text-amber-700">
+                          − {formatCOP(parseFloat(form.costoDirecto) * (configContrato?.garantia_porcentaje || 0.05))}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -869,7 +883,7 @@ export default function ValorizacionesPage() {
           </div>
         )}
 
-        {/* KPIs del contrato */}
+        {/* KPIs */}
         {selectedProject && configContrato && (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
@@ -909,15 +923,14 @@ export default function ValorizacionesPage() {
               <div className="bg-white rounded-xl border border-gray-100 p-12 text-center shadow-sm">
                 <Receipt className="h-12 w-12 text-gray-200 mx-auto mb-3" />
                 <p className="text-sm text-gray-400">No hay valorizaciones registradas aún.</p>
-                <p className="text-xs text-gray-300 mt-1">
-                  Usa el botón "Subir valorización" para comenzar.
-                </p>
+                <p className="text-xs text-gray-300 mt-1">Usa el botón "Subir valorización" para comenzar.</p>
               </div>
             ) : (
               valorizaciones.map((v, idx) => {
                 const estadoInfo = ESTADOS.find((e) => e.key === v.status) || ESTADOS[0];
                 const nextStatus = getNextStatus(v.status);
                 const isExpanded = expandedId === v.id;
+                const contratoAsignado = contratosDelProyecto.find((c) => c.id === v.contrato_id);
 
                 return (
                   <div key={v.id} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
@@ -929,7 +942,9 @@ export default function ValorizacionesPage() {
                           </div>
                           <div>
                             <div className="flex items-center gap-2 flex-wrap">
-                              <h3 className="text-sm font-semibold text-gray-900">Val. N°{String(idx + 1).padStart(2, "0")} · {v.period}</h3>
+                              <h3 className="text-sm font-semibold text-gray-900">
+                                Val. N°{String(idx + 1).padStart(2, "0")} · {v.period}
+                              </h3>
                               <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${badgeColors[estadoInfo.color]}`}>
                                 {estadoInfo.label}
                               </span>
@@ -938,6 +953,20 @@ export default function ValorizacionesPage() {
                               Emitida: {new Date(v.fechaEmision).toLocaleDateString("es-PE")}
                               {v.fechaCobro && ` · Cobrada: ${new Date(v.fechaCobro).toLocaleDateString("es-PE")}`}
                             </p>
+                            {/* Badge de contrato asignado */}
+                            {contratoAsignado ? (
+                              <p className="text-xs text-teal-600 mt-1 flex items-center gap-1">
+                                <Link2 className="h-3 w-3" />
+                                {contratoAsignado.nombre.length > 50
+                                  ? contratoAsignado.nombre.substring(0, 50) + "…"
+                                  : contratoAsignado.nombre}
+                              </p>
+                            ) : (
+                              <p className="text-xs text-amber-500 mt-1 flex items-center gap-1">
+                                <AlertCircle className="h-3 w-3" />
+                                Sin contrato asignado — no aparece en "Próxima cobranza"
+                              </p>
+                            )}
                           </div>
                         </div>
 
@@ -950,13 +979,17 @@ export default function ValorizacionesPage() {
                             <button onClick={() => handleEdit(v)} className="p-1.5 text-gray-400 hover:text-gray-700 transition-colors">
                               <Pencil className="h-3.5 w-3.5" />
                             </button>
-                            <button onClick={() => setExpandedId(isExpanded ? null : v.id)} className="p-1.5 text-gray-400 hover:text-gray-700 transition-colors">
+                            <button
+                              onClick={() => setExpandedId(isExpanded ? null : v.id)}
+                              className="p-1.5 text-gray-400 hover:text-gray-700 transition-colors"
+                            >
                               {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                             </button>
                           </div>
                         </div>
                       </div>
 
+                      {/* Barra de progreso de estados */}
                       <div className="flex items-center gap-1 mt-4">
                         {ESTADOS.map((e, i) => {
                           const estadoIdx = ESTADOS.findIndex((s) => s.key === v.status);
@@ -978,6 +1011,7 @@ export default function ValorizacionesPage() {
                       </div>
                     </div>
 
+                    {/* Detalle expandido */}
                     {isExpanded && (
                       <div className="border-t border-gray-100 px-5 py-4 bg-gray-50">
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
@@ -1047,9 +1081,9 @@ export default function ValorizacionesPage() {
                                   <p className="text-xs text-amber-600 mt-1">Valorización firmada - Lista para emitir factura</p>
                                 )}
                               </div>
-                              <FacturaElectronicaButton 
-                                valorizacion={v} 
-                                onSuccess={() => selectedProject && loadConfigAndValorizaciones(selectedProject.id)} 
+                              <FacturaElectronicaButton
+                                valorizacion={v}
+                                onSuccess={() => selectedProject && loadConfigAndValorizaciones(selectedProject.id)}
                               />
                             </div>
                           </div>
@@ -1063,6 +1097,7 @@ export default function ValorizacionesPage() {
           </div>
         )}
 
+        {/* Progreso del contrato */}
         {selectedProject && configContrato && (
           <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
             <div className="flex items-center justify-between mb-3">
@@ -1070,7 +1105,10 @@ export default function ValorizacionesPage() {
               <span className="text-sm font-bold text-gray-900">{avancePct.toFixed(2)}%</span>
             </div>
             <div className="h-3 bg-gray-100 rounded-full overflow-hidden mb-3">
-              <div className="h-full bg-gray-900 rounded-full transition-all duration-500" style={{ width: `${Math.min(avancePct, 100)}%` }} />
+              <div
+                className="h-full bg-gray-900 rounded-full transition-all duration-500"
+                style={{ width: `${Math.min(avancePct, 100)}%` }}
+              />
             </div>
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
