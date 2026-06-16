@@ -255,7 +255,6 @@ export default function ComprasPage() {
     });
     setEditingId(orden.id);
     setShowForm(true);
-    // Cargar items de la orden
     loadOrdenItems(orden.id);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -303,7 +302,7 @@ export default function ComprasPage() {
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
-              onClick={() => router.push("/")}
+              onClick={() => router.push("/dashboard")}
               className="flex items-center gap-1.5 text-gray-500 hover:text-gray-800 text-sm transition-colors"
             >
               <ChevronLeft className="h-4 w-4" />
@@ -395,11 +394,11 @@ export default function ComprasPage() {
                 <select
                   value={form.proveedor_id}
                   onChange={(e) => setForm({ ...form, proveedor_id: e.target.value })}
-                  className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
+                  className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
                 >
-                  <option value="">— Seleccionar proveedor —</option>
+                  <option value="" className="text-gray-900">— Seleccionar proveedor —</option>
                   {proveedores.map((p) => (
-                    <option key={p.id} value={p.id}>{p.razon_social}</option>
+                    <option key={p.id} value={p.id} className="text-gray-900">{p.razon_social}</option>
                   ))}
                 </select>
               </div>
@@ -408,11 +407,11 @@ export default function ComprasPage() {
                 <select
                   value={form.project_id}
                   onChange={(e) => setForm({ ...form, project_id: e.target.value })}
-                  className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
+                  className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
                 >
-                  <option value="">— Sin proyecto específico —</option>
+                  <option value="" className="text-gray-900">— Sin proyecto específico —</option>
                   {proyectos.map((p) => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
+                    <option key={p.id} value={p.id} className="text-gray-900">{p.name}</option>
                   ))}
                 </select>
               </div>
@@ -422,7 +421,7 @@ export default function ComprasPage() {
                   type="date"
                   value={form.fecha_emision}
                   onChange={(e) => setForm({ ...form, fecha_emision: e.target.value })}
-                  className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
+                  className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
                 />
               </div>
               <div>
@@ -431,7 +430,7 @@ export default function ComprasPage() {
                   type="date"
                   value={form.fecha_entrega}
                   onChange={(e) => setForm({ ...form, fecha_entrega: e.target.value })}
-                  className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
+                  className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
                 />
               </div>
               <div>
@@ -439,11 +438,11 @@ export default function ComprasPage() {
                 <select
                   value={form.tipo}
                   onChange={(e) => setForm({ ...form, tipo: e.target.value })}
-                  className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
+                  className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
                 >
-                  <option value="MATERIALES">Materiales</option>
-                  <option value="HERRAMIENTAS">Herramientas</option>
-                  <option value="SERVICIOS">Servicios</option>
+                  <option value="MATERIALES" className="text-gray-900">Materiales</option>
+                  <option value="HERRAMIENTAS" className="text-gray-900">Herramientas</option>
+                  <option value="SERVICIOS" className="text-gray-900">Servicios</option>
                 </select>
               </div>
               <div className="col-span-2">
@@ -452,7 +451,7 @@ export default function ComprasPage() {
                   rows={2}
                   value={form.notas}
                   onChange={(e) => setForm({ ...form, notas: e.target.value })}
-                  className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none"
+                  className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none bg-white"
                   placeholder="Instrucciones adicionales..."
                 />
               </div>
@@ -468,7 +467,7 @@ export default function ComprasPage() {
                     placeholder="Producto"
                     value={newItem.producto}
                     onChange={(e) => setNewItem({ ...newItem, producto: e.target.value })}
-                    className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
+                    className="w-full px-2 py-1.5 text-xs text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
                   />
                 </div>
                 <div className="col-span-2">
@@ -477,7 +476,7 @@ export default function ComprasPage() {
                     placeholder="Cantidad"
                     value={newItem.cantidad}
                     onChange={(e) => setNewItem({ ...newItem, cantidad: e.target.value })}
-                    className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
+                    className="w-full px-2 py-1.5 text-xs text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
                   />
                 </div>
                 <div className="col-span-2">
@@ -487,7 +486,7 @@ export default function ComprasPage() {
                     placeholder="Precio unit."
                     value={newItem.precio_unitario}
                     onChange={(e) => setNewItem({ ...newItem, precio_unitario: e.target.value })}
-                    className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
+                    className="w-full px-2 py-1.5 text-xs text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
                   />
                 </div>
                 <div className="col-span-2">
@@ -496,7 +495,7 @@ export default function ComprasPage() {
                     placeholder="Unidad"
                     value={newItem.unidad}
                     onChange={(e) => setNewItem({ ...newItem, unidad: e.target.value })}
-                    className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
+                    className="w-full px-2 py-1.5 text-xs text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
                   />
                 </div>
                 <div className="col-span-2">
@@ -513,7 +512,7 @@ export default function ComprasPage() {
                     placeholder="Descripción (opcional)"
                     value={newItem.descripcion}
                     onChange={(e) => setNewItem({ ...newItem, descripcion: e.target.value })}
-                    className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
+                    className="w-full px-2 py-1.5 text-xs text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
                   />
                 </div>
               </div>
@@ -523,25 +522,25 @@ export default function ComprasPage() {
                   <table className="w-full text-xs">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="text-left p-2">Producto</th>
-                        <th className="text-center p-2">Cant.</th>
-                        <th className="text-center p-2">Und.</th>
-                        <th className="text-right p-2">Precio unit.</th>
-                        <th className="text-right p-2">Subtotal</th>
-                        <th className="text-center p-2"></th>
+                        <th className="text-left p-2 text-gray-700">Producto</th>
+                        <th className="text-center p-2 text-gray-700">Cant.</th>
+                        <th className="text-center p-2 text-gray-700">Und.</th>
+                        <th className="text-right p-2 text-gray-700">Precio unit.</th>
+                        <th className="text-right p-2 text-gray-700">Subtotal</th>
+                        <th className="text-center p-2 text-gray-700"></th>
                       </tr>
                     </thead>
                     <tbody>
                       {tempItems.map((item, idx) => (
                         <tr key={idx} className="border-b border-gray-100">
                           <td className="p-2">
-                            <p className="font-medium">{item.producto}</p>
+                            <p className="font-medium text-gray-900">{item.producto}</p>
                             {item.descripcion && <p className="text-[10px] text-gray-400">{item.descripcion}</p>}
                           </td>
-                          <td className="p-2 text-center">{item.cantidad}</td>
-                          <td className="p-2 text-center">{item.unidad}</td>
-                          <td className="p-2 text-right">{formatCOP(item.precio_unitario)}</td>
-                          <td className="p-2 text-right font-medium">{formatCOP(item.subtotal)}</td>
+                          <td className="p-2 text-center text-gray-900">{item.cantidad}</td>
+                          <td className="p-2 text-center text-gray-900">{item.unidad}</td>
+                          <td className="p-2 text-right text-gray-900">{formatCOP(item.precio_unitario)}</td>
+                          <td className="p-2 text-right font-medium text-gray-900">{formatCOP(item.subtotal)}</td>
                           <td className="p-2 text-center">
                             <button onClick={() => handleRemoveItem(idx)} className="text-gray-300 hover:text-red-500">
                               <Trash2 className="h-3.5 w-3.5" />
@@ -552,19 +551,19 @@ export default function ComprasPage() {
                     </tbody>
                     <tfoot className="bg-gray-50">
                       <tr>
-                        <td colSpan={4} className="p-2 text-right font-medium">Subtotal:</td>
-                        <td className="p-2 text-right font-medium">{formatCOP(calcularTotales().subtotal)}</td>
-                        <td></td>
+                        <td colSpan={4} className="p-2 text-right font-medium text-gray-700">Subtotal: </td>
+                        <td className="p-2 text-right font-medium text-gray-900">{formatCOP(calcularTotales().subtotal)}</td>
+                        <td><td/></td>
                       </tr>
                       <tr>
-                        <td colSpan={4} className="p-2 text-right font-medium">IGV (18%):</td>
-                        <td className="p-2 text-right font-medium">{formatCOP(calcularTotales().igv)}</td>
-                        <td></td>
+                        <td colSpan={4} className="p-2 text-right font-medium text-gray-700">IGV (18%): </td>
+                        <td className="p-2 text-right font-medium text-gray-900">{formatCOP(calcularTotales().igv)}</td>
+                        <td><td/></td>
                       </tr>
                       <tr className="border-t border-gray-200">
-                        <td colSpan={4} className="p-2 text-right font-bold">TOTAL:</td>
+                        <td colSpan={4} className="p-2 text-right font-bold text-gray-900">TOTAL: </td>
                         <td className="p-2 text-right font-bold text-teal-700">{formatCOP(calcularTotales().total)}</td>
-                        <td></td>
+                        <td><td/></td>
                       </tr>
                     </tfoot>
                   </table>
@@ -605,9 +604,9 @@ export default function ComprasPage() {
                 onChange={(e) => setFilterEstado(e.target.value)}
                 className="px-3 py-1.5 text-xs border border-gray-300 rounded-lg bg-white text-gray-900"
               >
-                <option value="ALL">Todos los estados</option>
+                <option value="ALL" className="text-gray-900">Todos los estados</option>
                 {ESTADOS_OC.map((e) => (
-                  <option key={e.key} value={e.key}>{e.label}</option>
+                  <option key={e.key} value={e.key} className="text-gray-900">{e.label}</option>
                 ))}
               </select>
             </div>
@@ -676,8 +675,8 @@ export default function ComprasPage() {
                               {orden.items?.length > 0 ? (
                                 orden.items.map((item: any, idx: number) => (
                                   <div key={idx} className="flex justify-between text-sm py-1 border-b border-gray-50">
-                                    <span>{item.cantidad} x {item.producto}</span>
-                                    <span className="font-medium">{formatCOP(item.subtotal)}</span>
+                                    <span className="text-gray-700">{item.cantidad} x {item.producto}</span>
+                                    <span className="font-medium text-gray-900">{formatCOP(item.subtotal)}</span>
                                   </div>
                                 ))
                               ) : (
