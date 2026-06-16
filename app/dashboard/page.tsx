@@ -99,10 +99,10 @@ export default function DashboardPage() {
   const loadData = async () => {
     setLoading(true);
     try {
+      // Cargar TODOS los proyectos (sin filtro de estado)
       const { data: proyectosData } = await supabase
         .from("Project")
         .select("*")
-        .in("status", ["ACTIVO", "EN_PRODUCCION"])
         .order("name");
 
       setAllProjects(proyectosData || []);

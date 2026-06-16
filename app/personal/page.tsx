@@ -31,8 +31,11 @@ import {
   Eye,
   CreditCard,
   Clock as ClockIcon,
+  AlertTriangle,
+  ClipboardList,
 } from "lucide-react";
 import { createBrowserClient } from "@supabase/ssr";
+import Swal from "sweetalert2";
 
 const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -134,6 +137,24 @@ export default function PersonalPage() {
   const [filterLocation, setFilterLocation] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
 
+  // ── Partes diarios ──────────────────────────────────────────────────────
+  const [activeTab, setActiveTab] = useState<"planilla" | "checklist" | "partes">("planilla");
+  const [partes, setPartes] = useState<any[]>([]);
+  const [showParteForm, setShowParteForm] = useState(false);
+  const [parteProyectos, setParteProyectos] = useState<any[]>([]);
+  const [parteForm, setParteForm] = useState({
+    fecha: new Date().toISOString().split("T")[0],
+    project_id: "",
+    supervisor: "",
+    resumen_general: "",
+    observaciones: "",
+  });
+  const [parteActividades, setParteActividades] = useState<any[]>([]);
+  const [nuevaActividad, setNuevaActividad] = useState({ worker_id: "", actividad: "", horas: "" });
+  const [partesExpanded, setPartesExpanded] = useState<string | null>(null);
+  const [actividadesPorParte, setActividadesPorParte] = useState<Record<string, any[]>>({});
+  const [editingParteId, setEditingParteId] = useState<string | null>(null);
+
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
     if (status === "authenticated") loadData();
@@ -142,14 +163,18 @@ export default function PersonalPage() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [workersRes, asistenciasRes, pagosRes] = await Promise.all([
+      const [workersRes, asistenciasRes, pagosRes, partesRes, proyectosRes] = await Promise.all([
         supabase.from("Worker").select("*").order("name"),
         supabase.from("AsistenciaSemanal").select("*").order("semana_inicio", { ascending: false }),
         supabase.from("HistorialPagos").select("*").order("created_at", { ascending: false }),
+        supabase.from("ParteTrabajo").select("*, Project(*)").order("fecha", { ascending: false }),
+        supabase.from("Project").select("*").in("status", ["ACTIVO", "EN_PRODUCCION"]).order("name"),
       ]);
       setWorkers(workersRes.data || []);
       setAsistencias(asistenciasRes.data || []);
       setHistorialPagos(pagosRes.data || []);
+      setPartes(partesRes.data || []);
+      setParteProyectos(proyectosRes.data || []);
     } catch (error) {
       console.error("Error loading data:", error);
     } finally {
@@ -157,11 +182,274 @@ export default function PersonalPage() {
     }
   };
 
+  // ── Funciones de Partes diarios ──────────────────────────────────────
+  const handleAddActividadParte = () => {
+    if (!nuevaActividad.worker_id || !nuevaActividad.actividad.trim()) {
+      showToastMsg("err", "Selecciona un trabajador y describe la actividad");
+      return;
+    }
+    const worker = workers.find(w => w.id === nuevaActividad.worker_id);
+    setParteActividades([
+      ...parteActividades,
+      {
+        id: `temp-${Date.now()}`,
+        worker_id: nuevaActividad.worker_id,
+        worker_name: worker?.name || "Sin nombre",
+        actividad: nuevaActividad.actividad,
+        horas: parseFloat(nuevaActividad.horas) || 0,
+      },
+    ]);
+    setNuevaActividad({ worker_id: "", actividad: "", horas: "" });
+  };
+
+  const handleRemoveActividadParte = (index: number) => {
+    setParteActividades(parteActividades.filter((_, i) => i !== index));
+  };
+
+  const handleSaveParte = async () => {
+    if (!parteForm.fecha || !parteForm.project_id) {
+      showToastMsg("err", "Completa la fecha y el proyecto");
+      return;
+    }
+    if (parteActividades.length === 0) {
+      showToastMsg("err", "Agrega al menos una actividad");
+      return;
+    }
+
+    setSaving(true);
+    
+    let parteId;
+    let error;
+    
+    if (editingParteId) {
+      // Actualizar parte existente
+      const { data, error: updateError } = await supabase
+        .from("ParteTrabajo")
+        .update({
+          fecha: parteForm.fecha,
+          project_id: parteForm.project_id,
+          supervisor: parteForm.supervisor || null,
+          resumen_general: parteForm.resumen_general || null,
+          observaciones: parteForm.observaciones || null,
+        })
+        .eq("id", editingParteId)
+        .select();
+      
+      error = updateError;
+      if (data) parteId = data[0]?.id;
+      
+      // Eliminar actividades antiguas y volver a insertar
+      if (!error) {
+        await supabase.from("ParteActividad").delete().eq("parte_id", editingParteId);
+      }
+    } else {
+      // Crear nuevo parte
+      const { data, error: insertError } = await supabase
+        .from("ParteTrabajo")
+        .insert({
+          fecha: parteForm.fecha,
+          project_id: parteForm.project_id,
+          supervisor: parteForm.supervisor || null,
+          resumen_general: parteForm.resumen_general || null,
+          observaciones: parteForm.observaciones || null,
+        })
+        .select();
+      
+      error = insertError;
+      if (data) parteId = data[0]?.id;
+    }
+
+    if (error) {
+      showToastMsg("err", "Error al guardar el parte");
+      setSaving(false);
+      return;
+    }
+
+    // Insertar nuevas actividades
+    for (const act of parteActividades) {
+      await supabase.from("ParteActividad").insert({
+        parte_id: parteId,
+        worker_id: act.worker_id,
+        actividad: act.actividad,
+        horas: act.horas || 0,
+      });
+    }
+
+    setSaving(false);
+    showToastMsg("ok", editingParteId ? "Parte actualizado correctamente" : "Parte registrado correctamente");
+    setParteForm({
+      fecha: new Date().toISOString().split("T")[0],
+      project_id: "",
+      supervisor: "",
+      resumen_general: "",
+      observaciones: "",
+    });
+    setParteActividades([]);
+    setShowParteForm(false);
+    setEditingParteId(null);
+    loadData();
+  };
+
+  const cargarActividadesParte = async (parteId: string) => {
+    if (actividadesPorParte[parteId]) return;
+    
+    const { data } = await supabase
+      .from("ParteActividad")
+      .select("*, Worker(*)")
+      .eq("parte_id", parteId);
+    
+    setActividadesPorParte(prev => ({
+      ...prev,
+      [parteId]: data || []
+    }));
+  };
+
+  const handleToggleExpand = async (parteId: string) => {
+    if (partesExpanded === parteId) {
+      setPartesExpanded(null);
+    } else {
+      setPartesExpanded(parteId);
+      await cargarActividadesParte(parteId);
+    }
+  };
+
+  const handleEditParte = async (parteId: string) => {
+    const parte = partes.find(p => p.id === parteId);
+    if (!parte) return;
+
+    // Cargar actividades del parte
+    const { data: actividades } = await supabase
+      .from("ParteActividad")
+      .select("*")
+      .eq("parte_id", parteId);
+
+    // Llenar el formulario con los datos del parte
+    setParteForm({
+      fecha: parte.fecha,
+      project_id: parte.project_id || "",
+      supervisor: parte.supervisor || "",
+      resumen_general: parte.resumen_general || "",
+      observaciones: parte.observaciones || "",
+    });
+
+    // Llenar actividades
+    const actividadesConNombres = await Promise.all(
+      (actividades || []).map(async (act) => {
+        const worker = workers.find(w => w.id === act.worker_id);
+        return {
+          ...act,
+          worker_name: worker?.name || "Sin nombre",
+        };
+      })
+    );
+    setParteActividades(actividadesConNombres);
+    setEditingParteId(parteId);
+    setShowParteForm(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleDeleteParte = async (parteId: string) => {
+    const result = await Swal.fire({
+      title: '¿Eliminar parte?',
+      text: 'Esta acción no se puede deshacer. Se eliminarán todas las actividades asociadas.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc2626',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+      reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) return;
+
+    setSaving(true);
+    try {
+      // Eliminar actividades primero (por FK)
+      await supabase.from("ParteActividad").delete().eq("parte_id", parteId);
+      // Eliminar el parte
+      const { error } = await supabase.from("ParteTrabajo").delete().eq("id", parteId);
+      if (error) throw error;
+
+      showToastMsg("ok", "Parte eliminado correctamente");
+      loadData();
+    } catch (error) {
+      showToastMsg("err", "Error al eliminar el parte");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleEditActividad = async (actividadId: string, parteId: string) => {
+    // Buscar la actividad en el estado
+    const actividad = parteActividades.find(a => a.id === actividadId);
+    if (!actividad) return;
+
+    // Abrir un prompt simple para editar la actividad
+    const nuevaActividad = prompt("Editar actividad:", actividad.actividad);
+    if (nuevaActividad === null) return; // Cancelado
+
+    const nuevasHoras = prompt("Editar horas:", actividad.horas.toString());
+    if (nuevasHoras === null) return; // Cancelado
+
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("ParteActividad")
+        .update({
+          actividad: nuevaActividad,
+          horas: parseFloat(nuevasHoras) || 0,
+        })
+        .eq("id", actividadId);
+
+      if (error) throw error;
+
+      showToastMsg("ok", "Actividad actualizada");
+      await cargarActividadesParte(parteId);
+      loadData();
+    } catch (error) {
+      showToastMsg("err", "Error al actualizar la actividad");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteActividad = async (actividadId: string, parteId: string) => {
+    const result = await Swal.fire({
+      title: '¿Eliminar actividad?',
+      text: 'Esta acción no se puede deshacer.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc2626',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+    });
+
+    if (!result.isConfirmed) return;
+
+    setSaving(true);
+    try {
+      const { error } = await supabase.from("ParteActividad").delete().eq("id", actividadId);
+      if (error) throw error;
+
+      showToastMsg("ok", "Actividad eliminada");
+      await cargarActividadesParte(parteId);
+      loadData();
+    } catch (error) {
+      showToastMsg("err", "Error al eliminar la actividad");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // ── Toast ──────────────────────────────────────────────────────────────
   const showToastMsg = (type: "ok" | "err", msg: string) => {
     setToast({ type, msg });
     setTimeout(() => setToast(null), 4000);
   };
 
+  // ── Checklist functions ──────────────────────────────────────────────
   const getWeekRange = (startDate: string) => {
     const start = new Date(startDate);
     const end = new Date(start);
@@ -293,7 +581,6 @@ export default function PersonalPage() {
     return (worker.tarifa_hora_extra || 0) * horas;
   };
 
-  // CORREGIDO: SIN BONO DE ALMUERZO - solo tarifa diaria + horas extras
   const calcularTotalPagar = (workerId: string) => {
     const worker = workers.find((w) => w.id === workerId);
     if (!worker) return 0;
@@ -305,7 +592,6 @@ export default function PersonalPage() {
       return (worker.tarifa_mensual || 0) + pagoHorasExtras;
     }
 
-    // Solo tarifa diaria, SIN bono de almuerzo
     const tarifaBase = (worker.tarifa_diaria || 0) * totalDias;
     return tarifaBase + pagoHorasExtras;
   };
@@ -483,23 +769,89 @@ export default function PersonalPage() {
               <div>
                 <h1 className="text-sm font-bold text-zinc-900 leading-none">Gestión de Personal</h1>
                 <p className="text-[10px] text-zinc-400 mt-0.5 uppercase tracking-wider">
-                  Control de asistencia y pagos · LUDIER
+                  Control de asistencia · Pagos · Partes diarios
                 </p>
               </div>
             </div>
           </div>
-          <button
-            onClick={handleOpenChecklist}
-            className="flex items-center gap-2 px-4 py-2 bg-zinc-900 text-white text-xs font-semibold rounded-xl hover:bg-zinc-800 transition-colors"
-          >
-            <CheckSquare className="h-3.5 w-3.5" />
-            Checklist semanal
-          </button>
+          <div className="flex items-center gap-2">
+            {activeTab === "partes" ? (
+              <button
+                onClick={() => {
+                  setParteForm({
+                    fecha: new Date().toISOString().split("T")[0],
+                    project_id: "",
+                    supervisor: "",
+                    resumen_general: "",
+                    observaciones: "",
+                  });
+                  setParteActividades([]);
+                  setEditingParteId(null);
+                  setShowParteForm(!showParteForm);
+                }}
+                className="flex items-center gap-2 px-4 py-2 bg-zinc-900 text-white text-xs font-semibold rounded-xl hover:bg-zinc-800 transition-colors"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                Nuevo parte
+              </button>
+            ) : (
+              <button
+                onClick={handleOpenChecklist}
+                className="flex items-center gap-2 px-4 py-2 bg-zinc-900 text-white text-xs font-semibold rounded-xl hover:bg-zinc-800 transition-colors"
+              >
+                <CheckSquare className="h-3.5 w-3.5" />
+                Checklist semanal
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
+      {/* ── PESTAÑAS ────────────────────────────────────────────────────── */}
+      <div className="max-w-7xl mx-auto px-6 pt-4">
+        <div className="border-b border-zinc-200 bg-white rounded-t-xl">
+          <div className="flex gap-1 px-4">
+            <button
+              onClick={() => setActiveTab("planilla")}
+              className={`px-4 py-2.5 text-xs font-medium transition-all ${
+                activeTab === "planilla"
+                  ? "border-b-2 border-zinc-900 text-zinc-900"
+                  : "text-zinc-500 hover:text-zinc-700"
+              }`}
+            >
+              📋 Planilla
+            </button>
+            <button
+              onClick={() => setActiveTab("checklist")}
+              className={`px-4 py-2.5 text-xs font-medium transition-all ${
+                activeTab === "checklist"
+                  ? "border-b-2 border-zinc-900 text-zinc-900"
+                  : "text-zinc-500 hover:text-zinc-700"
+              }`}
+            >
+              ✅ Checklist
+            </button>
+            <button
+              onClick={() => setActiveTab("partes")}
+              className={`px-4 py-2.5 text-xs font-medium transition-all ${
+                activeTab === "partes"
+                  ? "border-b-2 border-zinc-900 text-zinc-900"
+                  : "text-zinc-500 hover:text-zinc-700"
+              }`}
+            >
+              📝 Partes diarios
+              {partes.length > 0 && (
+                <span className="ml-1.5 text-[10px] bg-zinc-200 text-zinc-700 px-1.5 py-0.5 rounded-full">
+                  {partes.length}
+                </span>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+
       <main className="max-w-7xl mx-auto px-6 py-8 space-y-8">
-        {/* KPIs */}
+        {/* KPIs (siempre visibles) */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <KpiCard icon={Users} label="Trabajadores activos" value={totalWorkers} sub="En planilla" color="bg-blue-50" />
           <KpiCard icon={DollarSign} label="Pendiente de pago" value={fmt(totalPendientePago)} sub="Por liquidar" color="bg-amber-50" />
@@ -513,188 +865,665 @@ export default function PersonalPage() {
           />
         </div>
 
-        {/* Lista de trabajadores */}
-        <section className="bg-white rounded-2xl border border-zinc-100 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-zinc-100 flex items-center justify-between flex-wrap gap-4">
-            <SectionTitle sub={`${filteredWorkers.length} trabajadores`}>Planilla de personal</SectionTitle>
-            <div className="flex items-center gap-2 flex-wrap">
-              <div className="relative">
-                <Search className="h-3.5 w-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
-                <input
-                  type="text"
-                  placeholder="Buscar..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-8 pr-3 py-1.5 text-xs border border-zinc-300 rounded-lg bg-white text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-900"
-                />
+        {/* ── TAB: PLANILLA ────────────────────────────────────────────── */}
+        {activeTab === "planilla" && (
+          <section className="bg-white rounded-2xl border border-zinc-100 shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-zinc-100 flex items-center justify-between flex-wrap gap-4">
+              <SectionTitle sub={`${filteredWorkers.length} trabajadores`}>Planilla de personal</SectionTitle>
+              <div className="flex items-center gap-2 flex-wrap">
+                <div className="relative">
+                  <Search className="h-3.5 w-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
+                  <input
+                    type="text"
+                    placeholder="Buscar..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-8 pr-3 py-1.5 text-xs border border-zinc-300 rounded-lg bg-white text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                  />
+                </div>
+                <select
+                  value={filterRole}
+                  onChange={(e) => setFilterRole(e.target.value)}
+                  className="px-3 py-1.5 text-xs border border-zinc-300 rounded-lg bg-white text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                >
+                  <option value="all">Todos los roles</option>
+                  {uniqueRoles.map((role) => (
+                    <option key={role} value={role}>{role}</option>
+                  ))}
+                </select>
+                <select
+                  value={filterLocation}
+                  onChange={(e) => setFilterLocation(e.target.value)}
+                  className="px-3 py-1.5 text-xs border border-zinc-300 rounded-lg bg-white text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                >
+                  <option value="all">Todas las ubicaciones</option>
+                  {uniqueLocations.map((loc) => (
+                    <option key={loc} value={loc}>{loc}</option>
+                  ))}
+                </select>
               </div>
-              <select
-                value={filterRole}
-                onChange={(e) => setFilterRole(e.target.value)}
-                className="px-3 py-1.5 text-xs border border-zinc-300 rounded-lg bg-white text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900"
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-zinc-50 border-b border-zinc-100">
+                  <tr>
+                    <th className="text-left px-6 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Trabajador</th>
+                    <th className="text-left px-6 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Rol</th>
+                    <th className="text-left px-6 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Ubicación</th>
+                    <th className="text-right px-6 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Tarifa diaria</th>
+                    <th className="text-right px-6 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Hora extra</th>
+                    <th className="text-right px-6 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Semana actual</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-50">
+                  {filteredWorkers.map((worker) => {
+                    const asistenciaSemana = asistencias.find(
+                      (a) => a.worker_id === worker.id && a.semana_inicio === selectedWeek
+                    );
+                    return (
+                      <tr key={worker.id} className="hover:bg-zinc-50 transition-colors">
+                        <td className="px-6 py-3">
+                          <p className="font-semibold text-zinc-900">{worker.name}</p>
+                        </td>
+                        <td className="px-6 py-3">
+                          <span className="text-xs text-zinc-600">{worker.role}</span>
+                        </td>
+                        <td className="px-6 py-3">
+                          <span className="text-xs text-zinc-500">{worker.location}</span>
+                        </td>
+                        <td className="px-6 py-3 text-right">
+                          <span className="text-xs font-mono">
+                            {worker.tipo_pago === "MENSUAL"
+                              ? fmt(worker.tarifa_mensual) + "/mes"
+                              : fmt(worker.tarifa_diaria) + "/día"}
+                          </span>
+                        </td>
+                        <td className="px-6 py-3 text-right">
+                          <span className="text-xs font-mono text-amber-600">
+                            {fmt(worker.tarifa_hora_extra || 0)}/h
+                          </span>
+                        </td>
+                        <td className="px-6 py-3 text-right">
+                          {asistenciaSemana ? (
+                            <div className="flex flex-col items-end">
+                              <span className="text-xs font-semibold text-emerald-700">
+                                {asistenciaSemana.total_dias} días
+                              </span>
+                              {asistenciaSemana.horas_extras > 0 && (
+                                <span className="text-[10px] text-amber-600">
+                                  +{asistenciaSemana.horas_extras} HE
+                                </span>
+                              )}
+                              <span className="text-[10px] text-zinc-500">
+                                {fmt(Number(asistenciaSemana.total_pagar))}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-zinc-400">Sin registrar</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
+
+        {/* ── TAB: CHECKLIST ──────────────────────────────────────────────── */}
+        {activeTab === "checklist" && (
+          <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-6">
+            <div className="flex items-center justify-between mb-4">
+              <SectionTitle sub="Selecciona los días trabajados por cada persona">Registro de asistencia</SectionTitle>
+              <div className="text-sm text-zinc-500">
+                Semana del {getWeekRange(selectedWeek).inicio} al {getWeekRange(selectedWeek).fin}
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-zinc-50 rounded-lg">
+                  <tr>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-zinc-600 sticky left-0 bg-zinc-50 min-w-[180px]">
+                      Trabajador
+                    </th>
+                    {DIAS_SEMANA.map((dia) => (
+                      <th key={dia.key} className="text-center px-3 py-3 text-xs font-semibold text-zinc-600 min-w-[60px]">
+                        {dia.nombre}
+                      </th>
+                    ))}
+                    <th className="text-center px-4 py-3 text-xs font-semibold text-zinc-600 min-w-[80px]">Total días</th>
+                    <th className="text-center px-4 py-3 text-xs font-semibold text-zinc-600 min-w-[100px]">Horas extra</th>
+                    <th className="text-right px-4 py-3 text-xs font-semibold text-zinc-600 min-w-[120px]">Total a pagar</th>
+                    <th className="text-center px-4 py-3 text-xs font-semibold text-zinc-600 min-w-[100px]">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-50">
+                  {workers
+                    .filter((w) => w.active)
+                    .map((worker) => {
+                      const totalDias = calcularTotalDias(worker.id);
+                      const totalPagar = calcularTotalPagar(worker.id);
+                      const asistenciaExistente = asistencias.find(
+                        (a) => a.worker_id === worker.id && a.semana_inicio === selectedWeek
+                      );
+                      return (
+                        <tr key={worker.id} className="hover:bg-zinc-50 transition-colors">
+                          <td className="px-4 py-3 sticky left-0 bg-white">
+                            <div>
+                              <p className="font-semibold text-zinc-900">{worker.name}</p>
+                              <p className="text-[10px] text-zinc-400">
+                                {worker.tipo_pago === "MENSUAL"
+                                  ? `${fmt(worker.tarifa_mensual)}/mes`
+                                  : `${fmt(worker.tarifa_diaria)}/día`}
+                                {(worker.tarifa_hora_extra || 0) > 0 &&
+                                  ` · HE: ${fmt(worker.tarifa_hora_extra)}/h`}
+                              </p>
+                            </div>
+                          </td>
+                          {DIAS_SEMANA.map((dia) => (
+                            <td key={dia.key} className="text-center px-3 py-3">
+                              <button
+                                onClick={() => handleToggleDia(worker.id, dia.key)}
+                                className="focus:outline-none"
+                              >
+                                {checklistData[worker.id]?.[dia.key] ? (
+                                  <CheckSquare className="h-5 w-5 text-emerald-600" />
+                                ) : (
+                                  <Square className="h-5 w-5 text-zinc-300 hover:text-zinc-400" />
+                                )}
+                              </button>
+                            </td>
+                          ))}
+                          <td className="text-center px-4 py-3">
+                            <span className="font-semibold text-zinc-900">{totalDias}</span>
+                            <span className="text-[10px] text-zinc-400 ml-1">días</span>
+                          </td>
+                          <td className="text-center px-4 py-3">
+                            <div className="flex items-center justify-center gap-1">
+                              <input
+                                type="number"
+                                min="0"
+                                step="0.5"
+                                value={horasExtrasData[worker.id] || 0}
+                                onChange={(e) =>
+                                  handleHorasExtrasChange(worker.id, parseFloat(e.target.value) || 0)
+                                }
+                                className="w-20 px-2 py-1 text-center text-xs border border-zinc-300 rounded-lg bg-white text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                              />
+                              <span className="text-[10px] text-zinc-400">horas</span>
+                            </div>
+                          </td>
+                          <td className="text-right px-4 py-3">
+                            <span className="font-bold text-emerald-700">{fmt(totalPagar)}</span>
+                          </td>
+                          <td className="text-center px-4 py-3">
+                            {asistenciaExistente && !asistenciaExistente.pagado && totalDias > 0 && (
+                              <button
+                                onClick={() => handleGenerarPago(asistenciaExistente.id, worker.id)}
+                                className="text-xs bg-amber-50 text-amber-700 px-3 py-1.5 rounded-lg hover:bg-amber-100 transition-colors"
+                              >
+                                Generar pago
+                              </button>
+                            )}
+                            {asistenciaExistente?.pagado && (
+                              <span className="text-xs text-emerald-600">✓ Pagado</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="mt-4 flex gap-3">
+              <button
+                onClick={handleSaveChecklist}
+                disabled={saving}
+                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-zinc-900 text-white text-sm font-semibold rounded-xl hover:bg-zinc-800 transition-colors disabled:opacity-50"
               >
-                <option value="all">Todos los roles</option>
-                {uniqueRoles.map((role) => (
-                  <option key={role} value={role}>{role}</option>
-                ))}
-              </select>
-              <select
-                value={filterLocation}
-                onChange={(e) => setFilterLocation(e.target.value)}
-                className="px-3 py-1.5 text-xs border border-zinc-300 rounded-lg bg-white text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900"
-              >
-                <option value="all">Todas las ubicaciones</option>
-                {uniqueLocations.map((loc) => (
-                  <option key={loc} value={loc}>{loc}</option>
-                ))}
-              </select>
+                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                {saving ? "Guardando..." : "Guardar asistencia"}
+              </button>
             </div>
           </div>
+        )}
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-zinc-50 border-b border-zinc-100">
-                <tr>
-                  <th className="text-left px-6 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Trabajador</th>
-                  <th className="text-left px-6 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Rol</th>
-                  <th className="text-left px-6 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Ubicación</th>
-                  <th className="text-right px-6 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Tarifa diaria</th>
-                  <th className="text-right px-6 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Hora extra</th>
-                  <th className="text-right px-6 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Semana actual</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-50">
-                {filteredWorkers.map((worker) => {
-                  const asistenciaSemana = asistencias.find(
-                    (a) => a.worker_id === worker.id && a.semana_inicio === selectedWeek
-                  );
+        {/* ── TAB: PARTES DIARIOS ────────────────────────────────────── */}
+        {activeTab === "partes" && (
+          <div className="space-y-4">
+            {/* Formulario de nuevo parte */}
+            {showParteForm && (
+              <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-bold text-zinc-900">
+                    {editingParteId ? "Editar parte diario" : "Nuevo parte diario"}
+                  </h3>
+                  <button
+                    onClick={() => { 
+                      setShowParteForm(false); 
+                      setParteActividades([]); 
+                      setEditingParteId(null);
+                      setParteForm({
+                        fecha: new Date().toISOString().split("T")[0],
+                        project_id: "",
+                        supervisor: "",
+                        resumen_general: "",
+                        observaciones: "",
+                      });
+                    }}
+                    className="text-xs text-zinc-400 hover:text-zinc-600"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div>
+                    <label className="text-xs font-medium text-zinc-700 mb-1.5 block">Fecha *</label>
+                    <input
+                      type="date"
+                      value={parteForm.fecha}
+                      onChange={(e) => setParteForm({ ...parteForm, fecha: e.target.value })}
+                      className="w-full px-3 py-2 text-sm text-zinc-900 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-zinc-700 mb-1.5 block">Proyecto *</label>
+                    <select
+                      value={parteForm.project_id}
+                      onChange={(e) => setParteForm({ ...parteForm, project_id: e.target.value })}
+                      className="w-full px-3 py-2 text-sm text-zinc-900 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                    >
+                      <option value="">— Seleccionar —</option>
+                      {parteProyectos.map((p) => (
+                        <option key={p.id} value={p.id}>{p.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-zinc-700 mb-1.5 block">Supervisor</label>
+                    <input
+                      type="text"
+                      value={parteForm.supervisor}
+                      onChange={(e) => setParteForm({ ...parteForm, supervisor: e.target.value })}
+                      className="w-full px-3 py-2 text-sm text-zinc-900 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                    />
+                  </div>
+                  <div className="md:col-span-3">
+                    <label className="text-xs font-medium text-zinc-700 mb-1.5 block">Resumen general</label>
+                    <input
+                      type="text"
+                      value={parteForm.resumen_general}
+                      onChange={(e) => setParteForm({ ...parteForm, resumen_general: e.target.value })}
+                      className="w-full px-3 py-2 text-sm text-zinc-900 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                    />
+                  </div>
+                  <div className="md:col-span-3">
+                    <label className="text-xs font-medium text-zinc-700 mb-1.5 block">Observaciones</label>
+                    <textarea
+                      rows={2}
+                      value={parteForm.observaciones}
+                      onChange={(e) => setParteForm({ ...parteForm, observaciones: e.target.value })}
+                      className="w-full px-3 py-2 text-sm text-zinc-900 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900 resize-none"
+                      placeholder="Incidencias, retrabajos, observaciones..."
+                    />
+                  </div>
+                </div>
+
+                {/* Actividades del parte */}
+                <div className="border-t border-zinc-100 pt-4">
+                  <p className="text-xs font-semibold text-zinc-700 mb-3">Actividades del personal</p>
+                  <div className="grid grid-cols-12 gap-2 mb-2">
+                    <div className="col-span-5">
+                      <select
+                        value={nuevaActividad.worker_id}
+                        onChange={(e) => setNuevaActividad({ ...nuevaActividad, worker_id: e.target.value })}
+                        className="w-full px-2 py-1.5 text-xs border border-zinc-300 rounded-lg bg-white text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                      >
+                        <option value="">— Trabajador —</option>
+                        {workers.filter(w => w.active).map((w) => (
+                          <option key={w.id} value={w.id}>{w.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="col-span-5">
+                      <input
+                        type="text"
+                        placeholder="Actividad realizada"
+                        value={nuevaActividad.actividad}
+                        onChange={(e) => setNuevaActividad({ ...nuevaActividad, actividad: e.target.value })}
+                        className="w-full px-2 py-1.5 text-xs border border-zinc-300 rounded-lg bg-white text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                      />
+                    </div>
+                    <div className="col-span-1">
+                      <input
+                        type="number"
+                        placeholder="Horas"
+                        value={nuevaActividad.horas}
+                        onChange={(e) => setNuevaActividad({ ...nuevaActividad, horas: e.target.value })}
+                        className="w-full px-2 py-1.5 text-xs border border-zinc-300 rounded-lg bg-white text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                      />
+                    </div>
+                    <div className="col-span-1">
+                      <button
+                        onClick={handleAddActividadParte}
+                        className="w-full px-2 py-1.5 bg-zinc-900 text-white text-xs font-medium rounded-lg hover:bg-zinc-800"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+
+                  {parteActividades.length > 0 && (
+                    <div className="mt-3 overflow-x-auto">
+                      <table className="w-full text-xs">
+                        <thead className="bg-zinc-50">
+                          <tr>
+                            <th className="text-left p-2 font-semibold text-zinc-700">Trabajador</th>
+                            <th className="text-left p-2 font-semibold text-zinc-700">Actividad</th>
+                            <th className="text-center p-2 font-semibold text-zinc-700">Horas</th>
+                            <th className="text-center p-2"></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {parteActividades.map((act, idx) => (
+                            <tr key={idx} className="border-b border-zinc-100">
+                              <td className="p-2 font-medium text-zinc-800">{act.worker_name}</td>
+                              <td className="p-2 text-zinc-700">{act.actividad}</td>
+                              <td className="p-2 text-center text-zinc-700">{act.horas}h</td>
+                              <td className="p-2 text-center">
+                                <button onClick={() => handleRemoveActividadParte(idx)} className="text-zinc-300 hover:text-red-500">
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex gap-3 pt-4 border-t border-zinc-100 mt-4">
+                  <button
+                    onClick={handleSaveParte}
+                    disabled={saving}
+                    className="flex items-center justify-center gap-2 px-4 py-2 bg-zinc-900 text-white text-sm font-semibold rounded-xl hover:bg-zinc-800 disabled:opacity-50"
+                  >
+                    {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                    {saving ? "Guardando..." : editingParteId ? "Actualizar parte" : "Guardar parte"}
+                  </button>
+                  <button
+                    onClick={() => { 
+                      setShowParteForm(false); 
+                      setParteActividades([]); 
+                      setEditingParteId(null);
+                      setParteForm({
+                        fecha: new Date().toISOString().split("T")[0],
+                        project_id: "",
+                        supervisor: "",
+                        resumen_general: "",
+                        observaciones: "",
+                      });
+                    }}
+                    className="px-4 py-2 border border-zinc-200 text-zinc-600 text-sm font-medium rounded-xl hover:bg-zinc-50"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Lista de partes - VERSIÓN MEJORADA */}
+            <div className="space-y-4">
+              {partes.length === 0 ? (
+                <div className="bg-white rounded-2xl border border-zinc-100 p-12 text-center">
+                  <ClipboardList className="h-12 w-12 text-zinc-200 mx-auto mb-3" />
+                  <p className="text-sm text-zinc-400">No hay partes registrados</p>
+                  <p className="text-xs text-zinc-300 mt-1">Usa el botón "Nuevo parte" para comenzar</p>
+                </div>
+              ) : (
+                partes.map((parte) => {
+                  const proyecto = parte.Project;
+                  const isExpanded = partesExpanded === parte.id;
+                  const actividades = actividadesPorParte[parte.id] || [];
+
                   return (
-                    <tr key={worker.id} className="hover:bg-zinc-50 transition-colors">
-                      <td className="px-6 py-3">
-                        <p className="font-semibold text-zinc-900">{worker.name}</p>
-                      </td>
-                      <td className="px-6 py-3">
-                        <span className="text-xs text-zinc-600">{worker.role}</span>
-                      </td>
-                      <td className="px-6 py-3">
-                        <span className="text-xs text-zinc-500">{worker.location}</span>
-                      </td>
-                      <td className="px-6 py-3 text-right">
-                        <span className="text-xs font-mono">
-                          {worker.tipo_pago === "MENSUAL"
-                            ? fmt(worker.tarifa_mensual) + "/mes"
-                            : fmt(worker.tarifa_diaria) + "/día"}
-                        </span>
-                      </td>
-                      <td className="px-6 py-3 text-right">
-                        <span className="text-xs font-mono text-amber-600">
-                          {fmt(worker.tarifa_hora_extra || 0)}/h
-                        </span>
-                      </td>
-                      <td className="px-6 py-3 text-right">
-                        {asistenciaSemana ? (
-                          <div className="flex flex-col items-end">
-                            <span className="text-xs font-semibold text-emerald-700">
-                              {asistenciaSemana.total_dias} días
-                            </span>
-                            {asistenciaSemana.horas_extras > 0 && (
-                              <span className="text-[10px] text-amber-600">
-                                +{asistenciaSemana.horas_extras} HE
+                    <div key={parte.id} className="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden hover:border-zinc-300 transition-all">
+                      {/* Cabecera del parte */}
+                      <div className="p-5 bg-gradient-to-r from-zinc-50 to-white">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-3 flex-wrap mb-2">
+                              <span className="text-sm font-bold text-zinc-900 flex items-center gap-2">
+                                <Calendar className="h-4 w-4 text-zinc-500" />
+                                {new Date(parte.fecha).toLocaleDateString("es-PE", { 
+                                  weekday: "long", 
+                                  day: "numeric", 
+                                  month: "long", 
+                                  year: "numeric" 
+                                })}
                               </span>
+                              <span className="text-xs bg-zinc-200 text-zinc-700 px-2.5 py-0.5 rounded-full font-medium">
+                                {proyecto?.name || "Sin proyecto"}
+                              </span>
+                              {parte.supervisor && (
+                                <span className="text-xs text-zinc-500 flex items-center gap-1">
+                                  <Users className="h-3 w-3" />
+                                  Supervisor: {parte.supervisor}
+                                </span>
+                              )}
+                            </div>
+                            
+                            {/* Resumen general */}
+                            {parte.resumen_general && (
+                              <div className="bg-zinc-50 rounded-lg p-3 mb-3 border border-zinc-100">
+                                <p className="text-sm text-zinc-700 leading-relaxed">{parte.resumen_general}</p>
+                              </div>
                             )}
-                            <span className="text-[10px] text-zinc-500">
-                              {fmt(Number(asistenciaSemana.total_pagar))}
-                            </span>
-                          </div>
-                        ) : (
-                          <span className="text-xs text-zinc-400">Sin registrar</span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </section>
 
-        {/* Historial de pagos */}
-        <section className="bg-white rounded-2xl border border-zinc-100 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-zinc-100">
-            <SectionTitle sub="Últimos pagos generados">Historial de pagos</SectionTitle>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-zinc-50 border-b border-zinc-100">
-                <tr>
-                  <th className="text-left px-6 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Trabajador</th>
-                  <th className="text-left px-6 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Período</th>
-                  <th className="text-right px-6 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Días</th>
-                  <th className="text-right px-6 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">HE</th>
-                  <th className="text-right px-6 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Monto</th>
-                  <th className="text-center px-6 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Estado</th>
-                  <th className="text-right px-6 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-wider"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-50">
-                {historialPagos.slice(0, 10).map((pago) => {
-                  const worker = workers.find((w) => w.id === pago.worker_id);
-                  return (
-                    <tr key={pago.id} className="hover:bg-zinc-50 transition-colors">
-                      <td className="px-6 py-3">
-                        <p className="font-medium text-zinc-900">{worker?.name || "—"}</p>
-                      </td>
-                      <td className="px-6 py-3">
-                        <p className="text-xs text-zinc-600">
-                          {new Date(pago.periodo_inicio).toLocaleDateString("es-PE", { day: "numeric", month: "short" })}{" "}
-                          -{" "}
-                          {new Date(pago.periodo_fin).toLocaleDateString("es-PE", { day: "numeric", month: "short" })}
-                        </p>
-                      </td>
-                      <td className="px-6 py-3 text-right">
-                        <span className="text-xs">{pago.total_dias} días</span>
-                      </td>
-                      <td className="px-6 py-3 text-right">
-                        <span className="text-xs text-amber-600">{pago.horas_extras || 0} h</span>
-                      </td>
-                      <td className="px-6 py-3 text-right">
-                        <span className="text-sm font-semibold text-zinc-900">{fmt(Number(pago.monto_total))}</span>
-                      </td>
-                      <td className="px-6 py-3 text-center">
-                        <span
-                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                            pago.estado === "PAGADO"
-                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                              : "bg-amber-50 text-amber-700 border border-amber-200"
-                          }`}
-                        >
-                          {pago.estado === "PAGADO" ? "Pagado" : "Pendiente"}
-                        </span>
-                       </td>
-                      <td className="px-6 py-3 text-right">
-                        {pago.estado === "PENDIENTE" && (
-                          <button
-                            onClick={() => handleMarcarPago(pago.id)}
-                            className="text-xs bg-emerald-50 text-emerald-700 px-3 py-1 rounded-lg hover:bg-emerald-100 transition-colors"
-                          >
-                            Marcar pagado
-                          </button>
-                        )}
-                       </td>
-                    </tr>
+                            {/* Observaciones */}
+                            {parte.observaciones && (
+                              <div className="flex items-start gap-2 text-xs text-amber-700 bg-amber-50 px-3 py-2 rounded-lg border border-amber-200">
+                                <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                                <span className="flex-1">{parte.observaciones}</span>
+                              </div>
+                            )}
+
+                            {/* Resumen de actividades (vista previa) */}
+                            <div className="mt-3 flex items-center gap-4 text-xs text-zinc-500">
+                              <span className="flex items-center gap-1">
+                                <Users className="h-3.5 w-3.5" />
+                                {actividades.length} actividades
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Clock className="h-3.5 w-3.5" />
+                                {actividades.reduce((sum, a) => sum + (a.horas || 0), 0)}h total
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Users className="h-3.5 w-3.5" />
+                                {new Set(actividades.map(a => a.worker_id)).size} trabajadores
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Botones de acción */}
+                          <div className="flex items-center gap-1 flex-shrink-0 ml-4">
+                            <button
+                              onClick={() => handleToggleExpand(parte.id)}
+                              className="p-2 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 rounded-lg transition-colors"
+                              title={isExpanded ? "Ocultar detalles" : "Ver detalles"}
+                            >
+                              {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                            </button>
+                            <button
+                              onClick={() => handleEditParte(parte.id)}
+                              className="p-2 text-zinc-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              title="Editar parte"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteParte(parte.id)}
+                              className="p-2 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Eliminar parte"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Detalle expandido de actividades */}
+                      {isExpanded && (
+                        <div className="border-t border-zinc-100 px-5 py-4 bg-zinc-50">
+                          <div className="flex items-center justify-between mb-3">
+                            <p className="text-xs font-semibold text-zinc-700 uppercase tracking-wider">
+                              Actividades del personal
+                            </p>
+                            <span className="text-xs text-zinc-400">{actividades.length} registros</span>
+                          </div>
+                          
+                          {actividades.length > 0 ? (
+                            <div className="space-y-2">
+                              {actividades.map((act: any) => (
+                                <div key={act.id} className="flex items-center justify-between p-3 bg-white rounded-xl border border-zinc-100 shadow-sm hover:shadow-md transition-shadow">
+                                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                                    <div className="w-8 h-8 bg-zinc-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                      <span className="text-xs font-bold text-zinc-600">
+                                        {act.Worker?.name?.charAt(0) || "?"}
+                                      </span>
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-sm font-semibold text-zinc-900">
+                                        {act.Worker?.name || "Sin asignar"}
+                                      </p>
+                                      <p className="text-xs text-zinc-600 truncate">{act.actividad}</p>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-3 flex-shrink-0">
+                                    <span className="text-sm font-medium text-zinc-700 bg-zinc-100 px-3 py-1 rounded-full">
+                                      {act.horas}h
+                                    </span>
+                                    <button
+                                      onClick={() => handleEditActividad(act.id, parte.id)}
+                                      className="text-zinc-300 hover:text-blue-500 transition-colors"
+                                      title="Editar actividad"
+                                    >
+                                      <Pencil className="h-3.5 w-3.5" />
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteActividad(act.id, parte.id)}
+                                      className="text-zinc-300 hover:text-red-500 transition-colors"
+                                      title="Eliminar actividad"
+                                    >
+                                      <Trash2 className="h-3.5 w-3.5" />
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-sm text-zinc-400 text-center py-4">No hay actividades registradas</p>
+                          )}
+                          
+                          <div className="mt-3 pt-3 border-t border-zinc-200 flex justify-between text-xs text-zinc-400">
+                            <span>Total horas: {actividades.reduce((sum, a) => sum + (a.horas || 0), 0)}h</span>
+                            <span>Total trabajadores: {new Set(actividades.map(a => a.worker_id)).size}</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   );
-                })}
-                {historialPagos.length === 0 && (
-                  <tr>
-                    <td colSpan={7} className="px-6 py-10 text-center text-sm text-zinc-400">
-                      No hay pagos registrados aún
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                })
+              )}
+            </div>
           </div>
-        </section>
+        )}
+
+        {/* Historial de pagos (visible en todas las tabs) */}
+        {activeTab !== "partes" && (
+          <section className="bg-white rounded-2xl border border-zinc-100 shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-zinc-100">
+              <SectionTitle sub="Últimos pagos generados">Historial de pagos</SectionTitle>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-zinc-50 border-b border-zinc-100">
+                  <tr>
+                    <th className="text-left px-6 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Trabajador</th>
+                    <th className="text-left px-6 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Período</th>
+                    <th className="text-right px-6 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Días</th>
+                    <th className="text-right px-6 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">HE</th>
+                    <th className="text-right px-6 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Monto</th>
+                    <th className="text-center px-6 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Estado</th>
+                    <th className="text-right px-6 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-wider"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-50">
+                  {historialPagos.slice(0, 10).map((pago) => {
+                    const worker = workers.find((w) => w.id === pago.worker_id);
+                    return (
+                      <tr key={pago.id} className="hover:bg-zinc-50 transition-colors">
+                        <td className="px-6 py-3">
+                          <p className="font-medium text-zinc-900">{worker?.name || "—"}</p>
+                        </td>
+                        <td className="px-6 py-3">
+                          <p className="text-xs text-zinc-600">
+                            {new Date(pago.periodo_inicio).toLocaleDateString("es-PE", { day: "numeric", month: "short" })}{" "}
+                            -{" "}
+                            {new Date(pago.periodo_fin).toLocaleDateString("es-PE", { day: "numeric", month: "short" })}
+                          </p>
+                        </td>
+                        <td className="px-6 py-3 text-right">
+                          <span className="text-xs">{pago.total_dias} días</span>
+                        </td>
+                        <td className="px-6 py-3 text-right">
+                          <span className="text-xs text-amber-600">{pago.horas_extras || 0} h</span>
+                        </td>
+                        <td className="px-6 py-3 text-right">
+                          <span className="text-sm font-semibold text-zinc-900">{fmt(Number(pago.monto_total))}</span>
+                        </td>
+                        <td className="px-6 py-3 text-center">
+                          <span
+                            className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                              pago.estado === "PAGADO"
+                                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                : "bg-amber-50 text-amber-700 border border-amber-200"
+                            }`}
+                          >
+                            {pago.estado === "PAGADO" ? "Pagado" : "Pendiente"}
+                          </span>
+                        </td>
+                        <td className="px-6 py-3 text-right">
+                          {pago.estado === "PENDIENTE" && (
+                            <button
+                              onClick={() => handleMarcarPago(pago.id)}
+                              className="text-xs bg-emerald-50 text-emerald-700 px-3 py-1 rounded-lg hover:bg-emerald-100 transition-colors"
+                            >
+                              Marcar pagado
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {historialPagos.length === 0 && (
+                    <tr>
+                      <td colSpan={7} className="px-6 py-10 text-center text-sm text-zinc-400">
+                        No hay pagos registrados aún
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
       </main>
 
       {/* Modal Checklist Semanal */}

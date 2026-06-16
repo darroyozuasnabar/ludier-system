@@ -205,7 +205,6 @@ export default function ObrasPage() {
   };
 
   const handleDelete = async (id: string, name: string) => {
-    // SweetAlert de confirmación
     const result = await Swal.fire({
       title: '¿Eliminar obra?',
       html: `Estás por eliminar <strong>${name}</strong>.<br>Se perderán los datos asociados (contratos, trabajos, costos).`,
@@ -223,7 +222,6 @@ export default function ObrasPage() {
     setSaving(true);
     
     try {
-      // Primero eliminar los contratos asociados
       const { error: contratosError } = await supabase
         .from("Contrato")
         .delete()
@@ -231,7 +229,6 @@ export default function ObrasPage() {
       
       if (contratosError) throw contratosError;
 
-      // Luego eliminar la obra
       const { error: projectError } = await supabase
         .from("Project")
         .delete()
@@ -266,6 +263,98 @@ export default function ObrasPage() {
   const handleUpdateStatus = async (id: string, newStatus: string) => {
     await supabase.from("Project").update({ status: newStatus }).eq("id", id);
     loadData();
+  };
+
+  // ─── NUEVA FUNCIÓN: Marcar contrato como pagado ───
+  const handleMarcarPagado = async (contratoId: string, projectId: string, projectName: string) => {
+    // Verificar si el contrato ya está cobrado
+    const contrato = contratos.find(c => c.id === contratoId);
+    if (contrato?.estado === "COBRADO") {
+      await Swal.fire({
+        title: 'Ya está pagado',
+        text: 'Este contrato ya fue marcado como cobrado.',
+        icon: 'info',
+        confirmButtonColor: '#6b7280',
+      });
+      return;
+    }
+
+    const result = await Swal.fire({
+      title: '¿Marcar como pagado?',
+      html: `
+        <p>Vas a marcar como <strong>pagado</strong> este contrato.</p>
+        <p class="text-sm text-gray-500 mt-2">Si todos los contratos del proyecto están pagados, 
+        <br>el proyecto se marcará como <strong>COMPLETADO</strong> automáticamente.</p>
+      `,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#22c55e',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Sí, marcar pagado',
+      cancelButtonText: 'Cancelar',
+      reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) return;
+
+    setSaving(true);
+    try {
+      // 1. Marcar el contrato como COBRADO
+      const { error: contratoError } = await supabase
+        .from("Contrato")
+        .update({ estado: 'COBRADO' })
+        .eq('id', contratoId);
+      
+      if (contratoError) throw contratoError;
+
+      // 2. Verificar si todos los contratos del proyecto están cobrados
+      const { data: contratosProyecto } = await supabase
+        .from("Contrato")
+        .select("estado")
+        .eq('project_id', projectId);
+      
+      const todosCobrados = contratosProyecto?.every(c => c.estado === 'COBRADO');
+      
+      if (todosCobrados && contratosProyecto && contratosProyecto.length > 0) {
+        // Si todos están cobrados, marcar proyecto como COMPLETADO
+        await supabase
+          .from("Project")
+          .update({ 
+            status: 'COMPLETADO',
+            actualEndDate: new Date().toISOString().split('T')[0]
+          })
+          .eq('id', projectId);
+        
+        await Swal.fire({
+          title: '¡Proyecto completado! 🎉',
+          text: `${projectName} ha sido marcado como COMPLETADO. Todos los contratos están pagados.`,
+          icon: 'success',
+          timer: 3000,
+          showConfirmButton: true,
+          confirmButtonColor: '#22c55e',
+        });
+      } else {
+        await Swal.fire({
+          title: '¡Contrato pagado! ✅',
+          text: 'El contrato ha sido marcado como cobrado.',
+          icon: 'success',
+          timer: 2000,
+          showConfirmButton: false,
+        });
+      }
+
+      loadData();
+    } catch (error) {
+      console.error("Error:", error);
+      await Swal.fire({
+        title: 'Error',
+        text: 'No se pudo completar la operación',
+        icon: 'error',
+        confirmButtonColor: '#dc2626',
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (status === "loading" || loading) {
@@ -622,7 +711,7 @@ export default function ObrasPage() {
                           </div>
                         )}
 
-                        {/* Contratos asociados a esta obra */}
+                        {/* ── CONTRATOS ASOCIADOS CON BOTÓN "MARCAR PAGADO" ── */}
                         {obra.contratos && obra.contratos.length > 0 && (
                           <div className="mt-3">
                             <p className="text-xs font-semibold text-gray-700 mb-2">Contratos de este proyecto:</p>
@@ -633,7 +722,7 @@ export default function ObrasPage() {
                                     <FileText className="h-3 w-3 text-gray-400 flex-shrink-0" />
                                     <span className="text-gray-700 truncate">{c.nombre}</span>
                                   </div>
-                                  <div className="flex items-center gap-2 flex-shrink-0">
+                                  <div className="flex items-center gap-3 flex-shrink-0">
                                     <span className="font-medium text-gray-900">{formatCOP(Number(c.monto))}</span>
                                     <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
                                       c.estado === "COBRADO" 
@@ -642,6 +731,24 @@ export default function ObrasPage() {
                                     }`}>
                                       {c.estado === "COBRADO" ? "Cobrado" : "Pendiente"}
                                     </span>
+                                    
+                                    {/* ── BOTÓN "MARCAR PAGADO" ── */}
+                                    {c.estado === "PENDIENTE" && (
+                                      <button
+                                        onClick={() => handleMarcarPagado(c.id, c.project_id, obra.name)}
+                                        disabled={saving}
+                                        className="text-xs bg-emerald-50 text-emerald-700 px-2 py-1 rounded-lg hover:bg-emerald-100 transition-colors flex items-center gap-1"
+                                      >
+                                        {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />}
+                                        Pagado
+                                      </button>
+                                    )}
+                                    {c.estado === "COBRADO" && (
+                                      <span className="text-xs text-emerald-600 font-medium flex items-center gap-1">
+                                        <CheckCircle2 className="h-3 w-3" />
+                                        ✓ Pagado
+                                      </span>
+                                    )}
                                   </div>
                                 </div>
                               ))}
