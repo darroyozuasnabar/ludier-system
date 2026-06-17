@@ -217,10 +217,10 @@ export default function PersonalPage() {
     }
 
     setSaving(true);
-    
+
     let parteId;
     let error;
-    
+
     if (editingParteId) {
       // Actualizar parte existente
       const { data, error: updateError } = await supabase
@@ -234,10 +234,10 @@ export default function PersonalPage() {
         })
         .eq("id", editingParteId)
         .select();
-      
+
       error = updateError;
       if (data) parteId = data[0]?.id;
-      
+
       // Eliminar actividades antiguas y volver a insertar
       if (!error) {
         await supabase.from("ParteActividad").delete().eq("parte_id", editingParteId);
@@ -254,7 +254,7 @@ export default function PersonalPage() {
           observaciones: parteForm.observaciones || null,
         })
         .select();
-      
+
       error = insertError;
       if (data) parteId = data[0]?.id;
     }
@@ -292,12 +292,12 @@ export default function PersonalPage() {
 
   const cargarActividadesParte = async (parteId: string) => {
     if (actividadesPorParte[parteId]) return;
-    
+
     const { data } = await supabase
       .from("ParteActividad")
       .select("*, Worker(*)")
       .eq("parte_id", parteId);
-    
+
     setActividadesPorParte(prev => ({
       ...prev,
       [parteId]: data || []
@@ -584,7 +584,7 @@ export default function PersonalPage() {
   const calcularTotalPagar = (workerId: string) => {
     const worker = workers.find((w) => w.id === workerId);
     if (!worker) return 0;
-    
+
     const totalDias = calcularTotalDias(workerId);
     const pagoHorasExtras = calcularPagoHorasExtras(workerId);
 
@@ -729,15 +729,26 @@ export default function PersonalPage() {
   const uniqueRoles = [...new Set(workers.map((w) => w.role))];
   const uniqueLocations = [...new Set(workers.map((w) => w.location))];
 
+  const formatearFechaLocal = (fechaStr: string) => {
+    if (!fechaStr) return "Fecha no disponible";
+    const [year, month, day] = fechaStr.split('-').map(Number);
+    const fecha = new Date(year, month - 1, day);
+    return fecha.toLocaleDateString("es-PE", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric"
+    });
+  };
+
   return (
     <div className="min-h-screen bg-zinc-50">
       {toast && (
         <div
-          className={`fixed top-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl text-sm font-medium border ${
-            toast.type === "ok"
+          className={`fixed top-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl text-sm font-medium border ${toast.type === "ok"
               ? "bg-emerald-50 text-emerald-800 border-emerald-200"
               : "bg-red-50 text-red-800 border-red-200"
-          }`}
+            }`}
         >
           {toast.type === "ok" ? (
             <CheckCircle2 className="h-4 w-4 text-emerald-500" />
@@ -813,31 +824,28 @@ export default function PersonalPage() {
           <div className="flex gap-1 px-4">
             <button
               onClick={() => setActiveTab("planilla")}
-              className={`px-4 py-2.5 text-xs font-medium transition-all ${
-                activeTab === "planilla"
+              className={`px-4 py-2.5 text-xs font-medium transition-all ${activeTab === "planilla"
                   ? "border-b-2 border-zinc-900 text-zinc-900"
                   : "text-zinc-500 hover:text-zinc-700"
-              }`}
+                }`}
             >
               📋 Planilla
             </button>
             <button
               onClick={() => setActiveTab("checklist")}
-              className={`px-4 py-2.5 text-xs font-medium transition-all ${
-                activeTab === "checklist"
+              className={`px-4 py-2.5 text-xs font-medium transition-all ${activeTab === "checklist"
                   ? "border-b-2 border-zinc-900 text-zinc-900"
                   : "text-zinc-500 hover:text-zinc-700"
-              }`}
+                }`}
             >
               ✅ Checklist
             </button>
             <button
               onClick={() => setActiveTab("partes")}
-              className={`px-4 py-2.5 text-xs font-medium transition-all ${
-                activeTab === "partes"
+              className={`px-4 py-2.5 text-xs font-medium transition-all ${activeTab === "partes"
                   ? "border-b-2 border-zinc-900 text-zinc-900"
                   : "text-zinc-500 hover:text-zinc-700"
-              }`}
+                }`}
             >
               📝 Partes diarios
               {partes.length > 0 && (
@@ -1103,9 +1111,9 @@ export default function PersonalPage() {
                     {editingParteId ? "Editar parte diario" : "Nuevo parte diario"}
                   </h3>
                   <button
-                    onClick={() => { 
-                      setShowParteForm(false); 
-                      setParteActividades([]); 
+                    onClick={() => {
+                      setShowParteForm(false);
+                      setParteActividades([]);
                       setEditingParteId(null);
                       setParteForm({
                         fecha: new Date().toISOString().split("T")[0],
@@ -1153,19 +1161,26 @@ export default function PersonalPage() {
                       className="w-full px-3 py-2 text-sm text-zinc-900 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900"
                     />
                   </div>
+
                   <div className="md:col-span-3">
                     <label className="text-xs font-medium text-zinc-700 mb-1.5 block">Resumen general</label>
-                    <input
-                      type="text"
+                    <textarea
+                      rows={4}
                       value={parteForm.resumen_general}
                       onChange={(e) => setParteForm({ ...parteForm, resumen_general: e.target.value })}
-                      className="w-full px-3 py-2 text-sm text-zinc-900 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                      className="w-full px-3 py-2 text-sm text-zinc-900 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900 resize-y"
+                      placeholder="Ej: 5/10 vigas instaladas en locales comerciales con base
+8 estructuras con base para azotea
+3 rejillas de sumidero sin base
+3 estructuras metálicas para mesa de tragaluz"
                     />
+                    <p className="text-xs text-zinc-400 mt-1">Usa saltos de línea para organizar mejor la información</p>
                   </div>
+
                   <div className="md:col-span-3">
                     <label className="text-xs font-medium text-zinc-700 mb-1.5 block">Observaciones</label>
                     <textarea
-                      rows={2}
+                      rows={3}
                       value={parteForm.observaciones}
                       onChange={(e) => setParteForm({ ...parteForm, observaciones: e.target.value })}
                       className="w-full px-3 py-2 text-sm text-zinc-900 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900 resize-none"
@@ -1258,9 +1273,9 @@ export default function PersonalPage() {
                     {saving ? "Guardando..." : editingParteId ? "Actualizar parte" : "Guardar parte"}
                   </button>
                   <button
-                    onClick={() => { 
-                      setShowParteForm(false); 
-                      setParteActividades([]); 
+                    onClick={() => {
+                      setShowParteForm(false);
+                      setParteActividades([]);
                       setEditingParteId(null);
                       setParteForm({
                         fecha: new Date().toISOString().split("T")[0],
@@ -1301,12 +1316,7 @@ export default function PersonalPage() {
                             <div className="flex items-center gap-3 flex-wrap mb-2">
                               <span className="text-sm font-bold text-zinc-900 flex items-center gap-2">
                                 <Calendar className="h-4 w-4 text-zinc-500" />
-                                {new Date(parte.fecha).toLocaleDateString("es-PE", { 
-                                  weekday: "long", 
-                                  day: "numeric", 
-                                  month: "long", 
-                                  year: "numeric" 
-                                })}
+                                {formatearFechaLocal(parte.fecha)}
                               </span>
                               <span className="text-xs bg-zinc-200 text-zinc-700 px-2.5 py-0.5 rounded-full font-medium">
                                 {proyecto?.name || "Sin proyecto"}
@@ -1318,11 +1328,11 @@ export default function PersonalPage() {
                                 </span>
                               )}
                             </div>
-                            
+
                             {/* Resumen general */}
                             {parte.resumen_general && (
                               <div className="bg-zinc-50 rounded-lg p-3 mb-3 border border-zinc-100">
-                                <p className="text-sm text-zinc-700 leading-relaxed">{parte.resumen_general}</p>
+                                <p className="text-sm text-zinc-700 leading-relaxed whitespace-pre-wrap">{parte.resumen_general}</p>
                               </div>
                             )}
 
@@ -1330,7 +1340,7 @@ export default function PersonalPage() {
                             {parte.observaciones && (
                               <div className="flex items-start gap-2 text-xs text-amber-700 bg-amber-50 px-3 py-2 rounded-lg border border-amber-200">
                                 <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5" />
-                                <span className="flex-1">{parte.observaciones}</span>
+                                <span className="flex-1 whitespace-pre-wrap">{parte.observaciones}</span>
                               </div>
                             )}
 
@@ -1387,7 +1397,7 @@ export default function PersonalPage() {
                             </p>
                             <span className="text-xs text-zinc-400">{actividades.length} registros</span>
                           </div>
-                          
+
                           {actividades.length > 0 ? (
                             <div className="space-y-2">
                               {actividades.map((act: any) => (
@@ -1430,7 +1440,7 @@ export default function PersonalPage() {
                           ) : (
                             <p className="text-sm text-zinc-400 text-center py-4">No hay actividades registradas</p>
                           )}
-                          
+
                           <div className="mt-3 pt-3 border-t border-zinc-200 flex justify-between text-xs text-zinc-400">
                             <span>Total horas: {actividades.reduce((sum, a) => sum + (a.horas || 0), 0)}h</span>
                             <span>Total trabajadores: {new Set(actividades.map(a => a.worker_id)).size}</span>
@@ -1474,13 +1484,12 @@ export default function PersonalPage() {
                         </td>
                         <td className="px-6 py-3">
                           <p className="text-xs text-zinc-600">
-                            {new Date(pago.periodo_inicio).toLocaleDateString("es-PE", { day: "numeric", month: "short" })}{" "}
-                            -{" "}
+                            {new Date(pago.periodo_inicio).toLocaleDateString("es-PE", { day: "numeric", month: "short" })} -{" "}
                             {new Date(pago.periodo_fin).toLocaleDateString("es-PE", { day: "numeric", month: "short" })}
                           </p>
                         </td>
                         <td className="px-6 py-3 text-right">
-                          <span className="text-xs">{pago.total_dias} días</span>
+                          <span className="text-xs text-zinc-700">{pago.total_dias} días</span>
                         </td>
                         <td className="px-6 py-3 text-right">
                           <span className="text-xs text-amber-600">{pago.horas_extras || 0} h</span>
@@ -1490,11 +1499,10 @@ export default function PersonalPage() {
                         </td>
                         <td className="px-6 py-3 text-center">
                           <span
-                            className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                              pago.estado === "PAGADO"
+                            className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ${pago.estado === "PAGADO"
                                 ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                                 : "bg-amber-50 text-amber-700 border border-amber-200"
-                            }`}
+                              }`}
                           >
                             {pago.estado === "PAGADO" ? "Pagado" : "Pendiente"}
                           </span>
@@ -1512,13 +1520,6 @@ export default function PersonalPage() {
                       </tr>
                     );
                   })}
-                  {historialPagos.length === 0 && (
-                    <tr>
-                      <td colSpan={7} className="px-6 py-10 text-center text-sm text-zinc-400">
-                        No hay pagos registrados aún
-                      </td>
-                    </tr>
-                  )}
                 </tbody>
               </table>
             </div>
@@ -1661,5 +1662,5 @@ export default function PersonalPage() {
         </div>
       )}
     </div>
-  );
-}
+  )
+};
