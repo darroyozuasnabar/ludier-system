@@ -667,7 +667,7 @@ export default function CalidadPage() {
                                             fotos={form.fotos || { problema: [], correccion: [], verificacion: [] }}
                                             onFotosChange={(nuevasFotos) => setForm({ ...form, fotos: nuevasFotos })}
                                             disabled={saving || !editingId}
-                                        />
+                                        />  
                                     </div>
                                 </div>
 
