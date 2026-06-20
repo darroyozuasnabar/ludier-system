@@ -134,13 +134,12 @@ function FlujoBadgeLine({ estado }: { estado: string }) {
     <div className="flex items-center gap-2 mt-2">
       <div className="flex-1 h-1 rounded-full bg-zinc-100 overflow-hidden">
         <div
-          className={`h-full rounded-full transition-all ${
-            estado === "PAUSADO"
-              ? "bg-red-400"
-              : estado === "COMPLETADO"
+          className={`h-full rounded-full transition-all ${estado === "PAUSADO"
+            ? "bg-red-400"
+            : estado === "COMPLETADO"
               ? "bg-emerald-500"
               : "bg-blue-500"
-          }`}
+            }`}
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -182,15 +181,15 @@ function SectionTitle({ children, sub }: { children: React.ReactNode; sub?: stri
 }
 
 // Componente de paso con tooltip
-function StepWithTooltip({ paso, index, isLast, isBottleneck }: { 
-  paso: any; 
-  index: number; 
+function StepWithTooltip({ paso, index, isLast, isBottleneck }: {
+  paso: any;
+  index: number;
   isLast: boolean;
   isBottleneck: boolean;
 }) {
   const [showTooltip, setShowTooltip] = useState(false);
   const Icon = getIconForStep(paso.paso);
-  
+
   return (
     <div className="relative flex items-center gap-1.5">
       <div
@@ -199,11 +198,10 @@ function StepWithTooltip({ paso, index, isLast, isBottleneck }: {
         onMouseLeave={() => setShowTooltip(false)}
       >
         <div
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-help ${
-            isBottleneck
-              ? "bg-red-50 border border-red-200 text-red-700"
-              : "bg-zinc-50 border border-zinc-200 text-zinc-700 hover:bg-zinc-100"
-          }`}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-help ${isBottleneck
+            ? "bg-red-50 border border-red-200 text-red-700"
+            : "bg-zinc-50 border border-zinc-200 text-zinc-700 hover:bg-zinc-100"
+            }`}
         >
           <Icon className="h-3 w-3" />
           <span className="text-[10px] text-zinc-400 font-mono">{String(index + 1).padStart(2, "0")}</span>
@@ -447,15 +445,28 @@ export default function ProduccionPage() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [ordenesRes, prodRes, capRes, cuadrillasRes, flujoRes] = await Promise.all([
-        supabase.from("OrdenProduccion").select("*").order("createdAt", { ascending: false }),
+      console.log("🔍 Cargando datos de producción...");
+
+      // Obtener órdenes ordenadas por created_at (con guión bajo)
+      const { data: ordenesData, error: ordenesError } = await supabase
+        .from("OrdenProduccion")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (ordenesError) {
+        console.error("❌ Error en órdenes:", ordenesError);
+      }
+
+      console.log("📊 Órdenes cargadas:", ordenesData?.length || 0);
+
+      const [prodRes, capRes, cuadrillasRes, flujoRes] = await Promise.all([
         supabase.from("ProduccionDiaria").select("*").order("fecha", { ascending: false }),
         supabase.from("CapacidadProductiva").select("*"),
         supabase.from("Cuadrilla").select("*"),
         supabase.from("FlujoProduccion").select("*").order("orden", { ascending: true }),
       ]);
 
-      setOrdenes(ordenesRes.data || []);
+      setOrdenes(ordenesData || []);
       setProduccionDiaria(prodRes.data || []);
       setCapacidades(capRes.data || []);
       setCuadrillas(cuadrillasRes.data || []);
@@ -481,13 +492,14 @@ export default function ProduccionPage() {
       } else if (flujosMap[selectedTipoFlujo]) {
         setFlujoActual(flujosMap[selectedTipoFlujo] || []);
       }
+
+      console.log("✅ Datos cargados correctamente");
     } catch (error) {
-      console.error("Error loading data:", error);
+      console.error("❌ Error loading data:", error);
     } finally {
       setLoading(false);
     }
   };
-
   const showToastMsg = (type: "ok" | "err", msg: string) => {
     setToast({ type, msg });
     setTimeout(() => setToast(null), 4000);
@@ -499,17 +511,23 @@ export default function ProduccionPage() {
       return;
     }
     setSaving(true);
+
+    const cantidad = parseFloat(form.cantidad) || 1;
+
     const payload = {
       nombre: form.nombre,
       tipo: form.tipo,
-      cantidad: parseInt(form.cantidad) || 1,
+      cantidad: cantidad,
       unidad: form.unidad,
       prioridad: form.prioridad,
       estado: form.estado,
-      fechaInicio: form.fechaInicio,
-      fechaFin: form.fechaFin || null,
+      fechainicio: form.fechaInicio,      // 🔧 minúsculas
+      fechafin: form.fechaFin || null,    // 🔧 minúsculas
       observaciones: form.observaciones || null,
     };
+
+    console.log("Payload a guardar:", payload);
+
     let error;
     if (editingId) {
       ({ error } = await supabase.from("OrdenProduccion").update(payload).eq("id", editingId));
@@ -517,8 +535,10 @@ export default function ProduccionPage() {
       ({ error } = await supabase.from("OrdenProduccion").insert(payload));
     }
     setSaving(false);
+
     if (error) {
-      showToastMsg("err", "Error al guardar.");
+      console.error("Error completo:", error);
+      showToastMsg("err", `Error al guardar: ${error.message || "Verifica los datos"}`);
     } else {
       showToastMsg("ok", editingId ? "Orden actualizada." : "Orden creada.");
       setForm(FORM_VACIO);
@@ -539,23 +559,22 @@ export default function ProduccionPage() {
     loadData();
   };
 
-  const handleEditOrden = (orden: any) => {
-    setForm({
-      nombre: orden.nombre,
-      tipo: orden.tipo,
-      cantidad: String(orden.cantidad),
-      unidad: orden.unidad || "unidades",
-      prioridad: orden.prioridad,
-      estado: orden.estado,
-      fechaInicio: orden.fechaInicio?.split("T")[0] || "",
-      fechaFin: orden.fechaFin?.split("T")[0] || "",
-      observaciones: orden.observaciones || "",
-    });
-    setEditingId(orden.id);
-    setShowForm(true);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
+const handleEditOrden = (orden: any) => {
+  setForm({
+    nombre: orden.nombre,
+    tipo: orden.tipo,
+    cantidad: String(orden.cantidad),
+    unidad: orden.unidad || "unidades",
+    prioridad: orden.prioridad,
+    estado: orden.estado,
+    fechaInicio: orden.fechainicio?.split("T")[0] || "",    // 🔧 fechainicio (minúsculas)
+    fechaFin: orden.fechafin?.split("T")[0] || "",          // 🔧 fechafin (minúsculas)
+    observaciones: orden.observaciones || "",
+  });
+  setEditingId(orden.id);
+  setShowForm(true);
+  window.scrollTo({ top: 0, behavior: "smooth" });
+};
   const handleSaveFlujo = async (pasos: any[]) => {
     setSaving(true);
     try {
@@ -629,11 +648,10 @@ export default function ProduccionPage() {
     <div className="min-h-screen bg-zinc-50 font-sans">
       {toast && (
         <div
-          className={`fixed top-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl text-sm font-medium border backdrop-blur-sm ${
-            toast.type === "ok"
-              ? "bg-emerald-50/95 text-emerald-800 border-emerald-200"
-              : "bg-red-50/95 text-red-800 border-red-200"
-          }`}
+          className={`fixed top-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl text-sm font-medium border backdrop-blur-sm ${toast.type === "ok"
+            ? "bg-emerald-50/95 text-emerald-800 border-emerald-200"
+            : "bg-red-50/95 text-red-800 border-red-200"
+            }`}
         >
           {toast.type === "ok" ? (
             <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
@@ -777,13 +795,13 @@ export default function ProduccionPage() {
                 ))}
                 {tiposProducto.length === 0 && <option>Sin tipos definidos</option>}
               </select>
-             <button
-  onClick={() => setShowNewTipoModal(true)}
-  className="px-3 py-1.5 text-xs bg-zinc-900 text-white rounded-lg hover:bg-zinc-800 transition-colors flex items-center gap-1"
->
-  <PlusCircle className="h-3 w-3" />
-  Nuevo tipo
-</button>
+              <button
+                onClick={() => setShowNewTipoModal(true)}
+                className="px-3 py-1.5 text-xs bg-zinc-900 text-white rounded-lg hover:bg-zinc-800 transition-colors flex items-center gap-1"
+              >
+                <PlusCircle className="h-3 w-3" />
+                Nuevo tipo
+              </button>
               <button
                 onClick={() => setShowEditModal(true)}
                 className="px-3 py-1.5 text-xs bg-zinc-900 text-white rounded-lg hover:bg-zinc-800 transition-colors flex items-center gap-1"
@@ -853,6 +871,23 @@ export default function ProduccionPage() {
               <div className="md:col-span-2"><label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">Nombre / producto *</label><input type="text" value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} className="w-full px-4 py-2.5 text-sm text-zinc-900 border border-zinc-200 rounded-xl bg-zinc-50 focus:bg-white focus:border-zinc-400 focus:outline-none transition-colors" placeholder="Ej: Barandas Torre A, Cercos perimetrales..." /></div>
               <div><label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">Tipo</label><select value={form.tipo} onChange={(e) => setForm({ ...form, tipo: e.target.value })} className="w-full px-4 py-2.5 text-sm text-zinc-900 border border-zinc-200 rounded-xl bg-zinc-50 focus:bg-white focus:border-zinc-400 focus:outline-none transition-colors">{tiposProducto.map((t) => (<option key={t} value={t}>{t.replace("_", " ")}</option>))}{tiposProducto.length === 0 && <option value="BARANDA_BALCON">BARANDA_BALCON</option>}</select></div>
               <div><label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">Cantidad</label><input type="number" min="0" value={form.cantidad} onChange={(e) => setForm({ ...form, cantidad: e.target.value })} className="w-full px-4 py-2.5 text-sm text-zinc-900 border border-zinc-200 rounded-xl bg-zinc-50 focus:bg-white focus:border-zinc-400 focus:outline-none transition-colors" /></div>
+              <div>
+                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">
+                  Unidad
+                </label>
+                <select
+                  value={form.unidad}
+                  onChange={(e) => setForm({ ...form, unidad: e.target.value })}
+                  className="w-full px-4 py-2.5 text-sm text-zinc-900 border border-zinc-200 rounded-xl bg-zinc-50 focus:bg-white focus:border-zinc-400 focus:outline-none transition-colors"
+                >
+                  <option value="unidades">unidades</option>
+                  <option value="ML">ML (metros lineales)</option>
+                  <option value="M2">M2 (metros cuadrados)</option>
+                  <option value="UND">UND (unidades)</option>
+                  <option value="KG">KG (kilogramos)</option>
+                </select>
+              </div>
+
               <div><label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">Prioridad</label><select value={form.prioridad} onChange={(e) => setForm({ ...form, prioridad: e.target.value })} className="w-full px-4 py-2.5 text-sm text-zinc-900 border border-zinc-200 rounded-xl bg-zinc-50 focus:bg-white focus:border-zinc-400 focus:outline-none transition-colors"><option value="BAJA">Baja</option><option value="MEDIA">Media</option><option value="ALTA">Alta</option></select></div>
               <div><label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">Estado</label><select value={form.estado} onChange={(e) => setForm({ ...form, estado: e.target.value })} className="w-full px-4 py-2.5 text-sm text-zinc-900 border border-zinc-200 rounded-xl bg-zinc-50 focus:bg-white focus:border-zinc-400 focus:outline-none transition-colors">{ESTADOS_ORDEN.map((e) => (<option key={e.key} value={e.key}>{e.label}</option>))}</select></div>
               <div><label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">Fecha inicio</label><input type="date" value={form.fechaInicio} onChange={(e) => setForm({ ...form, fechaInicio: e.target.value })} className="w-full px-4 py-2.5 text-sm text-zinc-900 border border-zinc-200 rounded-xl bg-zinc-50 focus:bg-white focus:border-zinc-400 focus:outline-none transition-colors" /></div>
