@@ -6,7 +6,7 @@ const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-// GET: Listar cotizaciones con filtros
+// GET: Listar cotizaciones con filtros (INCLUYENDO ITEMS)
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
@@ -30,6 +30,16 @@ export async function GET(req: NextRequest) {
           id,
           name,
           email
+        ),
+        items:CotizacionItem (
+          id,
+          descripcion,
+          cantidad,
+          unidad,
+          precio_unitario,
+          descuento,
+          total,
+          orden
         )
       `)
       .order('fecha_emision', { ascending: false })
@@ -55,10 +65,16 @@ export async function GET(req: NextRequest) {
 
     if (error) throw error;
 
+    // Asegurar que items siempre sea un array
+    const dataWithItems = data?.map((cotizacion: any) => ({
+      ...cotizacion,
+      items: cotizacion.items || []
+    })) || [];
+
     return NextResponse.json({
       success: true,
-      data,
-      total: data?.length || 0
+      data: dataWithItems,
+      total: dataWithItems?.length || 0
     });
   } catch (error) {
     console.error('❌ Error en GET /api/cotizaciones:', error);
@@ -69,7 +85,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// POST: Crear nueva cotización
+// POST: Crear nueva cotización (CON CORRECCIÓN DE NÚMEROS)
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -107,13 +123,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Calcular totales
+    // Calcular totales con números
     let subtotal = 0;
     const itemsCalculados = items.map((item: any) => {
-      const total = (item.cantidad * item.precio_unitario) - (item.descuento || 0);
+      const cantidad = Number(item.cantidad) || 0;
+      const precioUnitario = Number(item.precio_unitario) || 0;
+      const descuento = Number(item.descuento) || 0;
+      const total = (cantidad * precioUnitario) - descuento;
       subtotal += total;
+      
       return {
         ...item,
+        cantidad,
+        precio_unitario: precioUnitario,
+        descuento,
         total
       };
     });
@@ -153,12 +176,12 @@ export async function POST(req: NextRequest) {
     const itemsWithCotizacionId = itemsCalculados.map((item: any) => ({
       cotizacion_id: cotizacion.id,
       descripcion: item.descripcion,
-      cantidad: item.cantidad,
-      unidad: item.unidad,
-      precio_unitario: item.precio_unitario,
-      descuento: item.descuento || 0,
-      total: item.total,
-      orden: item.orden || 0
+      cantidad: Number(item.cantidad) || 0,
+      unidad: item.unidad || 'UND',
+      precio_unitario: Number(item.precio_unitario) || 0,
+      descuento: Number(item.descuento) || 0,
+      total: Number(item.total) || 0,
+      orden: Number(item.orden) || 0
     }));
 
     const { error: itemsError } = await supabase
@@ -166,6 +189,7 @@ export async function POST(req: NextRequest) {
       .insert(itemsWithCotizacionId);
 
     if (itemsError) {
+      console.error('❌ Error insertando items:', itemsError);
       // Si falla, eliminar la cotización creada
       await supabase.from('Cotizacion').delete().eq('id', cotizacion.id);
       throw itemsError;

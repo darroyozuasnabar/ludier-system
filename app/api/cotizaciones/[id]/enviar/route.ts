@@ -8,10 +8,10 @@ const supabase = createBrowserClient(
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }  // 🔥 Promise
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;  // 🔥 Await params
 
     // Verificar que la cotización existe
     const { data: cotizacion, error: findError } = await supabase
