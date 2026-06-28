@@ -33,6 +33,7 @@ import {
   Clock as ClockIcon,
   AlertTriangle,
   ClipboardList,
+  RefreshCw,
 } from "lucide-react";
 import { createBrowserClient } from "@supabase/ssr";
 import Swal from "sweetalert2";
@@ -160,12 +161,110 @@ export default function PersonalPage() {
     if (status === "authenticated") loadData();
   }, [status]);
 
+  // ── 🔥 Función para sincronizar HistorialPagos desde AsistenciaSemanal ──
+  const sincronizarHistorialPagos = async () => {
+    setLoading(true);
+    try {
+      // Obtener todas las asistencias de la semana actual
+      const { data: asistenciasData, error } = await supabase
+        .from("AsistenciaSemanal")
+        .select("*")
+        .eq("semana_inicio", selectedWeek);
+
+      if (error) throw error;
+
+      if (!asistenciasData || asistenciasData.length === 0) {
+        showToastMsg("err", "No hay asistencias registradas para esta semana");
+        setLoading(false);
+        return;
+      }
+
+      // Obtener trabajadores
+      const { data: workersData } = await supabase
+        .from("Worker")
+        .select("id, name, tarifa_diaria, tarifa_hora_extra, tipo_pago, tarifa_mensual")
+        .in("id", asistenciasData.map(a => a.worker_id));
+
+      const workersMap = Object.fromEntries(
+        (workersData || []).map(w => [w.id, w])
+      );
+
+      let sincronizados = 0;
+
+      for (const asistencia of asistenciasData) {
+        const worker = workersMap[asistencia.worker_id];
+        if (!worker) continue;
+
+        // Verificar si ya existe un pago para esta semana
+        const { data: pagoExistente } = await supabase
+          .from("HistorialPagos")
+          .select("id")
+          .eq("worker_id", asistencia.worker_id)
+          .eq("periodo_inicio", asistencia.semana_inicio)
+          .single();
+
+        // Calcular montos
+        const totalDias = asistencia.total_dias || 0;
+        const horasExtras = asistencia.horas_extras || 0;
+
+        let montoBase = 0;
+        if (worker.tipo_pago === "MENSUAL") {
+          montoBase = worker.tarifa_mensual || 0;
+        } else {
+          montoBase = (worker.tarifa_diaria || 0) * totalDias;
+        }
+
+        const pagoHorasExtras = (worker.tarifa_hora_extra || 0) * horasExtras;
+        const montoTotal = montoBase + pagoHorasExtras;
+
+        // Si no existe, crear; si existe, actualizar
+        if (pagoExistente) {
+          const { error: updateError } = await supabase
+            .from("HistorialPagos")
+            .update({
+              total_dias: totalDias,
+              horas_extras: horasExtras,
+              monto_total: montoTotal,
+              pago_horas_extras: pagoHorasExtras,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", pagoExistente.id);
+
+          if (!updateError) sincronizados++;
+        } else {
+          const { error: insertError } = await supabase
+            .from("HistorialPagos")
+            .insert({
+              worker_id: asistencia.worker_id,
+              periodo_inicio: asistencia.semana_inicio,
+              periodo_fin: asistencia.semana_fin,
+              total_dias: totalDias,
+              horas_extras: horasExtras,
+              monto_total: montoTotal,
+              pago_horas_extras: pagoHorasExtras,
+              estado: asistencia.pagado ? "PAGADO" : "PENDIENTE",
+            });
+
+          if (!insertError) sincronizados++;
+        }
+      }
+
+      showToastMsg("ok", `${sincronizados} pagos sincronizados correctamente`);
+      loadData();
+    } catch (error) {
+      console.error("Error sincronizando historial:", error);
+      showToastMsg("err", "Error al sincronizar historial de pagos");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const loadData = async () => {
     setLoading(true);
     try {
       const [workersRes, asistenciasRes, pagosRes, partesRes, proyectosRes] = await Promise.all([
         supabase.from("Worker").select("*").order("name"),
-        supabase.from("AsistenciaSemanal").select("*").order("semana_inicio", { ascending: false }),
+        supabase.from("AsistenciaSemanal").select("*").eq("semana_inicio", selectedWeek),
         supabase.from("HistorialPagos").select("*").order("created_at", { ascending: false }),
         supabase.from("ParteTrabajo").select("*, Project(*)").order("fecha", { ascending: false }),
         supabase.from("Project").select("*").in("status", ["ACTIVO", "EN_PRODUCCION"]).order("name"),
@@ -222,7 +321,6 @@ export default function PersonalPage() {
     let error;
 
     if (editingParteId) {
-      // Actualizar parte existente
       const { data, error: updateError } = await supabase
         .from("ParteTrabajo")
         .update({
@@ -238,12 +336,10 @@ export default function PersonalPage() {
       error = updateError;
       if (data) parteId = data[0]?.id;
 
-      // Eliminar actividades antiguas y volver a insertar
       if (!error) {
         await supabase.from("ParteActividad").delete().eq("parte_id", editingParteId);
       }
     } else {
-      // Crear nuevo parte
       const { data, error: insertError } = await supabase
         .from("ParteTrabajo")
         .insert({
@@ -265,7 +361,6 @@ export default function PersonalPage() {
       return;
     }
 
-    // Insertar nuevas actividades
     for (const act of parteActividades) {
       await supabase.from("ParteActividad").insert({
         parte_id: parteId,
@@ -317,13 +412,11 @@ export default function PersonalPage() {
     const parte = partes.find(p => p.id === parteId);
     if (!parte) return;
 
-    // Cargar actividades del parte
     const { data: actividades } = await supabase
       .from("ParteActividad")
       .select("*")
       .eq("parte_id", parteId);
 
-    // Llenar el formulario con los datos del parte
     setParteForm({
       fecha: parte.fecha,
       project_id: parte.project_id || "",
@@ -332,7 +425,6 @@ export default function PersonalPage() {
       observaciones: parte.observaciones || "",
     });
 
-    // Llenar actividades
     const actividadesConNombres = await Promise.all(
       (actividades || []).map(async (act) => {
         const worker = workers.find(w => w.id === act.worker_id);
@@ -365,9 +457,7 @@ export default function PersonalPage() {
 
     setSaving(true);
     try {
-      // Eliminar actividades primero (por FK)
       await supabase.from("ParteActividad").delete().eq("parte_id", parteId);
-      // Eliminar el parte
       const { error } = await supabase.from("ParteTrabajo").delete().eq("id", parteId);
       if (error) throw error;
 
@@ -381,16 +471,14 @@ export default function PersonalPage() {
   };
 
   const handleEditActividad = async (actividadId: string, parteId: string) => {
-    // Buscar la actividad en el estado
     const actividad = parteActividades.find(a => a.id === actividadId);
     if (!actividad) return;
 
-    // Abrir un prompt simple para editar la actividad
     const nuevaActividad = prompt("Editar actividad:", actividad.actividad);
-    if (nuevaActividad === null) return; // Cancelado
+    if (nuevaActividad === null) return;
 
     const nuevasHoras = prompt("Editar horas:", actividad.horas.toString());
-    if (nuevasHoras === null) return; // Cancelado
+    if (nuevasHoras === null) return;
 
     setSaving(true);
     try {
@@ -706,9 +794,11 @@ export default function PersonalPage() {
   });
 
   const totalWorkers = workers.filter((w) => w.active).length;
-  const totalPendientePago = historialPagos
-    .filter((p) => p.estado === "PENDIENTE")
-    .reduce((sum, p) => sum + Number(p.monto_total), 0);
+
+  const totalPendientePago = asistencias
+    .filter((a) => !a.pagado)
+    .reduce((sum, a) => sum + Number(a.total_pagar || 0), 0);
+
   const totalPagadoMes = historialPagos
     .filter(
       (p) =>
@@ -746,8 +836,8 @@ export default function PersonalPage() {
       {toast && (
         <div
           className={`fixed top-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl text-sm font-medium border ${toast.type === "ok"
-              ? "bg-emerald-50 text-emerald-800 border-emerald-200"
-              : "bg-red-50 text-red-800 border-red-200"
+            ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+            : "bg-red-50 text-red-800 border-red-200"
             }`}
         >
           {toast.type === "ok" ? (
@@ -785,7 +875,34 @@ export default function PersonalPage() {
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Botón Cargar semana actual */}
+            <button
+              onClick={() => {
+                const now = new Date();
+                const startOfWeek = new Date(now);
+                const day = now.getDay();
+                const diff = day === 0 ? 6 : day - 1;
+                startOfWeek.setDate(now.getDate() - diff);
+                setSelectedWeek(startOfWeek.toISOString().split("T")[0]);
+                loadData();
+              }}
+              className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-700 text-xs font-medium rounded-lg hover:bg-blue-100 transition-colors"
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+              Cargar semana
+            </button>
+
+            {/* Botón Sincronizar pagos */}
+            <button
+              onClick={sincronizarHistorialPagos}
+              className="flex items-center gap-2 px-3 py-1.5 bg-purple-50 text-purple-700 text-xs font-medium rounded-lg hover:bg-purple-100 transition-colors"
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+              Sincronizar pagos
+            </button>
+
             {activeTab === "partes" ? (
               <button
                 onClick={() => {
@@ -825,8 +942,8 @@ export default function PersonalPage() {
             <button
               onClick={() => setActiveTab("planilla")}
               className={`px-4 py-2.5 text-xs font-medium transition-all ${activeTab === "planilla"
-                  ? "border-b-2 border-zinc-900 text-zinc-900"
-                  : "text-zinc-500 hover:text-zinc-700"
+                ? "border-b-2 border-zinc-900 text-zinc-900"
+                : "text-zinc-500 hover:text-zinc-700"
                 }`}
             >
               📋 Planilla
@@ -834,8 +951,8 @@ export default function PersonalPage() {
             <button
               onClick={() => setActiveTab("checklist")}
               className={`px-4 py-2.5 text-xs font-medium transition-all ${activeTab === "checklist"
-                  ? "border-b-2 border-zinc-900 text-zinc-900"
-                  : "text-zinc-500 hover:text-zinc-700"
+                ? "border-b-2 border-zinc-900 text-zinc-900"
+                : "text-zinc-500 hover:text-zinc-700"
                 }`}
             >
               ✅ Checklist
@@ -843,8 +960,8 @@ export default function PersonalPage() {
             <button
               onClick={() => setActiveTab("partes")}
               className={`px-4 py-2.5 text-xs font-medium transition-all ${activeTab === "partes"
-                  ? "border-b-2 border-zinc-900 text-zinc-900"
-                  : "text-zinc-500 hover:text-zinc-700"
+                ? "border-b-2 border-zinc-900 text-zinc-900"
+                : "text-zinc-500 hover:text-zinc-700"
                 }`}
             >
               📝 Partes diarios
@@ -1103,7 +1220,6 @@ export default function PersonalPage() {
         {/* ── TAB: PARTES DIARIOS ────────────────────────────────────── */}
         {activeTab === "partes" && (
           <div className="space-y-4">
-            {/* Formulario de nuevo parte */}
             {showParteForm && (
               <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-6">
                 <div className="flex items-center justify-between mb-4">
@@ -1169,10 +1285,7 @@ export default function PersonalPage() {
                       value={parteForm.resumen_general}
                       onChange={(e) => setParteForm({ ...parteForm, resumen_general: e.target.value })}
                       className="w-full px-3 py-2 text-sm text-zinc-900 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900 resize-y"
-                      placeholder="Ej: 5/10 vigas instaladas en locales comerciales con base
-8 estructuras con base para azotea
-3 rejillas de sumidero sin base
-3 estructuras metálicas para mesa de tragaluz"
+                      placeholder="Ej: 5/10 vigas instaladas en locales comerciales con base..."
                     />
                     <p className="text-xs text-zinc-400 mt-1">Usa saltos de línea para organizar mejor la información</p>
                   </div>
@@ -1293,7 +1406,7 @@ export default function PersonalPage() {
               </div>
             )}
 
-            {/* Lista de partes - VERSIÓN MEJORADA */}
+            {/* Lista de partes */}
             <div className="space-y-4">
               {partes.length === 0 ? (
                 <div className="bg-white rounded-2xl border border-zinc-100 p-12 text-center">
@@ -1309,7 +1422,6 @@ export default function PersonalPage() {
 
                   return (
                     <div key={parte.id} className="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden hover:border-zinc-300 transition-all">
-                      {/* Cabecera del parte */}
                       <div className="p-5 bg-gradient-to-r from-zinc-50 to-white">
                         <div className="flex items-start justify-between">
                           <div className="flex-1 min-w-0">
@@ -1329,14 +1441,12 @@ export default function PersonalPage() {
                               )}
                             </div>
 
-                            {/* Resumen general */}
                             {parte.resumen_general && (
                               <div className="bg-zinc-50 rounded-lg p-3 mb-3 border border-zinc-100">
                                 <p className="text-sm text-zinc-700 leading-relaxed whitespace-pre-wrap">{parte.resumen_general}</p>
                               </div>
                             )}
 
-                            {/* Observaciones */}
                             {parte.observaciones && (
                               <div className="flex items-start gap-2 text-xs text-amber-700 bg-amber-50 px-3 py-2 rounded-lg border border-amber-200">
                                 <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5" />
@@ -1344,7 +1454,6 @@ export default function PersonalPage() {
                               </div>
                             )}
 
-                            {/* Resumen de actividades (vista previa) */}
                             <div className="mt-3 flex items-center gap-4 text-xs text-zinc-500">
                               <span className="flex items-center gap-1">
                                 <Users className="h-3.5 w-3.5" />
@@ -1361,7 +1470,6 @@ export default function PersonalPage() {
                             </div>
                           </div>
 
-                          {/* Botones de acción */}
                           <div className="flex items-center gap-1 flex-shrink-0 ml-4">
                             <button
                               onClick={() => handleToggleExpand(parte.id)}
@@ -1388,7 +1496,6 @@ export default function PersonalPage() {
                         </div>
                       </div>
 
-                      {/* Detalle expandido de actividades */}
                       {isExpanded && (
                         <div className="border-t border-zinc-100 px-5 py-4 bg-zinc-50">
                           <div className="flex items-center justify-between mb-3">
@@ -1500,8 +1607,8 @@ export default function PersonalPage() {
                         <td className="px-6 py-3 text-center">
                           <span
                             className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ${pago.estado === "PAGADO"
-                                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                                : "bg-amber-50 text-amber-700 border border-amber-200"
+                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                              : "bg-amber-50 text-amber-700 border border-amber-200"
                               }`}
                           >
                             {pago.estado === "PAGADO" ? "Pagado" : "Pendiente"}
@@ -1662,5 +1769,5 @@ export default function PersonalPage() {
         </div>
       )}
     </div>
-  )
-};
+  );
+}

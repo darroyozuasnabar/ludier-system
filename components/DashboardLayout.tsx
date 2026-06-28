@@ -22,8 +22,10 @@ import {
   FileBarChart, 
   LogOut,
   Menu,
-  X
+  X,
+  FileCheck, // ← NUEVO ICONO PARA COTIZACIONES
 } from "lucide-react";
+import NotificacionesTiempoReal from "@/components/NotificacionesTiempoReal";
 
 // Componente memoizado para cada item del menú
 const MenuItem = memo(({ item, onClick }: { item: any; onClick?: () => void }) => {
@@ -89,6 +91,8 @@ export default function DashboardLayout({
     { href: "/obras", icon: HardHat, label: "Gestión de Obras", roles: ["FUNDADOR", "JACK"] },
     { href: "/valorizaciones", icon: FileText, label: "Valorizaciones", roles: ["FUNDADOR", "JACK"] },
     { href: "/facturacion", icon: Receipt, label: "Facturación", roles: ["FUNDADOR", "JACK"] },
+    // 🔥 NUEVO: Cotizaciones
+    { href: "/cotizaciones", icon: FileCheck, label: "Cotizaciones", roles: ["FUNDADOR", "JACK", "DIEGO"] },
     { href: "/documentos", icon: FolderTree, label: "Documentos", roles: ["FUNDADOR", "JACK", "DIEGO"] },
     { href: "/calidad", icon: ClipboardCheck, label: "Control de Calidad", roles: ["FUNDADOR", "JACK"] },
     { href: "/personal", icon: Users, label: "Personal", roles: ["FUNDADOR", "DIEGO"] },
@@ -182,14 +186,30 @@ export default function DashboardLayout({
 
       {/* Main Content */}
       <main className="md:ml-64">
+        {/* Header con notificaciones */}
+        <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-sm border-b border-gray-100 px-4 py-2 md:px-8 md:py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={toggleSidebar}
+                className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                aria-label="Abrir menú"
+              >
+                <Menu className="h-5 w-5 text-gray-600" />
+              </button>
+              <div className="hidden md:block">
+                <p className="text-xs text-gray-400 uppercase tracking-wider">Bienvenido</p>
+                <p className="text-sm font-medium text-gray-900">{userName}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <NotificacionesTiempoReal />
+            </div>
+          </div>
+        </div>
+
+        {/* Contenido principal */}
         <div className="p-4 md:p-8">
-          {/* Botón de menú móvil */}
-          <button
-            onClick={toggleSidebar}
-            className="md:hidden fixed top-4 left-4 z-50 bg-white p-2 rounded-lg shadow-md border border-gray-200"
-          >
-            <Menu className="h-5 w-5 text-gray-600" />
-          </button>
           {children}
         </div>
       </main>

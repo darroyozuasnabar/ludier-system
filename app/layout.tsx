@@ -6,6 +6,7 @@ import { Providers } from "@/components/providers";
 import DashboardLayout from "@/components/DashboardLayout";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { usePathname } from "next/navigation";
+import NotificacionesTiempoReal from "@/components/NotificacionesTiempoReal";
 
 const inter = Inter({ subsets: ["latin"] });
 
