@@ -4,11 +4,25 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import DashboardLayout from "@/components/DashboardLayout";
+import PublicLayout from "@/components/public/PublicLayout";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { usePathname } from "next/navigation";
-import NotificacionesTiempoReal from "@/components/NotificacionesTiempoReal";
 
 const inter = Inter({ subsets: ["latin"] });
+
+// 🔥 Lista de rutas públicas (NO requieren login)
+const PUBLIC_ROUTES = [
+  "/",
+  "/servicios",
+  "/proyectos",
+  "/nosotros",
+  "/contacto",
+  "/faq",
+  "/blog",
+  "/testimonios",
+];
+
+const AUTH_ROUTES = ["/login", "/register"];
 
 export default function RootLayout({
   children,
@@ -16,14 +30,26 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const isAuthPage = pathname === "/login" || pathname === "/register";
-  
+
+  // Determinar qué layout usar
+  const isAuthPage = AUTH_ROUTES.includes(pathname);
+  const isPublicPage = PUBLIC_ROUTES.includes(pathname) || pathname === "/";
+
   return (
     <html lang="es" suppressHydrationWarning>
       <body className={inter.className}>
         <TooltipProvider>
           <Providers>
-            {isAuthPage ? children : <DashboardLayout>{children}</DashboardLayout>}
+            {isAuthPage ? (
+              // ✅ Páginas de autenticación (sin layout)
+              children
+            ) : isPublicPage ? (
+              // ✅ Páginas públicas (con Navbar + Footer)
+              <PublicLayout>{children}</PublicLayout>
+            ) : (
+              // ✅ Páginas protegidas (con Sidebar + Dashboard)
+              <DashboardLayout>{children}</DashboardLayout>
+            )}
           </Providers>
         </TooltipProvider>
       </body>
