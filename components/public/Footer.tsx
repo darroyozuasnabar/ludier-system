@@ -9,27 +9,9 @@ import {
   Linkedin,
   Youtube,
   Facebook,
-  Building2,
-  Award,
-  Clock,
-  Shield,
   ArrowRight,
   MessageCircle,
 } from "lucide-react";
-
-/**
- * FONTS
- * Para que se vea exactamente como está pensado, carga estas dos familias
- * con next/font en tu layout.tsx y expórtalas como variables CSS:
- *
- *   import { Oswald, JetBrains_Mono } from "next/font/google";
- *   const oswald = Oswald({ subsets: ["latin"], weight: ["500","600","700"], variable: "--font-display" });
- *   const jbMono = JetBrains_Mono({ subsets: ["latin"], weight: ["400","500"], variable: "--font-mono" });
- *   // en <body className={`${oswald.variable} ${jbMono.variable}`}>
- *
- * Si no las cargas, el fallback (sans-serif condensada / monospace del sistema)
- * igual funciona, solo pierde un poco de carácter.
- */
 
 const footerLinks = [
   {
@@ -68,14 +50,6 @@ const socialLinks = [
   { icon: Facebook, href: "https://facebook.com", label: "Facebook" },
 ];
 
-const stats = [
-  { icon: Building2, value: "20+", label: "Proyectos ejecutados" },
-  { icon: Award, value: "10+", label: "Años de experiencia" },
-  { icon: Clock, value: "95%", label: "Cumplimiento de plazos" },
-  { icon: Shield, value: "100%", label: "Calidad garantizada" },
-];
-
-/** Marca de esquina tipo plano técnico — el elemento firma que se repite en las tarjetas */
 function CornerMarks({ className = "" }: { className?: string }) {
   return (
     <>
@@ -101,7 +75,7 @@ export default function Footer() {
       className="relative overflow-hidden bg-[#14161A] text-[#C7CBD1]"
       style={{ fontFamily: "var(--font-body, Inter, ui-sans-serif, system-ui, sans-serif)" }}
     >
-      {/* Franja de seguridad diagonal — el detalle que ancla todo el footer en el oficio */}
+      {/* Franja de seguridad diagonal */}
       <div
         className="h-[6px] w-full"
         style={{
@@ -111,7 +85,7 @@ export default function Footer() {
         aria-hidden="true"
       />
 
-      {/* Textura de fondo: líneas finas tipo plancha cepillada, no blobs difuminados */}
+      {/* Textura de fondo */}
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.05]"
         style={{
@@ -123,44 +97,12 @@ export default function Footer() {
       <div
         className="pointer-events-none absolute -right-24 -top-24 h-[420px] w-[420px] rounded-full opacity-[0.08]"
         style={{
-          background:
-            "radial-gradient(circle, #FF5A1F 0%, transparent 70%)",
+          background: "radial-gradient(circle, #FF5A1F 0%, transparent 70%)",
         }}
         aria-hidden="true"
       />
 
-      {/* Barra de especificaciones (stats) */}
-      <div className="relative border-b border-[#3A3F45]">
-        <div className="mx-auto max-w-7xl px-4 py-7 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 divide-y divide-[#3A3F45] md:grid-cols-4 md:divide-y-0 md:divide-x">
-            {stats.map((stat, index) => {
-              const Icon = stat.icon;
-              return (
-                <div
-                  key={index}
-                  className="group relative flex items-center gap-3.5 px-4 py-4 first:pl-0 md:py-0"
-                >
-                  <CornerMarks />
-                  <Icon className="h-5 w-5 shrink-0 text-[#FF5A1F]" strokeWidth={1.75} />
-                  <div>
-                    <p
-                      className="text-2xl font-medium leading-none text-white"
-                      style={{ fontFamily: "var(--font-mono, 'JetBrains Mono', ui-monospace, monospace)" }}
-                    >
-                      {stat.value}
-                    </p>
-                    <p className="mt-1.5 text-[11px] uppercase tracking-[0.12em] text-[#8A8F96]">
-                      {stat.label}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      {/* Cuerpo principal */}
+      {/* Cuerpo principal - SIN BARA DE ESTADÍSTICAS */}
       <div className="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
         <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-4 lg:gap-12">
           {/* Marca con logo real */}
@@ -247,16 +189,14 @@ export default function Footer() {
           ))}
         </div>
 
-        {/* Placa de contacto tipo "nameplate" industrial */}
+        {/* Placa de contacto */}
         <div className="mt-10 border-t border-[#3A3F45] pt-8">
           <div className="grid grid-cols-1 gap-px overflow-hidden rounded-sm border border-[#3A3F45] bg-[#3A3F45] md:grid-cols-3">
             <div className="group relative flex items-center gap-3 bg-[#1D2024] p-4 transition-colors hover:bg-[#22262B]">
               <CornerMarks />
               <Phone className="h-5 w-5 shrink-0 text-[#FF5A1F]" strokeWidth={1.75} />
               <div>
-                <p className="text-[10px] uppercase tracking-[0.14em] text-[#6E7379]">
-                  Teléfono
-                </p>
+                <p className="text-[10px] uppercase tracking-[0.14em] text-[#6E7379]">Teléfono</p>
                 <a
                   href="tel:+51930747399"
                   className="text-sm font-medium text-[#D4D4D8] transition-colors hover:text-white"
@@ -269,9 +209,7 @@ export default function Footer() {
               <CornerMarks />
               <Mail className="h-5 w-5 shrink-0 text-[#FF5A1F]" strokeWidth={1.75} />
               <div>
-                <p className="text-[10px] uppercase tracking-[0.14em] text-[#6E7379]">
-                  Correo
-                </p>
+                <p className="text-[10px] uppercase tracking-[0.14em] text-[#6E7379]">Correo</p>
                 <a
                   href="mailto:ernestoarroyo1969@hotmail.com"
                   className="text-sm font-medium text-[#D4D4D8] transition-colors hover:text-white"
@@ -284,9 +222,7 @@ export default function Footer() {
               <CornerMarks />
               <MapPin className="h-5 w-5 shrink-0 text-[#FF5A1F]" strokeWidth={1.75} />
               <div>
-                <p className="text-[10px] uppercase tracking-[0.14em] text-[#6E7379]">
-                  Ubicación
-                </p>
+                <p className="text-[10px] uppercase tracking-[0.14em] text-[#6E7379]">Ubicación</p>
                 <p className="text-sm font-medium text-[#D4D4D8]">Lima, Perú</p>
               </div>
             </div>
