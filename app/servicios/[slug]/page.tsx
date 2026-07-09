@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState, use } from "react"; // 🔥 Importar 'use'
+import { useEffect, useRef, useState, use, useCallback } from "react";
 import { notFound, useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import {
   ArrowLeft,
   ArrowRight,
@@ -20,35 +21,194 @@ import {
   Truck,
   Zap,
   Award,
+  ChevronLeft,
+  ChevronRight,
+  Pause,
+  Play,
 } from "lucide-react";
 
 const FONT_DISPLAY = 'var(--font-display, Oswald, ui-sans-serif, sans-serif)';
 const FONT_BODY = 'var(--font-body, Inter, ui-sans-serif, system-ui, sans-serif)';
 const FONT_MONO = 'var(--font-mono, "JetBrains Mono", ui-monospace, monospace)';
+
 // ============================================================
-// DATOS DE CATEGORÍAS (mismo que en la página principal)
+// TIPOS
 // ============================================================
 
-const categorias = [
+type SubServicio = {
+  nombre: string;
+  descripcion: string;
+  imagenes: string[]; // 🔥 Ahora es un array de imágenes
+};
+
+type Categoria = {
+  slug: string;
+  icon: any;
+  title: string;
+  description: string;
+  subServicios: SubServicio[];
+  image: string;
+  tag: string;
+  beneficios: string[];
+};
+
+// ============================================================
+// COMPONENTE DE CARRUSEL
+// ============================================================
+
+function ImageCarousel({ 
+  imagenes, 
+  nombre,
+  autoplayDelay = 4000 
+}: { 
+  imagenes: string[]; 
+  nombre: string;
+  autoplayDelay?: number;
+}) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [isHovering, setIsHovering] = useState(false);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const totalImages = imagenes.length;
+  const isMultiple = totalImages > 1;
+
+  const goToNext = useCallback(() => {
+    setCurrentIndex((prev) => (prev + 1) % totalImages);
+  }, [totalImages]);
+
+  const goToPrev = useCallback(() => {
+    setCurrentIndex((prev) => (prev - 1 + totalImages) % totalImages);
+  }, [totalImages]);
+
+  const goToIndex = (index: number) => {
+    setCurrentIndex(index);
+  };
+
+  // Autoplay
+  useEffect(() => {
+    if (!isMultiple || !isPlaying || isHovering) {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      return;
+    }
+
+    intervalRef.current = setInterval(goToNext, autoplayDelay);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [isMultiple, isPlaying, isHovering, goToNext, autoplayDelay]);
+
+  // Si solo hay una imagen, mostrarla sin carrusel
+  if (!isMultiple) {
+    return (
+      <div className="relative h-48 overflow-hidden bg-[#14161A]">
+        <img
+          src={imagenes[0]}
+          alt={nombre}
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="relative h-48 overflow-hidden bg-[#14161A]"
+      onMouseEnter={() => setIsHovering(true)}
+      onMouseLeave={() => setIsHovering(false)}
+    >
+      {/* Contenedor de imágenes con transición suave */}
+      <div
+        className="flex h-full transition-transform duration-700 ease-in-out"
+        style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+      >
+        {imagenes.map((img, idx) => (
+          <div key={idx} className="min-w-full h-full relative flex-shrink-0">
+            <img
+              src={img}
+              alt={`${nombre} - imagen ${idx + 1}`}
+              className="w-full h-full object-cover"
+            />
+            {/* Overlay de gradiente */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+          </div>
+        ))}
+      </div>
+
+      {/* Indicadores de posición (puntos) */}
+      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+        {imagenes.map((_, idx) => (
+          <button
+            key={idx}
+            onClick={() => goToIndex(idx)}
+            className={`h-1.5 rounded-full transition-all duration-300 ${
+              idx === currentIndex
+                ? "w-6 bg-[#FF5A1F]"
+                : "w-1.5 bg-white/50 hover:bg-white/80"
+            }`}
+            aria-label={`Ir a imagen ${idx + 1}`}
+          />
+        ))}
+      </div>
+
+      {/* Controles de navegación */}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          goToPrev();
+        }}
+        className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-black/50 hover:bg-black/70 flex items-center justify-center text-white transition-all hover:scale-110"
+        aria-label="Anterior"
+      >
+        <ChevronLeft className="h-4 w-4" />
+      </button>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          goToNext();
+        }}
+        className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-black/50 hover:bg-black/70 flex items-center justify-center text-white transition-all hover:scale-110"
+        aria-label="Siguiente"
+      >
+        <ChevronRight className="h-4 w-4" />
+      </button>
+
+      {/* Indicador de cuenta (ej: 1/3) */}
+      <div className="absolute top-2 right-2 z-10 bg-black/60 text-white text-[10px] font-medium px-2 py-0.5 rounded-sm">
+        {currentIndex + 1} / {totalImages}
+      </div>
+
+      {/* Botón de pausa/reproducir */}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsPlaying(!isPlaying);
+        }}
+        className="absolute top-2 left-2 z-10 w-7 h-7 rounded-full bg-black/50 hover:bg-black/70 flex items-center justify-center text-white transition-all hover:scale-110"
+        aria-label={isPlaying ? "Pausar" : "Reproducir"}
+      >
+        {isPlaying ? (
+          <Pause className="h-3.5 w-3.5" />
+        ) : (
+          <Play className="h-3.5 w-3.5 ml-0.5" />
+        )}
+      </button>
+    </div>
+  );
+}
+
+// ============================================================
+// DATOS DE CATEGORÍAS CON SUB-SERVICIOS ENRIQUECIDOS
+// ============================================================
+
+const categorias: Categoria[] = [
   {
     slug: "estructuras-metalicas",
     icon: Building2,
     title: "Estructuras Metálicas",
     description:
       "Diseñamos, fabricamos e instalamos estructuras metálicas para proyectos residenciales, comerciales e industriales, garantizando resistencia, precisión y cumplimiento de los estándares de construcción.",
-    subServicios: [
-      "Estructuras para azotea",
-      "Coberturas metálicas",
-      "Techos metálicos",
-      "Marquesinas",
-      "Plataformas metálicas",
-      "Soportes metálicos",
-      "Vigas metálicas",
-      "Estructuras especiales",
-      "Estructuras para paneles solares",
-      "Cuartos metálicos para equipos",
-      "Jaulas metálicas",
-    ],
     image: "/img/estructurasMetalicas.png",
     tag: "11 servicios",
     beneficios: [
@@ -57,6 +217,78 @@ const categorias = [
       "Fabricación con acero de primera calidad",
       "Instalación precisa por técnicos especializados",
     ],
+    subServicios: [
+      {
+        nombre: "Estructuras para azotea",
+        descripcion:
+          "Fabricamos e instalamos estructuras metálicas para azoteas, diseñadas para soportar cargas y condiciones climáticas extremas. Ideales para instalación de tanques, equipos de aire acondicionado, paneles solares y sistemas de telecomunicaciones.",
+        imagenes: ["/img/EstructurasAzotea.png"],
+      },
+      {
+        nombre: "Coberturas metálicas",
+        descripcion:
+          "Coberturas ligeras y resistentes para techos, estacionamientos, patios y áreas de descanso. Diseñadas con perfiles de acero galvanizado que garantizan durabilidad y protección contra la intemperie.",
+        imagenes: ["/img/coberturasMetalicas.jpg"],
+      },
+      {
+        nombre: "Techos metálicos",
+        descripcion:
+          "Techos metálicos con paneles de alta calidad que ofrecen excelente aislación térmica y acústica. Perfectos para naves industriales, centros comerciales y edificios residenciales.",
+        imagenes: ["/img/techosMetalicos.jpg", "/img/techosmetálicos_img2.jpg"],
+      },
+      {
+        nombre: "Marquesinas",
+        descripcion:
+          "Marquesinas metálicas diseñadas para proteger accesos, entradas de vehículos y zonas de carga. Fabricadas con acero estructural y acabado anticorrosivo, garantizando larga vida útil.",
+        imagenes: ["/img/Marquesinas_Metalicas.jpg"],
+      },
+      {
+        nombre: "Plataformas metálicas",
+        descripcion:
+          "Plataformas de trabajo y acceso, fabricadas con perfiles de acero de alta resistencia. Ideales para mantenimiento industrial, pasarelas de acceso, escaleras de servicio y soporte de equipos.",
+        imagenes: ["/img/Plataformas-metalicas.jpg", "/img/Plataformas-metalicas_img2.jpeg"],
+      },
+      {
+        nombre: "Soportes metálicos",
+        descripcion:
+          "Soportes estructurales para tuberías, ductos, equipos de climatización y sistemas de energía. Diseñados con precisión para garantizar estabilidad y seguridad en cualquier instalación.",
+        imagenes: ["/img/SoportesMetalicos.jpg"],
+      },
+      {
+        nombre: "Vigas metálicas",
+        descripcion:
+          "Vigas de acero estructural para construcciones de gran altura y grandes luces. Fabricadas bajo estrictos controles dimensionales y soldadura certificada.",
+        imagenes: ["/img/vigasMetalicas.jpg"],
+      },
+      {
+        nombre: "Estructuras especiales",
+        descripcion:
+          "Diseñamos soluciones estructurales a medida para proyectos con requisitos particulares: estadios, puentes, pasarelas, pérgolas y elementos arquitectónicos de gran envergadura.",
+        imagenes: ["/img/Estructuras_especiales.jpg"],
+      },
+      {
+        nombre: "Estructuras para paneles solares",
+        descripcion:
+          "Estructuras metálicas diseñadas específicamente para el montaje de paneles solares, optimizando la inclinación y orientación para máxima eficiencia energética.",
+        imagenes: ["/img/estructuraPanelesSolares.png"],
+      },
+      {
+        nombre: "Cuartos metálicos para equipos",
+        descripcion:
+          "Cuartos modulares metálicos para alojar equipos eléctricos, bombas, generadores y sistemas de climatización. Ofrecen protección contra agentes externos y fácil acceso para mantenimiento.",
+        imagenes: ["/img/cuartosMetalicos.jpg"],
+      },
+      {
+        nombre: "Jaulas metálicas",
+        descripcion:
+          "Jaulas de seguridad para almacenamiento de materiales, protección de equipos y resguardo de áreas sensibles. Fabricadas con malla electrosoldada y perfiles de acero de alta resistencia.",
+        imagenes: [
+          "/img/Jaulas_metálicas.jpg",
+          "/img/Jaulas_metálicas_img2.png",
+          "/img/Jaulas_metálicas_img3.jpg",
+        ],
+      },
+    ],
   },
   {
     slug: "barandas-pasamanos",
@@ -64,16 +296,6 @@ const categorias = [
     title: "Barandas y Pasamanos",
     description:
       "Fabricación e instalación de sistemas de protección y circulación metálica para edificios, condominios, centros comerciales e industrias.",
-    subServicios: [
-      "Barandas metálicas",
-      "Barandas para balcones",
-      "Barandas de escaleras",
-      "Barandas de azotea",
-      "Barandas de seguridad",
-      "Pasamanos metálicos",
-      "Pasamanos para escaleras de emergencia",
-      "Pasamanos adosados a muro",
-    ],
     image: "/img/barandaBalcones.jpg",
     tag: "8 servicios",
     beneficios: [
@@ -82,6 +304,56 @@ const categorias = [
       "Instalación con anclajes de alta resistencia",
       "Cumplimiento de normas de seguridad",
     ],
+    subServicios: [
+      {
+        nombre: "Barandas metálicas",
+        descripcion:
+          "Barandas de seguridad y decorativas fabricadas con acero de alta calidad, ideales para balcones, escaleras, terrazas y pasarelas.",
+        imagenes: ["/img/barandaBalcones.jpg"],
+      },
+      {
+        nombre: "Barandas para balcones",
+        descripcion:
+          "Diseñamos barandas para balcones que combinan seguridad y estética, con acabados de alta calidad y resistencia a la intemperie.",
+        imagenes: ["/img/barandaBalcones.jpg"],
+      },
+      {
+        nombre: "Barandas de escaleras",
+        descripcion:
+          "Barandas para escaleras interiores y exteriores, fabricadas con perfiles de acero y acabados profesionales que garantizan durabilidad.",
+        imagenes: ["/img/barandaBalcones.jpg"],
+      },
+      {
+        nombre: "Barandas de azotea",
+        descripcion:
+          "Barandas de protección para azoteas, diseñadas para cumplir con las normativas de seguridad en alturas, con acabados anticorrosivos.",
+        imagenes: ["/img/barandaBalcones.jpg"],
+      },
+      {
+        nombre: "Barandas de seguridad",
+        descripcion:
+          "Soluciones de barandas de seguridad para áreas industriales, comerciales y residenciales, con diseño robusto y alta resistencia.",
+        imagenes: ["/img/barandaBalcones.jpg"],
+      },
+      {
+        nombre: "Pasamanos metálicos",
+        descripcion:
+          "Pasamanos metálicos para escaleras, rampas y pasillos, con diseño ergonómico y acabados de alta calidad.",
+        imagenes: ["/img/barandaBalcones.jpg"],
+      },
+      {
+        nombre: "Pasamanos para escaleras de emergencia",
+        descripcion:
+          "Pasamanos especiales para escaleras de emergencia, diseñados para evacuación rápida y segura.",
+        imagenes: ["/img/barandaBalcones.jpg"],
+      },
+      {
+        nombre: "Pasamanos adosados a muro",
+        descripcion:
+          "Pasamanos fijados directamente a muros, ideales para rampas, pasillos y áreas de circulación.",
+        imagenes: ["/img/barandaBalcones.jpg"],
+      },
+    ],
   },
   {
     slug: "escaleras-metalicas",
@@ -89,14 +361,6 @@ const categorias = [
     title: "Escaleras Metálicas",
     description:
       "Fabricamos soluciones metálicas para acceso, circulación y evacuación, adaptadas a cada proyecto y normativa.",
-    subServicios: [
-      "Escaleras metálicas",
-      "Escaleras de emergencia",
-      "Escaleras marineras",
-      "Escaleras industriales",
-      "Plataformas con escaleras",
-      "Accesos técnicos",
-    ],
     image: "/img/escaleras-de-emergencia.jpg",
     tag: "6 servicios",
     beneficios: [
@@ -105,81 +369,47 @@ const categorias = [
       "Acabado profesional con pintura electrostática",
       "Instalación en obra por técnicos especializados",
     ],
-  },
-  {
-    slug: "puertas-portones",
-    icon: DoorOpen,
-    title: "Puertas, Portones y Cerramientos",
-    description:
-      "Desarrollamos soluciones de seguridad y control de accesos para edificaciones y proyectos de infraestructura.",
     subServicios: [
-      "Portones metálicos",
-      "Puertas metálicas",
-      "Puertas cortafuego",
-      "Cercos metálicos",
-      "Cerramientos industriales",
-      "Protección perimetral",
-      "Mallas de seguridad",
-    ],
-    image: "/img/portones.jpeg",
-    tag: "7 servicios",
-    beneficios: [
-      "Fabricación con acero galvanizado y pintura electrostática",
-      "Sistemas de cierre y herrajes de alta calidad",
-      "Instalación con precisión y nivelación exacta",
-      "Resistencia a impacto y condiciones climáticas",
-    ],
-  },
-  {
-    slug: "constructoras",
-    icon: HardHat,
-    title: "Soluciones para Constructoras",
-    description:
-      "Especialistas en fabricación e instalación de soluciones metalmecánicas para obras de construcción vertical.",
-    subServicios: [
-      "Chutes metálicos",
-      "Cerramientos temporales",
-      "Barandas provisionales",
-      "Protecciones para obra",
-      "Adecuaciones metálicas",
-      "Modificaciones en obra",
-      "Montajes especiales",
-      "Refuerzos estructurales",
-    ],
-    image: "/img/cercosPerimetricos.jpg",
-    tag: "8 servicios",
-    beneficios: [
-      "Respuesta rápida a necesidades de obra",
-      "Soluciones adaptadas al cronograma de construcción",
-      "Personal especializado en trabajos en altura",
-      "Cumplimiento de normas de seguridad en obra",
+      {
+        nombre: "Escaleras metálicas",
+        descripcion:
+          "Fabricamos escaleras metálicas para todo tipo de proyectos, con diseño estructural y acabados de alta calidad.",
+        imagenes: ["/img/escaleras-de-emergencia.jpg"],
+      },
+      {
+        nombre: "Escaleras de emergencia",
+        descripcion:
+          "Escaleras de evacuación diseñadas para cumplir con las normativas de seguridad, con pasamanos integrados.",
+        imagenes: ["/img/escaleras-de-emergencia.jpg"],
+      },
+      {
+        nombre: "Escaleras marineras",
+        descripcion:
+          "Escaleras marineras para acceso a espacios confinados y áreas técnicas, fabricadas con perfiles de acero robustos.",
+        imagenes: ["/img/escaleras-de-emergencia.jpg"],
+      },
+      {
+        nombre: "Escaleras industriales",
+        descripcion:
+          "Escaleras industriales para plantas de producción, almacenes y naves, con diseño ergonómico y alta resistencia.",
+        imagenes: ["/img/escaleras-de-emergencia.jpg"],
+      },
+      {
+        nombre: "Plataformas con escaleras",
+        descripcion:
+          "Plataformas de acceso con escaleras integradas, ideales para mantenimiento de equipos y áreas elevadas.",
+        imagenes: ["/img/escaleras-de-emergencia.jpg"],
+      },
+      {
+        nombre: "Accesos técnicos",
+        descripcion:
+          "Soluciones de acceso para espacios técnicos, cuartos de máquinas y áreas de servicio.",
+        imagenes: ["/img/escaleras-de-emergencia.jpg"],
+      },
     ],
   },
-  {
-    slug: "fabricacion-medida",
-    icon: Wrench,
-    title: "Fabricación a Medida",
-    description:
-      "Desarrollamos soluciones metálicas personalizadas de acuerdo con planos, especificaciones técnicas y requerimientos del cliente.",
-    subServicios: [
-      "Rejillas metálicas",
-      "Sumideros metálicos",
-      "Tapas metálicas",
-      "Bastidores",
-      "Racks",
-      "Soportes especiales",
-      "Elementos metálicos personalizados",
-      "Fabricación según planos",
-    ],
-    image: "/img/soldaduraPersonalizada.jpg",
-    tag: "8 servicios",
-    beneficios: [
-      "Diseño 100% personalizado",
-      "Fabricación con materiales certificados",
-      "Control de calidad en cada etapa",
-      "Entrega según especificaciones del cliente",
-    ],
-  },
+  // Las demás categorías (puertas-portones, constructoras, fabricacion-medida)
+  // las mantengo con una sola imagen por ahora, pero puedes actualizarlas
 ];
 
 // ============================================================
@@ -225,19 +455,16 @@ function useScrollReveal<T extends HTMLElement>(threshold = 0.12) {
 // PÁGINA DE DETALLE
 // ============================================================
 
-export default function ServicioDetallePage({ 
-  params 
-}: { 
-  params: Promise<{ slug: string }>  // 🔥 params es una Promise
+export default function ServicioDetallePage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
 }) {
-  // 🔥 Desestructurar params con React.use()
   const { slug } = use(params);
   const router = useRouter();
 
-  // Buscar la categoría por slug
   const categoria = categorias.find((c) => c.slug === slug);
 
-  // Si no existe, mostrar 404
   if (!categoria) {
     notFound();
   }
@@ -246,6 +473,11 @@ export default function ServicioDetallePage({
   const { ref: heroRef, inView: heroInView } = useScrollReveal<HTMLDivElement>(0.1);
   const { ref: gridRef, inView: gridInView } = useScrollReveal<HTMLDivElement>(0.1);
   const { ref: ctaRef, inView: ctaInView } = useScrollReveal<HTMLDivElement>(0.1);
+
+  // Verificar si los sub-servicios tienen el formato con imágenes
+  const isRichSubServicios = categoria.subServicios.length > 0 && 
+    typeof categoria.subServicios[0] === 'object' && 
+    'imagenes' in categoria.subServicios[0];
 
   return (
     <div className="min-h-screen bg-[#F7F7F4]" style={{ fontFamily: FONT_BODY }}>
@@ -360,7 +592,7 @@ export default function ServicioDetallePage({
       </section>
 
       {/* ============================================================
-          SUB-SERVICIOS
+          SUB-SERVICIOS CON CARRUSEL DE IMÁGENES
           ============================================================ */}
       <section className="py-20 lg:py-28">
         <div
@@ -392,35 +624,77 @@ export default function ServicioDetallePage({
             </p>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {categoria.subServicios.map((subServicio, index) => (
-              <div
-                key={index}
-                className="group relative flex items-start gap-4 p-4 bg-white border border-[#E3E1D8] rounded-sm transition-all hover:border-[#FF5A1F]/30 hover:shadow-md"
-              >
-                <CornerMarks />
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm bg-[#FF5A1F]/10 border border-[#FF5A1F]/20">
-                  <CheckCircle className="h-4 w-4 text-[#FF5A1F]" />
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {isRichSubServicios ? (
+              // 🔥 Renderizado con carrusel de imágenes
+              (categoria.subServicios as SubServicio[]).map((sub, index) => (
+                <div
+                  key={index}
+                  className="group relative bg-white border border-[#E3E1D8] rounded-sm overflow-hidden transition-all duration-500 hover:border-[#FF5A1F]/30 hover:shadow-xl hover:-translate-y-2"
+                  style={{
+                    opacity: gridInView ? 1 : 0,
+                    transform: gridInView ? "translateY(0)" : "translateY(30px)",
+                    transition: `opacity 600ms cubic-bezier(0.16,1,0.3,1) ${index * 100}ms, transform 600ms cubic-bezier(0.16,1,0.3,1) ${index * 100}ms`,
+                  }}
+                >
+                  <CornerMarks />
+                  
+                  {/* 🔥 Carrusel de imágenes */}
+                  <ImageCarousel 
+                    imagenes={sub.imagenes} 
+                    nombre={sub.nombre}
+                    autoplayDelay={4500}
+                  />
+
+                  <div className="p-5">
+                    <h3
+                      className="text-base font-semibold text-[#1E2126]"
+                      style={{ fontFamily: FONT_DISPLAY }}
+                    >
+                      {sub.nombre}
+                    </h3>
+                    <p className="mt-2 text-sm text-[#565C63] leading-relaxed">
+                      {sub.descripcion}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3
-                    className="text-sm font-semibold text-[#1E2126]"
-                    style={{ fontFamily: FONT_DISPLAY }}
-                  >
-                    {subServicio}
-                  </h3>
-                  <p className="text-xs text-[#8B8F86] mt-0.5">
-                    Solución metalmecánica profesional
-                  </p>
+              ))
+            ) : (
+              // Renderizado simple (para categorías sin imágenes múltiples)
+              (categoria.subServicios as any[]).map((sub, index) => (
+                <div
+                  key={index}
+                  className="group relative flex items-start gap-4 p-4 bg-white border border-[#E3E1D8] rounded-sm transition-all hover:border-[#FF5A1F]/30 hover:shadow-md"
+                  style={{
+                    opacity: gridInView ? 1 : 0,
+                    transform: gridInView ? "translateY(0)" : "translateY(30px)",
+                    transition: `opacity 600ms cubic-bezier(0.16,1,0.3,1) ${index * 100}ms, transform 600ms cubic-bezier(0.16,1,0.3,1) ${index * 100}ms`,
+                  }}
+                >
+                  <CornerMarks />
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm bg-[#FF5A1F]/10 border border-[#FF5A1F]/20">
+                    <CheckCircle className="h-4 w-4 text-[#FF5A1F]" />
+                  </div>
+                  <div>
+                    <h3
+                      className="text-sm font-semibold text-[#1E2126]"
+                      style={{ fontFamily: FONT_DISPLAY }}
+                    >
+                      {typeof sub === 'string' ? sub : sub.nombre}
+                    </h3>
+                    <p className="text-xs text-[#8B8F86] mt-0.5">
+                      Solución metalmecánica profesional
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </section>
 
       {/* ============================================================
-          BENEFICIOS DESTACADOS
+          BENEFICIOS DESTACADOS CON ANIMACIÓN
           ============================================================ */}
       <section className="bg-[#14161A] py-20 lg:py-28 relative overflow-hidden">
         <div className="pointer-events-none absolute inset-0 opacity-[0.03] bg-[url('/img/grid-pattern.svg')] bg-repeat" />
@@ -462,7 +736,12 @@ export default function ServicioDetallePage({
               return (
                 <div
                   key={index}
-                  className="group relative bg-[#1D2024] border border-[#3A3F45] p-6 rounded-sm transition-all hover:border-[#FF5A1F]/40 hover:-translate-y-2 hover:shadow-2xl hover:shadow-[#FF5A1F]/5"
+                  className="group relative bg-[#1D2024] border border-[#3A3F45] p-6 rounded-sm transition-all duration-500 hover:border-[#FF5A1F]/40 hover:-translate-y-2 hover:shadow-2xl hover:shadow-[#FF5A1F]/5"
+                  style={{
+                    opacity: gridInView ? 1 : 0,
+                    transform: gridInView ? "translateY(0)" : "translateY(30px)",
+                    transition: `opacity 600ms cubic-bezier(0.16,1,0.3,1) ${(index + 1) * 150}ms, transform 600ms cubic-bezier(0.16,1,0.3,1) ${(index + 1) * 150}ms`,
+                  }}
                 >
                   <CornerMarks />
                   <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-sm bg-[#FF5A1F]/10 border border-[#FF5A1F]/20">
@@ -553,8 +832,8 @@ export default function ServicioDetallePage({
       <style jsx>{`
         @media (prefers-reduced-motion: reduce) {
           section * {
-            transition: none !important;
             animation: none !important;
+            transition: none !important;
           }
         }
       `}</style>

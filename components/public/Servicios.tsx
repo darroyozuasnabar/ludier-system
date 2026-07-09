@@ -16,21 +16,6 @@ import {
 /**
  * FUENTES: Oswald (display) + Inter (cuerpo) + JetBrains Mono (códigos técnicos)
  * cargadas en layout.tsx como --font-display / --font-body / --font-mono.
- *
- * PALETA — clara, tipo "hoja de plano sobre mesa de taller":
- * #F7F7F4 fondo (papel)   #FFFFFF tarjeta   #E3E1D8 borde
- * #1E2126 títulos          #565C63 texto     #8B8F86 texto tenue
- * #FF5A1F acento de marca (relleno, borde, CTA, íconos)
- * #B8390F acento SOLO para texto
- *
- * NOTA IMPORTANTE:
- * Los colores del layout se aplican con `style={{ ... }}` en vez de clases
- * arbitrarias de Tailwind (`bg-[#...]`, `text-[#...]`). Esto es a propósito:
- * si tu build tiene algún problema de configuración (p. ej. un @import roto
- * en globals.css) y Tailwind deja de generar clases arbitrarias, este
- * componente NO se rompe — el color se aplica igual porque no depende del
- * paso de compilación de Tailwind. El resto (layout, spacing, hover,
- * responsive) sigue usando clases normales de Tailwind sin problema.
  */
 
 const COLORS = {
@@ -71,8 +56,8 @@ const servicios: Servicio[] = [
   {
     icon: Shield,
     code: "BAR–02",
-    slug: "barandas-metalicas",
-    title: "Barandas Metálicas",
+    slug: "barandas-pasamanos",
+    title: "Barandas y Pasamanos",
     description:
       "Barandas de seguridad y decorativas para balcones, escaleras, terrazas y pasarelas, con acabados de alta calidad y durabilidad.",
     tag: "Seguridad",
@@ -91,8 +76,8 @@ const servicios: Servicio[] = [
   {
     icon: DoorOpen,
     code: "PUE–04",
-    slug: "portones-puertas",
-    title: "Portones y Puertas",
+    slug: "puertas-portones",
+    title: "Puertas, Portones y Cerramientos",
     description:
       "Portones metálicos, puertas de seguridad, puertas cortafuego y cerramientos para proyectos residenciales, comerciales e industriales.",
     tag: "Cerramientos",
@@ -120,9 +105,7 @@ const servicios: Servicio[] = [
   },
 ];
 
-// Regla de medición decorativa: marcas cada 20 unidades sobre un ancho de
-// 1200, con marca mayor cada 5 (equivalente visual a 0,10,20…120), como el
-// borde de una regla apoyada sobre un plano impreso.
+// Regla de medición decorativa
 const RULER_WIDTH = 1200;
 const RULER_STEP = 20;
 const RULER_MAJOR_EVERY = 5;
@@ -218,9 +201,13 @@ function CornerMarks() {
 
 function ServiceCard({ servicio }: { servicio: Servicio }) {
   const Icon = servicio.icon;
+
+  // ✅ CORRECCIÓN: Enlace a la página de detalle de la categoría
+  const href = `/servicios/${servicio.slug}`;
+
   return (
     <Link
-      href={`/contacto?servicio=${servicio.slug}`}
+      href={href}
       className="group relative block overflow-hidden rounded-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/[0.06] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4"
       style={
         {
@@ -234,7 +221,7 @@ function ServiceCard({ servicio }: { servicio: Servicio }) {
     >
       <CornerMarks />
 
-      {/* Imagen del servicio, con la ficha técnica superpuesta */}
+      {/* Imagen del servicio */}
       <div
         className="relative h-44 w-full"
         style={{ backgroundColor: COLORS.paper, borderBottom: `1px solid ${COLORS.border}` }}
@@ -253,7 +240,6 @@ function ServiceCard({ servicio }: { servicio: Servicio }) {
           </div>
         )}
 
-        {/* Degradado para que la ficha técnica sea legible sobre cualquier foto */}
         {servicio.image && (
           <div
             className="absolute inset-x-0 bottom-0 h-16"
@@ -314,7 +300,7 @@ function ServiceCard({ servicio }: { servicio: Servicio }) {
           className="mt-5 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide"
           style={{ color: COLORS.textFaint }}
         >
-          <span>Ver detalle</span>
+          <span>Ver todos los servicios</span>
           <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" />
         </div>
       </div>
@@ -337,7 +323,7 @@ export default function Servicios() {
         fontFamily: "var(--font-body, Inter, ui-sans-serif, system-ui, sans-serif)",
       }}
     >
-      {/* Trama de fondo tipo papel de plano (grilla milimetrada) */}
+      {/* Trama de fondo */}
       <div
         className="pointer-events-none absolute inset-0"
         style={{
