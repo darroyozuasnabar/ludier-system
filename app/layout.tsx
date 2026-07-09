@@ -33,7 +33,11 @@ export default function RootLayout({
 
   // Determinar qué layout usar
   const isAuthPage = AUTH_ROUTES.includes(pathname);
-  const isPublicPage = PUBLIC_ROUTES.includes(pathname) || pathname === "/";
+  
+  // 🔥 CORRECCIÓN: Reconocer subrutas de rutas públicas (ej: /servicios/estructuras-metalicas)
+  const isPublicPage = 
+    PUBLIC_ROUTES.some(route => pathname === route || pathname.startsWith(route + "/")) ||
+    pathname === "/";
 
   return (
     <html lang="es" suppressHydrationWarning>
