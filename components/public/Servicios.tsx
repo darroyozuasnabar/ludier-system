@@ -87,7 +87,7 @@ const servicios: Servicio[] = [
     icon: Fence,
     code: "CER–05",
     slug: "cercos-cerramientos",
-    title: "Cercos y Cerramientos",
+    title: "Soluciones para Constructoras",
     description:
       "Cercos metálicos, cerramientos perimetrales, mallas de seguridad y protecciones para obras y propiedades.",
     tag: "Protección",

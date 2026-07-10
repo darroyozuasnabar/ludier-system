@@ -38,7 +38,7 @@ const FONT_MONO = 'var(--font-mono, "JetBrains Mono", ui-monospace, monospace)';
 type SubServicio = {
   nombre: string;
   descripcion: string;
-  imagenes: string[]; // 🔥 Ahora es un array de imágenes
+  imagenes: string[];
 };
 
 type Categoria = {
@@ -85,7 +85,6 @@ function ImageCarousel({
     setCurrentIndex(index);
   };
 
-  // Autoplay
   useEffect(() => {
     if (!isMultiple || !isPlaying || isHovering) {
       if (intervalRef.current) clearInterval(intervalRef.current);
@@ -98,7 +97,6 @@ function ImageCarousel({
     };
   }, [isMultiple, isPlaying, isHovering, goToNext, autoplayDelay]);
 
-  // Si solo hay una imagen, mostrarla sin carrusel
   if (!isMultiple) {
     return (
       <div className="relative h-48 overflow-hidden bg-[#14161A]">
@@ -118,7 +116,6 @@ function ImageCarousel({
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     >
-      {/* Contenedor de imágenes con transición suave */}
       <div
         className="flex h-full transition-transform duration-700 ease-in-out"
         style={{ transform: `translateX(-${currentIndex * 100}%)` }}
@@ -130,13 +127,11 @@ function ImageCarousel({
               alt={`${nombre} - imagen ${idx + 1}`}
               className="w-full h-full object-cover"
             />
-            {/* Overlay de gradiente */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
           </div>
         ))}
       </div>
 
-      {/* Indicadores de posición (puntos) */}
       <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
         {imagenes.map((_, idx) => (
           <button
@@ -152,7 +147,6 @@ function ImageCarousel({
         ))}
       </div>
 
-      {/* Controles de navegación */}
       <button
         onClick={(e) => {
           e.stopPropagation();
@@ -174,12 +168,10 @@ function ImageCarousel({
         <ChevronRight className="h-4 w-4" />
       </button>
 
-      {/* Indicador de cuenta (ej: 1/3) */}
       <div className="absolute top-2 right-2 z-10 bg-black/60 text-white text-[10px] font-medium px-2 py-0.5 rounded-sm">
         {currentIndex + 1} / {totalImages}
       </div>
 
-      {/* Botón de pausa/reproducir */}
       <button
         onClick={(e) => {
           e.stopPropagation();
@@ -199,10 +191,13 @@ function ImageCarousel({
 }
 
 // ============================================================
-// DATOS DE CATEGORÍAS CON SUB-SERVICIOS ENRIQUECIDOS
+// DATOS DE CATEGORÍAS - TODAS LAS 6 LÍNEAS DE NEGOCIO
 // ============================================================
 
 const categorias: Categoria[] = [
+  // ==========================================================
+  // 1. ESTRUCTURAS METÁLICAS
+  // ==========================================================
   {
     slug: "estructuras-metalicas",
     icon: Building2,
@@ -290,78 +285,86 @@ const categorias: Categoria[] = [
       },
     ],
   },
+
+  // ==========================================================
+  // 2. BARANDAS Y PASAMANOS
+  // ==========================================================
   {
-  slug: "barandas-pasamanos",
-  icon: Shield,
-  title: "Barandas y Pasamanos",
-  description:
-    "Fabricación e instalación de sistemas de protección y circulación metálica para edificios, condominios, centros comerciales e industrias.",
-  image: "/img/Barandasmetálicas.png", // 🔥 Imagen principal actualizada
-  tag: "8 servicios",
-  beneficios: [
-    "Diseño personalizado según proyecto",
-    "Acabados gloss mate, epóxicos y electrostáticos",
-    "Instalación con anclajes de alta resistencia",
-    "Cumplimiento de normas de seguridad",
-  ],
-  subServicios: [
-    {
-      nombre: "Barandas metálicas",
-      descripcion:
-        "Barandas de seguridad y decorativas fabricadas con acero de alta calidad, ideales para balcones, escaleras, terrazas y pasarelas.",
-      imagenes: ["/img/Barandasmetálicas.png"],
-    },
-    {
-      nombre: "Barandas para balcones",
-      descripcion:
-        "Diseñamos barandas para balcones que combinan seguridad y estética, con acabados de alta calidad y resistencia a la intemperie.",
-      imagenes: ["/img/Qantua1_foto2.jpg"],
-    },
-    {
-      nombre: "Barandas de escaleras",
-      descripcion:
-        "Barandas para escaleras interiores y exteriores, fabricadas con perfiles de acero y acabados profesionales que garantizan durabilidad.",
-      imagenes: ["/img/escaleras-de-emergencia.jpg"],
-    },
-    {
-      nombre: "Barandas de azotea",
-      descripcion:
-        "Barandas de protección para azoteas, diseñadas para cumplir con las normativas de seguridad en alturas, con acabados anticorrosivos.",
-      imagenes: ["/img/EstructurasAzotea.png"],
-    },
-    {
-      nombre: "Barandas de seguridad",
-      descripcion:
-        "Soluciones de barandas de seguridad para áreas industriales, comerciales y residenciales, con diseño robusto y alta resistencia.",
-      imagenes: ["/img/BarandasdeSeguridad.png"],
-    },
-    {
-      nombre: "Pasamanos metálicos",
-      descripcion:
-        "Pasamanos metálicos para escaleras, rampas y pasillos, con diseño ergonómico y acabados de alta calidad.",
-      imagenes: ["/img/PasmanosMetalicos.jpg"],
-    },
-    {
-      nombre: "Pasamanos para escaleras de emergencia",
-      descripcion:
-        "Pasamanos especiales para escaleras de emergencia, diseñados para evacuación rápida y segura.",
-      imagenes: ["/img/PasamanosEscaleras_de_Emergencia.webp"],
-    },
-    {
-      nombre: "Pasamanos adosados a muro",
-      descripcion:
-        "Pasamanos fijados directamente a muros, ideales para rampas, pasillos y áreas de circulación.",
-      imagenes: ["/img/PasamanosAdosadosAMuro.jpg"],
-    },
-  ],
-},
+    slug: "barandas-pasamanos",
+    icon: Shield,
+    title: "Barandas y Pasamanos",
+    description:
+      "Fabricación e instalación de sistemas de protección y circulación metálica para edificios, condominios, centros comerciales e industrias.",
+    image: "/img/Barandasmetálicas.png",
+    tag: "8 servicios",
+    beneficios: [
+      "Diseño personalizado según proyecto",
+      "Acabados gloss mate, epóxicos y electrostáticos",
+      "Instalación con anclajes de alta resistencia",
+      "Cumplimiento de normas de seguridad",
+    ],
+    subServicios: [
+      {
+        nombre: "Barandas metálicas",
+        descripcion:
+          "Barandas de seguridad y decorativas fabricadas con acero de alta calidad, ideales para balcones, escaleras, terrazas y pasarelas.",
+        imagenes: ["/img/Barandasmetálicas.png"],
+      },
+      {
+        nombre: "Barandas para balcones",
+        descripcion:
+          "Diseñamos barandas para balcones que combinan seguridad y estética, con acabados de alta calidad y resistencia a la intemperie.",
+        imagenes: ["/img/Qantua1_foto2.jpg"],
+      },
+      {
+        nombre: "Barandas de escaleras",
+        descripcion:
+          "Barandas para escaleras interiores y exteriores, fabricadas con perfiles de acero y acabados profesionales que garantizan durabilidad.",
+        imagenes: ["/img/escaleras-de-emergencia.jpg"],
+      },
+      {
+        nombre: "Barandas de azotea",
+        descripcion:
+          "Barandas de protección para azoteas, diseñadas para cumplir con las normativas de seguridad en alturas, con acabados anticorrosivos.",
+        imagenes: ["/img/EstructurasAzotea.png"],
+      },
+      {
+        nombre: "Barandas de seguridad",
+        descripcion:
+          "Soluciones de barandas de seguridad para áreas industriales, comerciales y residenciales, con diseño robusto y alta resistencia.",
+        imagenes: ["/img/BarandasdeSeguridad.png"],
+      },
+      {
+        nombre: "Pasamanos metálicos",
+        descripcion:
+          "Pasamanos metálicos para escaleras, rampas y pasillos, con diseño ergonómico y acabados de alta calidad.",
+        imagenes: ["/img/PasmanosMetalicos.jpg"],
+      },
+      {
+        nombre: "Pasamanos para escaleras de emergencia",
+        descripcion:
+          "Pasamanos especiales para escaleras de emergencia, diseñados para evacuación rápida y segura.",
+        imagenes: ["/img/PasamanosEscaleras_de_Emergencia.webp"],
+      },
+      {
+        nombre: "Pasamanos adosados a muro",
+        descripcion:
+          "Pasamanos fijados directamente a muros, ideales para rampas, pasillos y áreas de circulación.",
+        imagenes: ["/img/PasamanosAdosadosAMuro.jpg"],
+      },
+    ],
+  },
+
+  // ==========================================================
+  // 3. ESCALERAS METÁLICAS
+  // ==========================================================
   {
     slug: "escaleras-metalicas",
     icon: Gauge,
     title: "Escaleras Metálicas",
     description:
       "Fabricamos soluciones metálicas para acceso, circulación y evacuación, adaptadas a cada proyecto y normativa.",
-    image: "/img/escaleras-de-emergencia.jpg",
+    image: "/img/escalerasMetalicas.jpg",
     tag: "6 servicios",
     beneficios: [
       "Diseño estructural certificado",
@@ -374,7 +377,7 @@ const categorias: Categoria[] = [
         nombre: "Escaleras metálicas",
         descripcion:
           "Fabricamos escaleras metálicas para todo tipo de proyectos, con diseño estructural y acabados de alta calidad.",
-        imagenes: ["/img/escaleras-de-emergencia.jpg"],
+        imagenes: ["/img/escalerasMetalicas.jpg"],
       },
       {
         nombre: "Escaleras de emergencia",
@@ -386,30 +389,241 @@ const categorias: Categoria[] = [
         nombre: "Escaleras marineras",
         descripcion:
           "Escaleras marineras para acceso a espacios confinados y áreas técnicas, fabricadas con perfiles de acero robustos.",
-        imagenes: ["/img/escaleras-de-emergencia.jpg"],
+        imagenes: [
+          "/img/escalerasMarineras_img1.jpg",
+          "/img/escalerasMarineras_img2.jpg",
+          "/img/escalerasMarineras_img3.jpg",
+        ],
       },
       {
         nombre: "Escaleras industriales",
         descripcion:
           "Escaleras industriales para plantas de producción, almacenes y naves, con diseño ergonómico y alta resistencia.",
-        imagenes: ["/img/escaleras-de-emergencia.jpg"],
+        imagenes: ["/img/escalerasIndustriales.webp"],
       },
       {
         nombre: "Plataformas con escaleras",
         descripcion:
           "Plataformas de acceso con escaleras integradas, ideales para mantenimiento de equipos y áreas elevadas.",
-        imagenes: ["/img/escaleras-de-emergencia.jpg"],
+        imagenes: [
+          "/img/PlataformasEscaleras_img1.png",
+          "/img/PlataformasEscaleras_img2.png",
+        ],
       },
       {
         nombre: "Accesos técnicos",
         descripcion:
           "Soluciones de acceso para espacios técnicos, cuartos de máquinas y áreas de servicio.",
-        imagenes: ["/img/escaleras-de-emergencia.jpg"],
+        imagenes: [
+          "/img/Escotillas_AccesoDirecto.jpg",
+          "/img/Compuertas_AccesoDirecto_img2.webp",
+        ],
       },
     ],
   },
-  // Las demás categorías (puertas-portones, constructoras, fabricacion-medida)
-  // las mantengo con una sola imagen por ahora, pero puedes actualizarlas
+
+  // ==========================================================
+  // 4. PUERTAS, PORTONES Y CERRAMIENTOS
+  // ==========================================================
+  {
+    slug: "puertas-portones",
+    icon: DoorOpen,
+    title: "Puertas, Portones y Cerramientos",
+    description:
+      "Desarrollamos soluciones de seguridad y control de accesos para edificaciones y proyectos de infraestructura.",
+    image: "/img/portones.jpeg",
+    tag: "7 servicios",
+    beneficios: [
+      "Diseño robusto y duradero",
+      "Sistemas de apertura manual y automática",
+      "Acabados anticorrosivos de alta calidad",
+      "Instalación profesional y rápida",
+    ],
+    subServicios: [
+      {
+        nombre: "Portones metálicos",
+        descripcion:
+          "Portones de acero para accesos vehiculares y peatonales, con diseño personalizado y sistemas de apertura eficientes.",
+        imagenes: ["/img/portones.jpeg"],
+      },
+      {
+        nombre: "Puertas metálicas",
+        descripcion:
+          "Puertas metálicas para interiores y exteriores, con acabados de alta calidad y resistencia a la intemperie.",
+        imagenes: ["/img/puertasMetalicas.jpg"],
+      },
+      {
+        nombre: "Puertas cortafuego",
+        descripcion:
+          "Puertas cortafuego certificadas, diseñadas para contener incendios y cumplir con las normativas de seguridad.",
+        imagenes: ["/img/puertasCortafuego.jpg"],
+      },
+      {
+        nombre: "Cercos metálicos",
+        descripcion:
+          "Cercos perimetrales de acero para delimitación y seguridad de propiedades, con diseños elegantes y resistentes.",
+        imagenes: ["/img/cercosPerimetricos.jpg"],
+      },
+      {
+        nombre: "Cerramientos industriales",
+        descripcion:
+          "Cerramientos para naves y plantas industriales, fabricados con perfiles de acero de alta resistencia.",
+        imagenes: ["/img/cerramientosIndustriales.jpg"],
+      },
+      {
+        nombre: "Protección perimetral",
+        descripcion:
+          "Soluciones de protección perimetral para áreas sensibles, con mallas de seguridad y barreras metálicas.",
+        imagenes: ["/img/proteccionPerimetral.jpg"],
+      },
+      {
+        nombre: "Mallas de seguridad",
+        descripcion:
+          "Mallas de acero para protección de espacios abiertos, escaleras y áreas de alto riesgo.",
+        imagenes: ["/img/mallasSeguridad.webp"],
+  
+      },
+    ],
+  },
+
+  // ==========================================================
+  // 5. SOLUCIONES PARA CONSTRUCTORAS
+  // ==========================================================
+  {
+    slug: "cercos-cerramientos",
+    icon: HardHat,
+    title: "Soluciones para Constructoras",
+    description:
+      "Especialistas en fabricación e instalación de soluciones metalmecánicas para obras de construcción vertical.",
+    image: "/img/cercosPerimetricos.jpg",
+    tag: "8 servicios",
+    beneficios: [
+      "Soluciones temporales y permanentes",
+      "Montaje rápido en obra",
+      "Adaptación a cualquier requerimiento",
+      "Seguridad y cumplimiento de plazos",
+    ],
+    subServicios: [
+      {
+        nombre: "Chutes metálicos",
+        descripcion:
+          "Sistemas de evacuación de residuos para edificios en construcción, fabricados con acero galvanizado y fácil instalación.",
+        imagenes: ["/img/chutesMetalicos.webp"],
+      },
+      {
+        nombre: "Cerramientos temporales",
+        descripcion:
+          "Cerramientos provisionales para obras, con paneles modulares de fácil montaje y desmontaje.",
+        imagenes: ["/img/cerramientosTemporales.jpg"],
+      },
+      {
+        nombre: "Barandas provisionales",
+        descripcion:
+          "Barandas de seguridad para andamios y áreas de trabajo, con instalación rápida y cumplimiento de normativas.",
+        imagenes: ["/img/barandasProvisionales.jpeg"],
+      },
+      {
+        nombre: "Protecciones para obra",
+        descripcion:
+          "Elementos de protección para áreas de riesgo, como cubrimientos de huecos y barandas perimetrales.",
+        imagenes: ["/img/proteccionesObra.webp"],
+      },
+      {
+        nombre: "Adecuaciones metálicas",
+        descripcion:
+          "Soluciones metálicas personalizadas para adaptar espacios existentes a nuevas necesidades constructivas.",
+        imagenes: ["/img/estructurasMetalicas.png"],
+      },
+      {
+        nombre: "Modificaciones en obra",
+        descripcion:
+          "Trabajos de modificación y refuerzo de estructuras metálicas durante la ejecución del proyecto.",
+        imagenes: ["/img/modificacionesObra.jpg"],
+      },
+      {
+        nombre: "Montajes especiales",
+        descripcion:
+          "Montaje de estructuras complejas y elementos metálicos que requieren precisión y planificación detallada.",
+        imagenes: ["/img/montajes.jpg"],
+      },
+      {
+        nombre: "Refuerzos estructurales",
+        descripcion:
+          "Refuerzos metálicos para aumentar la capacidad de carga de estructuras existentes.",
+        imagenes: ["/img/refuerzosEstructurales.webp"],
+      },
+    ],
+  },
+
+  // ==========================================================
+  // 6. FABRICACIÓN A MEDIDA
+  // ==========================================================
+  {
+    slug: "fabricacion-medida",
+    icon: Wrench,
+    title: "Fabricación a Medida",
+    description:
+      "Desarrollamos soluciones metálicas personalizadas de acuerdo con planos, especificaciones técnicas y requerimientos del cliente.",
+    image: "/img/soldaduraPersonalizada.jpg",
+    tag: "8 servicios",
+    beneficios: [
+      "Diseño según plano del cliente",
+      "Fabricación en taller propio",
+      "Acabados de alta calidad",
+      "Entrega en plazos acordados",
+    ],
+    subServicios: [
+      {
+        nombre: "Rejillas metálicas",
+        descripcion:
+          "Rejillas de acero para pisos, pasarelas y áreas de drenaje, fabricadas con perfiles de alta resistencia.",
+        imagenes: ["/img/rejillasMetalicas.jpg", "/img/rejillasMetalicas_img2.jpg"],
+        
+      },
+      {
+        nombre: "Sumideros metálicos",
+        descripcion:
+          "Sumideros de acero para sistemas de drenaje, con diseño eficiente y acabados anticorrosivos.",
+        imagenes: ["/img/sumiderosMetálicos.png"],
+      },
+      {
+        nombre: "Tapas metálicas",
+        descripcion:
+          "Tapas de acero para registros, cámaras y pozos, con sistemas de seguridad y fácil acceso.",
+        imagenes: ["/img/tapasMetalicas.jpg"],
+      },
+      {
+        nombre: "Bastidores",
+        descripcion:
+          "Bastidores metálicos para soporte de equipos y sistemas, fabricados a medida según requerimientos.",
+        imagenes: ["/img/bastidoresMetalicos.jpg"],
+      },
+      {
+        nombre: "Racks",
+        descripcion:
+          "Racks de almacenamiento industrial, con diseño modular y alta capacidad de carga.",
+        imagenes: ["/img/racksMetalicos.jpg"],
+      },
+      {
+        nombre: "Soportes especiales",
+        descripcion:
+          "Soportes personalizados para tuberías, ductos y equipos, adaptados a cada necesidad.",
+        imagenes: ["/img/soportesEspeciales.jpg"],
+      },
+      {
+        nombre: "Elementos metálicos personalizados",
+        descripcion:
+          "Fabricación de cualquier elemento metálico según plano, desde piezas pequeñas hasta estructuras complejas.",
+        imagenes: ["/img/elementosPersonalizados.jpg"],
+      },
+      {
+        nombre: "Fabricación según planos",
+        descripcion:
+          "Servicio de fabricación exacta a partir de planos proporcionados por el cliente, con control de calidad riguroso.",
+        imagenes: ["/img/fabricacionPlanos.jpg"],
+      },
+    ],
+  },
 ];
 
 // ============================================================
@@ -474,7 +688,6 @@ export default function ServicioDetallePage({
   const { ref: gridRef, inView: gridInView } = useScrollReveal<HTMLDivElement>(0.1);
   const { ref: ctaRef, inView: ctaInView } = useScrollReveal<HTMLDivElement>(0.1);
 
-  // Verificar si los sub-servicios tienen el formato con imágenes
   const isRichSubServicios = categoria.subServicios.length > 0 && 
     typeof categoria.subServicios[0] === 'object' && 
     'imagenes' in categoria.subServicios[0];
@@ -482,9 +695,7 @@ export default function ServicioDetallePage({
   return (
     <div className="min-h-screen bg-[#F7F7F4]" style={{ fontFamily: FONT_BODY }}>
 
-      {/* ============================================================
-          HERO - DETALLE DE CATEGORÍA
-          ============================================================ */}
+      {/* HERO */}
       <section className="relative overflow-hidden bg-[#14161A] py-24 lg:py-32">
         <div className="pointer-events-none absolute inset-0 opacity-[0.03] bg-[url('/img/grid-pattern.svg')] bg-repeat" />
         <div
@@ -591,9 +802,7 @@ export default function ServicioDetallePage({
         </div>
       </section>
 
-      {/* ============================================================
-          SUB-SERVICIOS CON CARRUSEL DE IMÁGENES
-          ============================================================ */}
+      {/* SUB-SERVICIOS */}
       <section className="py-20 lg:py-28">
         <div
           ref={gridRef}
@@ -626,7 +835,6 @@ export default function ServicioDetallePage({
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {isRichSubServicios ? (
-              // 🔥 Renderizado con carrusel de imágenes
               (categoria.subServicios as SubServicio[]).map((sub, index) => (
                 <div
                   key={index}
@@ -638,14 +846,11 @@ export default function ServicioDetallePage({
                   }}
                 >
                   <CornerMarks />
-                  
-                  {/* 🔥 Carrusel de imágenes */}
                   <ImageCarousel 
                     imagenes={sub.imagenes} 
                     nombre={sub.nombre}
                     autoplayDelay={4500}
                   />
-
                   <div className="p-5">
                     <h3
                       className="text-base font-semibold text-[#1E2126]"
@@ -660,7 +865,6 @@ export default function ServicioDetallePage({
                 </div>
               ))
             ) : (
-              // Renderizado simple (para categorías sin imágenes múltiples)
               (categoria.subServicios as any[]).map((sub, index) => (
                 <div
                   key={index}
@@ -693,9 +897,7 @@ export default function ServicioDetallePage({
         </div>
       </section>
 
-      {/* ============================================================
-          BENEFICIOS DESTACADOS CON ANIMACIÓN
-          ============================================================ */}
+      {/* BENEFICIOS */}
       <section className="bg-[#14161A] py-20 lg:py-28 relative overflow-hidden">
         <div className="pointer-events-none absolute inset-0 opacity-[0.03] bg-[url('/img/grid-pattern.svg')] bg-repeat" />
         <div
@@ -761,9 +963,7 @@ export default function ServicioDetallePage({
         </div>
       </section>
 
-      {/* ============================================================
-          CTA FINAL
-          ============================================================ */}
+      {/* CTA */}
       <section className="bg-white py-20 lg:py-28">
         <div
           ref={ctaRef}

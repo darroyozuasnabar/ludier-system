@@ -108,7 +108,7 @@ const categorias = [
     tag: "7 servicios",
   },
   {
-    slug: "constructoras",
+    slug: "cercos-cerramientos",
     icon: HardHat,
     title: "Soluciones para Constructoras",
     description:
