@@ -291,70 +291,70 @@ const categorias: Categoria[] = [
     ],
   },
   {
-    slug: "barandas-pasamanos",
-    icon: Shield,
-    title: "Barandas y Pasamanos",
-    description:
-      "Fabricación e instalación de sistemas de protección y circulación metálica para edificios, condominios, centros comerciales e industrias.",
-    image: "/img/barandaBalcones.jpg",
-    tag: "8 servicios",
-    beneficios: [
-      "Diseño personalizado según proyecto",
-      "Acabados gloss mate, epóxicos y electrostáticos",
-      "Instalación con anclajes de alta resistencia",
-      "Cumplimiento de normas de seguridad",
-    ],
-    subServicios: [
-      {
-        nombre: "Barandas metálicas",
-        descripcion:
-          "Barandas de seguridad y decorativas fabricadas con acero de alta calidad, ideales para balcones, escaleras, terrazas y pasarelas.",
-        imagenes: ["/img/barandaBalcones.jpg"],
-      },
-      {
-        nombre: "Barandas para balcones",
-        descripcion:
-          "Diseñamos barandas para balcones que combinan seguridad y estética, con acabados de alta calidad y resistencia a la intemperie.",
-        imagenes: ["/img/barandaBalcones.jpg"],
-      },
-      {
-        nombre: "Barandas de escaleras",
-        descripcion:
-          "Barandas para escaleras interiores y exteriores, fabricadas con perfiles de acero y acabados profesionales que garantizan durabilidad.",
-        imagenes: ["/img/barandaBalcones.jpg"],
-      },
-      {
-        nombre: "Barandas de azotea",
-        descripcion:
-          "Barandas de protección para azoteas, diseñadas para cumplir con las normativas de seguridad en alturas, con acabados anticorrosivos.",
-        imagenes: ["/img/barandaBalcones.jpg"],
-      },
-      {
-        nombre: "Barandas de seguridad",
-        descripcion:
-          "Soluciones de barandas de seguridad para áreas industriales, comerciales y residenciales, con diseño robusto y alta resistencia.",
-        imagenes: ["/img/barandaBalcones.jpg"],
-      },
-      {
-        nombre: "Pasamanos metálicos",
-        descripcion:
-          "Pasamanos metálicos para escaleras, rampas y pasillos, con diseño ergonómico y acabados de alta calidad.",
-        imagenes: ["/img/barandaBalcones.jpg"],
-      },
-      {
-        nombre: "Pasamanos para escaleras de emergencia",
-        descripcion:
-          "Pasamanos especiales para escaleras de emergencia, diseñados para evacuación rápida y segura.",
-        imagenes: ["/img/barandaBalcones.jpg"],
-      },
-      {
-        nombre: "Pasamanos adosados a muro",
-        descripcion:
-          "Pasamanos fijados directamente a muros, ideales para rampas, pasillos y áreas de circulación.",
-        imagenes: ["/img/barandaBalcones.jpg"],
-      },
-    ],
-  },
+  slug: "barandas-pasamanos",
+  icon: Shield,
+  title: "Barandas y Pasamanos",
+  description:
+    "Fabricación e instalación de sistemas de protección y circulación metálica para edificios, condominios, centros comerciales e industrias.",
+  image: "/img/Barandasmetálicas.png", // 🔥 Imagen principal actualizada
+  tag: "8 servicios",
+  beneficios: [
+    "Diseño personalizado según proyecto",
+    "Acabados gloss mate, epóxicos y electrostáticos",
+    "Instalación con anclajes de alta resistencia",
+    "Cumplimiento de normas de seguridad",
+  ],
+  subServicios: [
+    {
+      nombre: "Barandas metálicas",
+      descripcion:
+        "Barandas de seguridad y decorativas fabricadas con acero de alta calidad, ideales para balcones, escaleras, terrazas y pasarelas.",
+      imagenes: ["/img/Barandasmetálicas.png"],
+    },
+    {
+      nombre: "Barandas para balcones",
+      descripcion:
+        "Diseñamos barandas para balcones que combinan seguridad y estética, con acabados de alta calidad y resistencia a la intemperie.",
+      imagenes: ["/img/Qantua1_foto2.jpg"],
+    },
+    {
+      nombre: "Barandas de escaleras",
+      descripcion:
+        "Barandas para escaleras interiores y exteriores, fabricadas con perfiles de acero y acabados profesionales que garantizan durabilidad.",
+      imagenes: ["/img/escaleras-de-emergencia.jpg"],
+    },
+    {
+      nombre: "Barandas de azotea",
+      descripcion:
+        "Barandas de protección para azoteas, diseñadas para cumplir con las normativas de seguridad en alturas, con acabados anticorrosivos.",
+      imagenes: ["/img/EstructurasAzotea.png"],
+    },
+    {
+      nombre: "Barandas de seguridad",
+      descripcion:
+        "Soluciones de barandas de seguridad para áreas industriales, comerciales y residenciales, con diseño robusto y alta resistencia.",
+      imagenes: ["/img/BarandasdeSeguridad.png"],
+    },
+    {
+      nombre: "Pasamanos metálicos",
+      descripcion:
+        "Pasamanos metálicos para escaleras, rampas y pasillos, con diseño ergonómico y acabados de alta calidad.",
+      imagenes: ["/img/PasmanosMetalicos.jpg"],
+    },
+    {
+      nombre: "Pasamanos para escaleras de emergencia",
+      descripcion:
+        "Pasamanos especiales para escaleras de emergencia, diseñados para evacuación rápida y segura.",
+      imagenes: ["/img/PasamanosEscaleras_de_Emergencia.webp"],
+    },
+    {
+      nombre: "Pasamanos adosados a muro",
+      descripcion:
+        "Pasamanos fijados directamente a muros, ideales para rampas, pasillos y áreas de circulación.",
+      imagenes: ["/img/PasamanosAdosadosAMuro.jpg"],
+    },
+  ],
+},
   {
     slug: "escaleras-metalicas",
     icon: Gauge,
