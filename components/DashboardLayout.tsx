@@ -200,7 +200,7 @@ export default function DashboardLayout({
               <div className="hidden md:block">
                 <p className="text-xs text-gray-400 uppercase tracking-wider">Bienvenido</p>
                 <p className="text-sm font-medium text-gray-900">{userName}</p>
-              </div>
+              </div>  
             </div>
             <div className="flex items-center gap-3">
               <NotificacionesTiempoReal />

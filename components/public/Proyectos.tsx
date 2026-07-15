@@ -33,7 +33,7 @@ const FONT_MONO = 'var(--font-mono, "JetBrains Mono", ui-monospace, monospace)';
 // ============================================================
 export type Proyecto = {
   id: number;
-  slug: string; // NUEVO
+  slug: string;
   titulo: string;
   cliente: string;
   ubicacion: string;
@@ -62,8 +62,122 @@ export const proyectosData: Proyecto[] = [
       "Implementación exitosa que contribuyó a la seguridad, operatividad y avance eficiente del proyecto.",
     imagen: "/img/zendai.png",
   },
-  // ... (todos los demás proyectos con slug)
-  // Asegúrate de agregar slug a todos
+  {
+    id: 2,
+    slug: "lince",
+    titulo: "Cerco Metálico Perimetral – Lince",
+    cliente: "Flat Canevaro S.A.C.",
+    ubicacion: "Lince, Lima",
+    categoria: "comercial",
+    servicios: [
+      "Estructuras metálicas para cerramiento perimetral",
+      "Postes y paneles metálicos",
+      "Instalación y nivelación",
+      "Anclaje, soldadura y refuerzo estructural",
+      "Adecuaciones según requerimientos",
+      "Acabados y protección anticorrosiva",
+    ],
+    resultado:
+      "Mejora de la seguridad, control de accesos y protección del proyecto durante las distintas etapas.",
+    imagen: "/img/Flat_Lince.png",
+  },
+  {
+    id: 3,
+    slug: "san-miguel",
+    titulo: "Edificación Multifamiliar – San Miguel",
+    cliente: "MDP Construcciones S.A.C.",
+    ubicacion: "San Miguel, Lima",
+    categoria: "residencial",
+    servicios: [
+      "Chute metálico para evacuación de residuos",
+      "Componentes estructurales para chute",
+      "Estructuras auxiliares de soporte",
+      "Soldadura, anclaje y fijación estructural",
+      "Supervisión de montaje",
+      "Acabados y protección",
+    ],
+    resultado:
+      "Mejora de la seguridad, eficiencia operativa y gestión de residuos durante el desarrollo del proyecto.",
+    imagen: "/img/Edificio_SanMiguel.png",
+  },
+  {
+    id: 4,
+    slug: "surco",
+    titulo: "Proyecto Residencial – Surco",
+    cliente: "Grupo Percola S.A.C.",
+    ubicacion: "Santiago de Surco, Lima",
+    categoria: "residencial",
+    servicios: [
+      "Chute metálico para evacuación de residuos",
+      "Componentes estructurales para chute",
+      "Estructuras auxiliares de soporte",
+      "Soldadura, anclaje y fijación estructural",
+      "Supervisión de montaje",
+      "Acabados y protección",
+    ],
+    resultado:
+      "Implementación exitosa de sistemas metalmecánicos para apoyo a la construcción, mejorando seguridad, eficiencia y gestión de residuos.",
+    imagen: "/img/Proyecto_Surco.png",
+  },
+  {
+    id: 5,
+    slug: "centro-lima",
+    titulo: "Edificación Urbana – Centro de Lima",
+    cliente: "MDP Construcciones S.A.C.",
+    ubicacion: "Centro Histórico, Lima",
+    categoria: "comercial",
+    servicios: [
+      "Chute metálico para evacuación de residuos",
+      "Pasamanos metálicos para circulación segura",
+      "Componentes estructurales complementarios",
+      "Montaje, anclaje y soldadura en campo",
+      "Elementos de seguridad para trabajos en altura",
+      "Acabados y verificación de calidad",
+    ],
+    resultado:
+      "Soluciones orientadas a la seguridad, operatividad y productividad en un entorno urbano de alta exigencia.",
+    imagen: "/img/Edificacion_CentroLima.png",
+  },
+  {
+    id: 6,
+    slug: "qantua",
+    titulo: "Proyecto Residencial QANTUA – Fase 1 y 2",
+    cliente: "Grupo LAR",
+    ubicacion: "Cercado de Lima",
+    categoria: "residencial",
+    servicios: [
+      "Barandas para escaleras de emergencia",
+      "Pasamanos adosados a pared",
+      "Chute metálico para residuos",
+      "Estructuras metálicas para azotea",
+      "Vigas metálicas para locales comerciales",
+      "Rejillas y estructuras para tragaluces",
+      "Apertura y cerramiento de cercos",
+      "Trazado, perforación, anclaje, montaje y soldadura",
+      "Acabados industriales (anticorrosivo, pintura, gloss mate)",
+      "Control de calidad y adecuaciones",
+    ],
+    resultado:
+      "Participación exitosa en ambas fases, fortaleciendo la seguridad, funcionalidad y calidad de la obra, cumpliendo estándares y plazos.",
+    imagen: "/img/Qantua.jpg",
+  },
+  {
+    id: 7,
+    slug: "hilton",
+    titulo: "Hilton MDP – Chacarilla",
+    cliente: "MDP CONSTRUCCIONES S.A.C.",
+    ubicacion: "Chacarilla, Surco",
+    categoria: "comercial",
+    servicios: [
+      "Fabricación e instalación de chute metálico de 19 pisos",
+      "Estructuras de soporte para sistema de evacuación",
+      "Anclajes y fijaciones estructurales",
+      "Acabados anticorrosivos",
+    ],
+    resultado:
+      "Instalación exitosa del sistema de evacuación de residuos para el proyecto Hilton MDP, mejorando la eficiencia y seguridad durante la construcción.",
+    imagen: "/img/hilton-lima-miraflores.jpg",
+  },
 ];
 
 // ============================================================
@@ -296,11 +410,96 @@ const ModalProyecto = ({
   );
 };
 
+// ============================================================
+// SUBCOMPONENTE: ProyectoCard (maneja su propia animación)
+// ============================================================
+const ProyectoCard = ({
+  proyecto,
+  index,
+  onClick,
+  isHome = false,
+}: {
+  proyecto: Proyecto;
+  index: number;
+  onClick: () => void;
+  isHome?: boolean;
+}) => {
+  const CatIcon = categoriaEstilos[proyecto.categoria].icon;
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setVisible(true);
+    }, isHome ? 100 + index * 150 : 800 + index * 100);
+    return () => clearTimeout(timer);
+  }, [index, isHome]);
+
+  return (
+    <div
+      className="group relative bg-white border border-[#E3E1D8] rounded-sm overflow-hidden cursor-pointer transition-all hover:border-[#FF5A1F]/40 hover:shadow-xl hover:-translate-y-2"
+      onClick={onClick}
+      style={{
+        opacity: visible ? 1 : 0,
+        transform: visible ? "translateY(0)" : "translateY(30px)",
+        transition: `opacity 800ms cubic-bezier(0.16,1,0.3,1), transform 800ms cubic-bezier(0.16,1,0.3,1)`,
+      }}
+    >
+      <CornerMarks />
+      <div className="relative h-56 overflow-hidden bg-[#14161A]">
+        <img
+          src={proyecto.imagen}
+          alt={proyecto.titulo}
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        <div className="absolute bottom-3 left-3 flex items-center gap-2 bg-black/70 backdrop-blur-sm px-3 py-1 rounded-sm">
+          <CatIcon className="w-3 h-3 text-white" />
+          <span
+            className="text-[10px] font-medium text-white uppercase tracking-wider"
+            style={{ fontFamily: FONT_MONO }}
+          >
+            {proyecto.categoria}
+          </span>
+        </div>
+      </div>
+      <div className="p-6">
+        <h3
+          className="text-lg font-semibold text-[#1E2126] line-clamp-1 group-hover:text-[#FF5A1F] transition-colors"
+          style={{ fontFamily: FONT_DISPLAY }}
+        >
+          {proyecto.titulo}
+        </h3>
+        <p className="text-sm text-[#565C63] flex items-center gap-1 mt-1 mb-3">
+          <Building2 className="w-4 h-4" />
+          {proyecto.cliente}
+        </p>
+        <p className="text-sm text-[#8B8F86] flex items-center gap-1 mb-4">
+          <MapPin className="w-4 h-4 text-[#FF5A1F]" />
+          {proyecto.ubicacion}
+        </p>
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-medium text-[#FF5A1F] flex items-center gap-1 group-hover:gap-2 transition-all">
+            Ver detalles <ArrowRight className="w-4 h-4" />
+          </span>
+          <span className="text-[10px] text-[#8B8F86] bg-[#F7F7F4] px-3 py-1 rounded-sm border border-[#E3E1D8]">
+            {proyecto.servicios.length} servicios
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // ============================================================
 // COMPONENTE PRINCIPAL
 // ============================================================
-export default function Proyectos() {
+export default function Proyectos({
+  limit,
+  isHome = false,
+}: {
+  limit?: number;
+  isHome?: boolean;
+}) {
   const [filtro, setFiltro] = useState<string>("todos");
   const [proyectoSeleccionado, setProyectoSeleccionado] = useState<Proyecto | null>(
     null
@@ -318,8 +517,10 @@ export default function Proyectos() {
 
   const proyectosFiltrados =
     filtro === "todos"
-      ? proyectosData
-      : proyectosData.filter((p) => p.categoria === filtro);
+      ? (limit ? proyectosData.slice(0, limit) : proyectosData)
+      : (limit
+          ? proyectosData.filter((p) => p.categoria === filtro).slice(0, limit)
+          : proyectosData.filter((p) => p.categoria === filtro));
 
   const stats = [
     { value: "20+", label: "Proyectos ejecutados", icon: Building2 },
@@ -328,6 +529,58 @@ export default function Proyectos() {
     { value: "100%", label: "Satisfacción garantizada", icon: Award },
   ];
 
+  // ---------- VERSIÓN HOME (sin secciones extras) ----------
+  if (isHome) {
+    return (
+      <section className="py-16 bg-[#F7F7F4]" style={{ fontFamily: FONT_BODY }}>
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2
+              className="text-3xl font-semibold text-[#1E2126]"
+              style={{ fontFamily: FONT_DISPLAY }}
+            >
+              Proyectos <span className="text-[#FF5A1F]">destacados</span>
+            </h2>
+            <p className="mt-2 text-[#565C63]">
+              Conoce algunas de las obras que hemos realizado con excelencia.
+            </p>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {proyectosFiltrados.map((proyecto, index) => (
+              <ProyectoCard
+                key={proyecto.id}
+                proyecto={proyecto}
+                index={index}
+                isHome={true}
+                onClick={() => setProyectoSeleccionado(proyecto)}
+              />
+            ))}
+          </div>
+
+          <div className="mt-12 text-center">
+            <Link
+              href="/proyectos"
+              className="inline-flex items-center gap-2 bg-[#FF5A1F] px-6 py-3 text-sm font-semibold uppercase tracking-wide text-white shadow-lg shadow-[#FF5A1F]/20 transition-all hover:bg-[#FF7A44] hover:shadow-[#FF5A1F]/40 hover:-translate-y-1"
+            >
+              Ver todos los proyectos
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+
+        {/* Modal */}
+        {proyectoSeleccionado && (
+          <ModalProyecto
+            proyecto={proyectoSeleccionado}
+            onClose={() => setProyectoSeleccionado(null)}
+          />
+        )}
+      </section>
+    );
+  }
+
+  // ---------- VERSIÓN COMPLETA (/proyectos) ----------
   return (
     <div className="min-h-screen bg-[#F7F7F4]" style={{ fontFamily: FONT_BODY }}>
       {/* HERO */}
@@ -478,85 +731,17 @@ export default function Proyectos() {
             })}
           </div>
 
-          {/* Grid con animación individual por tarjeta */}
+          {/* Grid con subcomponente ProyectoCard */}
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {proyectosFiltrados.map((proyecto, index) => {
-              const CatIcon = categoriaEstilos[proyecto.categoria].icon;
-              const [cardVisible, setCardVisible] = useState(false);
-              const cardRef = useRef<HTMLDivElement>(null);
-
-              useEffect(() => {
-                const observer = new IntersectionObserver(
-                  ([entry]) => {
-                    if (entry.isIntersecting && !cardVisible) {
-                      setCardVisible(true);
-                    }
-                  },
-                  { threshold: 0.1, rootMargin: "-40px 0px -40px 0px" }
-                );
-                if (cardRef.current) observer.observe(cardRef.current);
-                return () => observer.disconnect();
-              }, [cardVisible]);
-
-              return (
-                <div
-                  key={proyecto.id}
-                  ref={cardRef}
-                  className="group relative bg-white border border-[#E3E1D8] rounded-sm overflow-hidden cursor-pointer transition-all hover:border-[#FF5A1F]/40 hover:shadow-xl hover:-translate-y-2"
-                  onClick={() => setProyectoSeleccionado(proyecto)}
-                  style={{
-                    opacity: cardVisible ? 1 : 0,
-                    transform: cardVisible ? "translateY(0)" : "translateY(30px)",
-                    transition: `opacity 800ms cubic-bezier(0.16,1,0.3,1) ${index * 100}ms, transform 800ms cubic-bezier(0.16,1,0.3,1) ${index * 100}ms`,
-                  }}
-                >
-                  <CornerMarks />
-
-                  <div className="relative h-56 overflow-hidden bg-[#14161A]">
-                    <img
-                      src={proyecto.imagen}
-                      alt={proyecto.titulo}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                    <div className="absolute bottom-3 left-3 flex items-center gap-2 bg-black/70 backdrop-blur-sm px-3 py-1 rounded-sm">
-                      <CatIcon className="w-3 h-3 text-white" />
-                      <span
-                        className="text-[10px] font-medium text-white uppercase tracking-wider"
-                        style={{ fontFamily: FONT_MONO }}
-                      >
-                        {proyecto.categoria}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="p-6">
-                    <h3
-                      className="text-lg font-semibold text-[#1E2126] line-clamp-1 group-hover:text-[#FF5A1F] transition-colors"
-                      style={{ fontFamily: FONT_DISPLAY }}
-                    >
-                      {proyecto.titulo}
-                    </h3>
-                    <p className="text-sm text-[#565C63] flex items-center gap-1 mt-1 mb-3">
-                      <Building2 className="w-4 h-4" />
-                      {proyecto.cliente}
-                    </p>
-                    <p className="text-sm text-[#8B8F86] flex items-center gap-1 mb-4">
-                      <MapPin className="w-4 h-4 text-[#FF5A1F]" />
-                      {proyecto.ubicacion}
-                    </p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-[#FF5A1F] flex items-center gap-1 group-hover:gap-2 transition-all">
-                        Ver detalles <ArrowRight className="w-4 h-4" />
-                      </span>
-                      <span className="text-[10px] text-[#8B8F86] bg-[#F7F7F4] px-3 py-1 rounded-sm border border-[#E3E1D8]">
-                        {proyecto.servicios.length} servicios
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+            {proyectosFiltrados.map((proyecto, index) => (
+              <ProyectoCard
+                key={proyecto.id}
+                proyecto={proyecto}
+                index={index}
+                isHome={false}
+                onClick={() => setProyectoSeleccionado(proyecto)}
+              />
+            ))}
           </div>
 
           {proyectosFiltrados.length === 0 && (
@@ -603,7 +788,7 @@ export default function Proyectos() {
         </div>
       </section>
 
-      {/* MODAL MEJORADO */}
+      {/* MODAL */}
       {proyectoSeleccionado && (
         <ModalProyecto
           proyecto={proyectoSeleccionado}

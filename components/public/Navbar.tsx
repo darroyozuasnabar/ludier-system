@@ -158,6 +158,15 @@ export default function Navbar() {
               </span>
             </div>
 
+            {/* 🔥 BOTÓN INGRESAR (NUEVO) */}
+            <Link
+              href="/login"
+              className="px-5 py-2.5 text-sm font-semibold uppercase tracking-wide text-[#FF5A1F] border border-[#FF5A1F] rounded-lg transition-all duration-300 hover:bg-[#FF5A1F]/10 hover:border-[#FF7A44] hover:text-[#FF7A44] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              style={{ fontFamily: "var(--font-body, Inter, ui-sans-serif, system-ui, sans-serif)" }}
+            >
+              Ingresar
+            </Link>
+
             <Link
               href="/contacto"
               className="group relative overflow-hidden bg-[#FF5A1F] px-6 py-2.5 text-sm font-semibold uppercase tracking-wide text-white shadow-lg shadow-[#FF5A1F]/20 transition-all duration-300 hover:bg-[#FF7A44] hover:shadow-[#FF5A1F]/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
@@ -210,10 +219,20 @@ export default function Navbar() {
               {item.label}
             </Link>
           ))}
+
+          {/* 🔥 BOTÓN INGRESAR (móvil) */}
+          <Link
+            href="/login"
+            onClick={() => setIsOpen(false)}
+            className="mt-4 block rounded-lg border border-[#FF5A1F] px-4 py-3 text-center text-sm font-semibold uppercase tracking-wide text-[#FF5A1F] transition-colors duration-200 hover:bg-[#FF5A1F]/10"
+          >
+            Ingresar al sistema
+          </Link>
+
           <Link
             href="/contacto"
             onClick={() => setIsOpen(false)}
-            className="mt-4 block rounded-lg bg-[#FF5A1F] px-4 py-3 text-center text-sm font-semibold uppercase tracking-wide text-white transition-colors duration-200 hover:bg-[#FF7A44]"
+            className="mt-2 block rounded-lg bg-[#FF5A1F] px-4 py-3 text-center text-sm font-semibold uppercase tracking-wide text-white transition-colors duration-200 hover:bg-[#FF7A44]"
           >
             Cotizar ahora
           </Link>

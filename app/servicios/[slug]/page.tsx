@@ -596,7 +596,7 @@ const categorias: Categoria[] = [
         nombre: "Bastidores",
         descripcion:
           "Bastidores metálicos para soporte de equipos y sistemas, fabricados a medida según requerimientos.",
-        imagenes: ["/img/bastidoresMetalicos.jpg"],
+        imagenes: ["/img/bastidores.jpg"],
       },
       {
         nombre: "Racks",
@@ -608,20 +608,19 @@ const categorias: Categoria[] = [
         nombre: "Soportes especiales",
         descripcion:
           "Soportes personalizados para tuberías, ductos y equipos, adaptados a cada necesidad.",
-        imagenes: ["/img/soportesEspeciales.jpg"],
+        imagenes: ["/img/soportesMetalicos.jpg"],
       },
       {
         nombre: "Elementos metálicos personalizados",
         descripcion:
           "Fabricación de cualquier elemento metálico según plano, desde piezas pequeñas hasta estructuras complejas.",
-        imagenes: ["/img/elementosPersonalizados.jpg"],
+        imagenes: ["/img/elementosPersonalizados.png"],
       },
       {
-        nombre: "Fabricación según planos",
-        descripcion:
-          "Servicio de fabricación exacta a partir de planos proporcionados por el cliente, con control de calidad riguroso.",
-        imagenes: ["/img/fabricacionPlanos.jpg"],
-      },
+  nombre: "Fabricación según planos",
+  descripcion: "Servicio de fabricación exacta a partir de planos proporcionados por el cliente, con control de calidad riguroso.",
+  imagenes: ["/img/modificacionesObra.jpg"],
+},
     ],
   },
 ];

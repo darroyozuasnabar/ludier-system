@@ -43,10 +43,10 @@ const STATS = [
     description: "En el sector construcción"
   },
   { 
-    value: "S/ 1.2M+", 
-    label: "En contratos ejecutados", 
+    value: "100%", 
+    label: "Proyectos cumplidos", 
     icon: TrendingUp,
-    description: "Proyectos de gran envergadura"
+    description: "Compromiso garantizado"
   },
   { 
     value: "20+", 
@@ -298,7 +298,9 @@ export default function NosotrosPage() {
                       {stat.value}
                     </p>
                     <p className="text-xs text-[#8A8F96]">{stat.label}</p>
-                    <p className="text-[10px] text-[#6E7379] mt-0.5">{stat.description}</p>
+                    {stat.description && (
+                      <p className="text-[10px] text-[#6E7379] mt-0.5">{stat.description}</p>
+                    )}
                   </div>
                 );
               })}

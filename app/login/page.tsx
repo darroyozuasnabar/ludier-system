@@ -380,27 +380,10 @@ export default function LoginPage() {
           display: flex;
           align-items: center;
           gap: 12px;
-          margin: 1.75rem 0 1.5rem;
+          margin: 1.75rem 0 0.75rem;
         }
         .l-sep-line { flex: 1; height: 1px; background: #181818; }
         .l-sep-txt { font-size: 11px; color: #333; letter-spacing: 1px; text-transform: uppercase; white-space: nowrap; }
-
-        .l-demo {
-          background: #0e0e0e;
-          border: 1px solid #1a1a1a;
-          border-left: 3px solid #E07B20;
-          border-radius: 0 10px 10px 0;
-          padding: 12px 16px;
-        }
-        .l-demo-lbl { font-size: 10px; color: #444; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 5px; }
-        .l-demo-val { font-size: 13px; color: #666; }
-        .l-demo-val code {
-          background: #161616;
-          color: #E07B20;
-          padding: 1px 7px;
-          border-radius: 4px;
-          font-size: 12px;
-        }
 
         /* FOOTER */
         .l-footer {
@@ -541,19 +524,6 @@ export default function LoginPage() {
                   )}
                 </button>
               </form>
-
-              <div className="l-sep">
-                <div className="l-sep-line" />
-                <span className="l-sep-txt">Demo</span>
-                <div className="l-sep-line" />
-              </div>
-
-              <div className="l-demo">
-                <div className="l-demo-lbl">Credenciales de prueba</div>
-                <div className="l-demo-val">
-                  <code>admin@ludier.com</code> / <code>admin123</code>
-                </div>
-              </div>
             </div>
           </div>
         </div>

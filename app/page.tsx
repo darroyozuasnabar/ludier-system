@@ -10,7 +10,7 @@ export default function HomePage() {
       <Hero />
       <Servicios />
       <Beneficios />
-      <Proyectos />
+      <Proyectos limit={3} isHome={true} />
       <Clientes />
     </>
   );

@@ -10,7 +10,6 @@ import {
   Youtube,
   Facebook,
   ArrowRight,
-  MessageCircle,
 } from "lucide-react";
 
 const footerLinks = [
@@ -102,7 +101,7 @@ export default function Footer() {
         aria-hidden="true"
       />
 
-      {/* Cuerpo principal - SIN BARA DE ESTADÍSTICAS */}
+      {/* Cuerpo principal */}
       <div className="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
         <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-4 lg:gap-12">
           {/* Marca con logo real */}
@@ -133,14 +132,19 @@ export default function Footer() {
               calidad en Perú.
             </p>
 
+            {/* 🔥 BOTÓN DE WHATSAPP CON LOGO REAL */}
             <a
               href="https://wa.me/51930747399?text=Hola%20LUDIER%2C%20quiero%20cotizar%20un%20proyecto"
               target="_blank"
               rel="noopener noreferrer"
               className="group inline-flex items-center gap-2 rounded-sm bg-[#25D366] px-4 py-2.5 text-sm font-medium text-[#0B1A0F] shadow-lg shadow-[#25D366]/10 transition-all duration-300 hover:bg-[#1FB855] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#25D366]"
             >
-              <MessageCircle className="h-4 w-4" />
-              Contáctanos por WhatsApp
+              <img
+                src="/img/WhatsAppLogo.jpg"
+                alt="WhatsApp"
+                className="h-5 w-5 object-contain rounded-sm"
+              />
+              <span>Contáctanos por WhatsApp</span>
               <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
             </a>
 
