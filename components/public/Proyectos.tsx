@@ -24,8 +24,9 @@ import {
 // ============================================================
 // TIPOGRAFÍAS
 // ============================================================
-const FONT_DISPLAY = 'var(--font-display, Oswald, ui-sans-serif, sans-serif)';
-const FONT_BODY = 'var(--font-body, Inter, ui-sans-serif, system-ui, sans-serif)';
+const FONT_DISPLAY = "var(--font-display, Oswald, ui-sans-serif, sans-serif)";
+const FONT_BODY =
+  "var(--font-body, Inter, ui-sans-serif, system-ui, sans-serif)";
 const FONT_MONO = 'var(--font-mono, "JetBrains Mono", ui-monospace, monospace)';
 
 // ============================================================
@@ -44,24 +45,24 @@ export type Proyecto = {
 };
 
 export const proyectosData: Proyecto[] = [
-  {
-    id: 1,
-    slug: "zendai",
-    titulo: "Edificio Residencial 28 Pisos Zendai",
-    cliente: "Desarrollo Inmobiliario FG S.A.C.",
-    ubicacion: "La Victoria, Lima",
-    categoria: "residencial",
-    servicios: [
-      "Chute metálico para evacuación de residuos",
-      "Barandas metálicas de seguridad",
-      "Pasamanos metálicos",
-      "Montaje, anclaje y soldadura en obra",
-      "Adecuaciones metalmecánicas complementarias",
-    ],
-    resultado:
-      "Implementación exitosa que contribuyó a la seguridad, operatividad y avance eficiente del proyecto.",
-    imagen: "/img/zendai.png",
-  },
+{
+  id: 1,
+  slug: "zendai",
+  titulo: "Edificio Residencial 28 Pisos Zendai",
+  cliente: "Grupo LAR", // ✅ Corregido
+  ubicacion: "La Victoria, Lima",
+  categoria: "residencial",
+  servicios: [
+    "Chute metálico para evacuación de residuos",
+    "Barandas metálicas de seguridad",
+    "Pasamanos metálicos",
+    "Montaje, anclaje y soldadura en obra",
+    "Adecuaciones metalmecánicas complementarias",
+  ],
+  resultado:
+    "Implementación exitosa que contribuyó a la seguridad, operatividad y avance eficiente del proyecto.",
+  imagen: "/img/zendai.png",
+},
   {
     id: 2,
     slug: "lince",
@@ -208,16 +209,25 @@ const categoriaEstilos = {
 // COMPONENTE CornerMarks
 // ============================================================
 function CornerMarks({ active = false }: { active?: boolean }) {
-  const base = "pointer-events-none absolute h-3 w-3 transition-all duration-500";
+  const base =
+    "pointer-events-none absolute h-3 w-3 transition-all duration-500";
   const border = active
     ? "border-[#FF5A1F] opacity-100"
     : "border-[#3A3F45] opacity-50";
   return (
     <>
-      <span className={`${base} left-3 top-3 border-l-2 border-t-2 ${border}`} />
-      <span className={`${base} right-3 top-3 border-r-2 border-t-2 ${border}`} />
-      <span className={`${base} bottom-3 left-3 border-b-2 border-l-2 ${border}`} />
-      <span className={`${base} bottom-3 right-3 border-b-2 border-r-2 ${border}`} />
+      <span
+        className={`${base} left-3 top-3 border-l-2 border-t-2 ${border}`}
+      />
+      <span
+        className={`${base} right-3 top-3 border-r-2 border-t-2 ${border}`}
+      />
+      <span
+        className={`${base} bottom-3 left-3 border-b-2 border-l-2 ${border}`}
+      />
+      <span
+        className={`${base} bottom-3 right-3 border-b-2 border-r-2 ${border}`}
+      />
     </>
   );
 }
@@ -239,7 +249,7 @@ function useScrollReveal<T extends HTMLElement>(threshold = 0.12) {
           setHasBeenVisible(true);
         }
       },
-      { threshold, rootMargin: "-60px 0px -60px 0px" }
+      { threshold, rootMargin: "-60px 0px -60px 0px" },
     );
 
     observer.observe(el);
@@ -252,6 +262,9 @@ function useScrollReveal<T extends HTMLElement>(threshold = 0.12) {
 // ============================================================
 // MODAL MEJORADO (con animación y botón a detalle)
 // ============================================================
+// ============================================================
+// MODAL MEJORADO (oscuro, con enlaces a clientes)
+// ============================================================
 const ModalProyecto = ({
   proyecto,
   onClose,
@@ -262,6 +275,16 @@ const ModalProyecto = ({
   const router = useRouter();
   if (!proyecto) return null;
   const CatIcon = categoriaEstilos[proyecto.categoria].icon;
+
+  // Mapeo de clientes a URLs
+  const clienteURLs: Record<string, string> = {
+    "Grupo LAR": "https://grupolar.pe/",
+    "MDP Construcciones S.A.C.": "https://mdpconstrucciones.com.pe/",
+    "Flat Canevaro S.A.C.": "https://flat-peru.com/",
+    // Agrega más clientes según sea necesario
+  };
+
+  const clienteURL = clienteURLs[proyecto.cliente] || null;
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
@@ -278,11 +301,11 @@ const ModalProyecto = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"
       onClick={onClose}
     >
       <div
-        className="relative bg-[#1D2024] border border-[#3A3F45] rounded-sm max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+        className="relative bg-[#14161A] border border-[#3A3F45] rounded-sm max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
         onClick={(e) => e.stopPropagation()}
         style={{
           animation: "modalEnter 400ms cubic-bezier(0.16, 1, 0.3, 1) forwards",
@@ -290,7 +313,7 @@ const ModalProyecto = ({
       >
         <CornerMarks active />
 
-        {/* Cabecera con gradiente */}
+        {/* Cabecera con gradiente naranja */}
         <div className="sticky top-0 flex justify-between items-start p-6 bg-gradient-to-r from-[#FF5A1F] to-[#D94A14] text-white z-10 rounded-t-sm">
           <h3
             className="text-2xl font-semibold pr-8"
@@ -314,7 +337,7 @@ const ModalProyecto = ({
               alt={proyecto.titulo}
               className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
             <div className="absolute bottom-4 left-4 flex items-center gap-2 bg-black/70 backdrop-blur-sm px-3 py-1.5 rounded-sm">
               <CatIcon className="w-4 h-4 text-white" />
               <span className="text-white text-xs font-semibold uppercase tracking-wider">
@@ -324,7 +347,7 @@ const ModalProyecto = ({
           </div>
 
           {/* Cliente y ubicación */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[#14161A] p-4 rounded-sm border border-[#3A3F45]">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[#1D2024] p-4 rounded-sm border border-[#3A3F45]">
             <div className="flex items-start gap-3">
               <Users className="w-5 h-5 text-[#FF5A1F] mt-0.5" />
               <div>
@@ -335,6 +358,17 @@ const ModalProyecto = ({
                   Cliente
                 </p>
                 <p className="font-medium text-white">{proyecto.cliente}</p>
+                {clienteURL && (
+                  <a
+                    href={clienteURL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 mt-1 text-xs text-[#FF5A1F] hover:underline transition-colors"
+                  >
+                    Visitar sitio web
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
               </div>
             </div>
             <div className="flex items-start gap-3">
@@ -363,7 +397,7 @@ const ModalProyecto = ({
               {proyecto.servicios.map((servicio, idx) => (
                 <li
                   key={idx}
-                  className="flex items-start gap-2 text-sm text-[#9AA0A6] bg-[#14161A] p-2 rounded-sm border border-[#3A3F45]"
+                  className="flex items-start gap-2 text-sm text-[#9AA0A6] bg-[#1D2024] p-2 rounded-sm border border-[#3A3F45]"
                 >
                   <CheckCircle className="w-4 h-4 text-[#FF5A1F] shrink-0 mt-0.5" />
                   <span>{servicio}</span>
@@ -373,24 +407,39 @@ const ModalProyecto = ({
           </div>
 
           {/* Resultado */}
-          <div className="bg-[#14161A] p-4 rounded-sm border border-[#3A3F45]">
+          <div className="bg-[#1D2024] p-4 rounded-sm border border-[#3A3F45]">
             <p
               className="text-sm font-semibold text-[#C7CBD1] mb-1 flex items-center gap-2"
               style={{ fontFamily: FONT_DISPLAY }}
             >
               <Shield className="w-5 h-5 text-[#FF5A1F]" /> Resultado
             </p>
-            <p className="text-[#9AA0A6] leading-relaxed">{proyecto.resultado}</p>
+            <p className="text-[#9AA0A6] leading-relaxed">
+              {proyecto.resultado}
+            </p>
           </div>
 
-          {/* Botón para ver proyecto completo */}
-          <button
-            onClick={handleVerCompleto}
-            className="w-full flex items-center justify-center gap-2 bg-[#FF5A1F] py-3 text-sm font-semibold uppercase tracking-wide text-white transition-all hover:bg-[#FF7A44]"
-          >
-            <ExternalLink className="w-4 h-4" />
-            Ver proyecto completo
-          </button>
+          {/* Botones de acción */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <button
+              onClick={handleVerCompleto}
+              className="flex items-center justify-center gap-2 bg-[#FF5A1F] py-3 text-sm font-semibold uppercase tracking-wide text-white transition-all hover:bg-[#FF7A44]"
+            >
+              <ExternalLink className="w-4 h-4" />
+              Ver proyecto completo
+            </button>
+            {clienteURL && (
+              <a
+                href={clienteURL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 border border-[#3A3F45] py-3 text-sm font-semibold uppercase tracking-wide text-[#C7CBD1] transition-all hover:border-[#FF5A1F] hover:text-white"
+              >
+                <Building2 className="w-4 h-4" />
+                Visitar sitio del cliente
+              </a>
+            )}
+          </div>
         </div>
       </div>
 
@@ -428,9 +477,12 @@ const ProyectoCard = ({
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setVisible(true);
-    }, isHome ? 100 + index * 150 : 800 + index * 100);
+    const timer = setTimeout(
+      () => {
+        setVisible(true);
+      },
+      isHome ? 100 + index * 150 : 800 + index * 100,
+    );
     return () => clearTimeout(timer);
   }, [index, isHome]);
 
@@ -501,12 +553,14 @@ export default function Proyectos({
   isHome?: boolean;
 }) {
   const [filtro, setFiltro] = useState<string>("todos");
-  const [proyectoSeleccionado, setProyectoSeleccionado] = useState<Proyecto | null>(
-    null
-  );
-  const { ref: heroRef, inView: heroInView } = useScrollReveal<HTMLDivElement>(0.1);
-  const { ref: gridRef, inView: gridInView } = useScrollReveal<HTMLDivElement>(0.1);
-  const { ref: ctaRef, inView: ctaInView } = useScrollReveal<HTMLDivElement>(0.1);
+  const [proyectoSeleccionado, setProyectoSeleccionado] =
+    useState<Proyecto | null>(null);
+  const { ref: heroRef, inView: heroInView } =
+    useScrollReveal<HTMLDivElement>(0.1);
+  const { ref: gridRef, inView: gridInView } =
+    useScrollReveal<HTMLDivElement>(0.1);
+  const { ref: ctaRef, inView: ctaInView } =
+    useScrollReveal<HTMLDivElement>(0.1);
 
   const categorias = [
     { key: "todos", label: "Todos", icon: null },
@@ -517,10 +571,12 @@ export default function Proyectos({
 
   const proyectosFiltrados =
     filtro === "todos"
-      ? (limit ? proyectosData.slice(0, limit) : proyectosData)
-      : (limit
-          ? proyectosData.filter((p) => p.categoria === filtro).slice(0, limit)
-          : proyectosData.filter((p) => p.categoria === filtro));
+      ? limit
+        ? proyectosData.slice(0, limit)
+        : proyectosData
+      : limit
+        ? proyectosData.filter((p) => p.categoria === filtro).slice(0, limit)
+        : proyectosData.filter((p) => p.categoria === filtro);
 
   const stats = [
     { value: "20+", label: "Proyectos ejecutados", icon: Building2 },
@@ -531,6 +587,12 @@ export default function Proyectos({
 
   // ---------- VERSIÓN HOME (sin secciones extras) ----------
   if (isHome) {
+    // Proyectos específicos para el home en el orden deseado
+    const homeProjectSlugs = ["qantua", "zendai", "hilton"];
+    const homeProjects = homeProjectSlugs
+      .map((slug) => proyectosData.find((p) => p.slug === slug))
+      .filter((p): p is Proyecto => p !== undefined);
+
     return (
       <section className="py-16 bg-[#F7F7F4]" style={{ fontFamily: FONT_BODY }}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -547,7 +609,7 @@ export default function Proyectos({
           </div>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {proyectosFiltrados.map((proyecto, index) => (
+            {homeProjects.map((proyecto, index) => (
               <ProyectoCard
                 key={proyecto.id}
                 proyecto={proyecto}
@@ -582,7 +644,10 @@ export default function Proyectos({
 
   // ---------- VERSIÓN COMPLETA (/proyectos) ----------
   return (
-    <div className="min-h-screen bg-[#F7F7F4]" style={{ fontFamily: FONT_BODY }}>
+    <div
+      className="min-h-screen bg-[#F7F7F4]"
+      style={{ fontFamily: FONT_BODY }}
+    >
       {/* HERO */}
       <section className="relative overflow-hidden bg-[#14161A] py-28 lg:py-36">
         <div className="pointer-events-none absolute inset-0 opacity-[0.03] bg-[url('/img/grid-pattern.svg')] bg-repeat" />
@@ -595,7 +660,9 @@ export default function Proyectos({
         />
         <div
           className="pointer-events-none absolute -left-32 top-1/2 h-[600px] w-[600px] -translate-y-1/2 rounded-full opacity-[0.08]"
-          style={{ background: "radial-gradient(circle, #FF5A1F 0%, transparent 70%)" }}
+          style={{
+            background: "radial-gradient(circle, #FF5A1F 0%, transparent 70%)",
+          }}
         />
         <div
           className="absolute top-0 left-0 right-0 h-[4px]"
@@ -659,7 +726,7 @@ export default function Proyectos({
               <span className="text-[#3A3F45]">|</span>
               <span className="flex items-center gap-1">
                 <CheckCircle className="h-3 w-3 text-[#FF5A1F]" />
-                40+ proyectos ejecutados
+                20+ proyectos ejecutados
               </span>
               <span className="text-[#3A3F45]">|</span>
               <span className="flex items-center gap-1">
@@ -678,7 +745,10 @@ export default function Proyectos({
             {stats.map((stat, index) => {
               const Icon = stat.icon;
               return (
-                <div key={index} className="flex flex-col items-center p-4 text-center">
+                <div
+                  key={index}
+                  className="flex flex-col items-center p-4 text-center"
+                >
                   <div className="flex h-12 w-12 items-center justify-center rounded-sm bg-[#FF5A1F]/10 border border-[#FF5A1F]/20">
                     <Icon className="h-6 w-6 text-[#FF5A1F]" />
                   </div>
@@ -745,7 +815,9 @@ export default function Proyectos({
           </div>
 
           {proyectosFiltrados.length === 0 && (
-            <p className="text-center text-[#565C63] py-10">No hay proyectos en esta categoría.</p>
+            <p className="text-center text-[#565C63] py-10">
+              No hay proyectos en esta categoría.
+            </p>
           )}
         </div>
       </section>
@@ -769,8 +841,8 @@ export default function Proyectos({
             ¿Tienes un proyecto en mente?
           </h2>
           <p className="mt-3 text-[#565C63] max-w-xl mx-auto">
-            Cuéntanos qué necesitas y te ayudaremos a encontrar la mejor solución
-            metalmecánica para tu proyecto.
+            Cuéntanos qué necesitas y te ayudaremos a encontrar la mejor
+            solución metalmecánica para tu proyecto.
           </p>
           <Link
             href="/contacto"

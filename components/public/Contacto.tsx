@@ -240,7 +240,7 @@ const handleSubmit = async (e: React.FormEvent) => {
   const stats = [
     { value: "24h", label: "Tiempo de respuesta", icon: Clock },
     { value: "100%", label: "Satisfacción garantizada", icon: Shield },
-    { value: "40+", label: "Proyectos ejecutados", icon: Building2 },
+    { value: "20+", label: "Proyectos ejecutados", icon: Building2 },
     { value: "20+", label: "Clientes activos", icon: Users },
   ];
 

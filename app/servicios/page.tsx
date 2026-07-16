@@ -372,7 +372,7 @@ export default function ServiciosPage() {
               <span className="text-[#3A3F45]">|</span>
               <span className="flex items-center gap-1">
                 <CheckCircle className="h-3 w-3 text-[#FF5A1F]" />
-                40+ proyectos ejecutados
+                20+ proyectos ejecutados
               </span>
               <span className="text-[#3A3F45]">|</span>
               <span className="flex items-center gap-1">

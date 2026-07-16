@@ -17,7 +17,7 @@ const clientes = [
 ];
 
 const stats = [
-  { value: 40, prefix: "+", suffix: "", label: "Proyectos ejecutados" },
+  { value: 20, prefix: "+", suffix: "", label: "Proyectos ejecutados" },
   { value: 6, prefix: "+", suffix: "", label: "Empresas líderes del sector" },
   { value: 100, prefix: "", suffix: "%", label: "Compromiso en cada obra" },
 ];
