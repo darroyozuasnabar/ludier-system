@@ -1,8 +1,10 @@
+// app/page.tsx
 import Hero from "@/components/public/Hero";
 import Servicios from "@/components/public/Servicios";
 import Beneficios from "@/components/public/Beneficios";
 import Proyectos from "@/components/public/Proyectos";
 import Clientes from "@/components/public/Clientes";
+import CertificacionBadge from "@/components/public/CertificacionBadge"; // ✅ Nuevo
 
 export default function HomePage() {
   return (
@@ -11,6 +13,7 @@ export default function HomePage() {
       <Servicios />
       <Beneficios />
       <Proyectos limit={3} isHome={true} />
+      <CertificacionBadge /> {/* 🔥 Homologación en lugar de Testimonios */}
       <Clientes />
     </>
   );

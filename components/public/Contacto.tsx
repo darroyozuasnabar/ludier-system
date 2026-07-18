@@ -49,7 +49,7 @@ const contactInfoData: ContactInfo[] = [
     id: 1,
     icon: MapPin,
     titulo: "Dirección",
-    contenido: "Lima, Perú",
+    contenido: "San Juan de Miraflores, Lima",
     detalle: "Oficina principal en SJM",
   },
   {
@@ -185,9 +185,10 @@ export default function Contacto() {
 
   const { ref: heroRef, inView: heroInView } = useScrollReveal<HTMLDivElement>(0.1);
   const { ref: gridRef, inView: gridInView } = useScrollReveal<HTMLDivElement>(0.1);
+  const { ref: mapRef, inView: mapInView } = useScrollReveal<HTMLDivElement>(0.1);
   const { ref: ctaRef, inView: ctaInView } = useScrollReveal<HTMLDivElement>(0.1);
 
-  // 🔥 FORZAR NAVBAR OSCURO DESDE EL INICIO (SOLO PARA ESTA PÁGINA)
+  // 🔥 FORZAR NAVBAR OSCURO DESDE EL INICIO
   useEffect(() => {
     const navbar = document.querySelector('header');
     if (navbar) {
@@ -200,42 +201,40 @@ export default function Contacto() {
     setFormState({ ...formState, [e.target.name]: e.target.value });
   };
 
-  // Reemplaza la función handleSubmit por esta:
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  
-  // Validación básica
-  if (!formState.nombre || !formState.email || !formState.asunto || !formState.mensaje) {
-    alert('Por favor, completa todos los campos obligatorios.');
-    return;
-  }
-
-  setCargando(true);
-
-  try {
-    const response = await fetch('/api/contacto', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(formState),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Error al enviar el mensaje');
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formState.nombre || !formState.email || !formState.asunto || !formState.mensaje) {
+      alert('Por favor, completa todos los campos obligatorios.');
+      return;
     }
 
-    setEnviado(true);
-    setFormState({ nombre: '', email: '', telefono: '', asunto: '', mensaje: '' });
-    setTimeout(() => setEnviado(false), 5000);
-  } catch (error: any) {
-    alert(error.message || 'Ocurrió un error al enviar el mensaje. Inténtalo nuevamente.');
-  } finally {
-    setCargando(false);
-  }
-};
+    setCargando(true);
+
+    try {
+      const response = await fetch('/api/contacto', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formState),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al enviar el mensaje');
+      }
+
+      setEnviado(true);
+      setFormState({ nombre: '', email: '', telefono: '', asunto: '', mensaje: '' });
+      setTimeout(() => setEnviado(false), 5000);
+    } catch (error: any) {
+      alert(error.message || 'Ocurrió un error al enviar el mensaje. Inténtalo nuevamente.');
+    } finally {
+      setCargando(false);
+    }
+  };
 
   const stats = [
     { value: "24h", label: "Tiempo de respuesta", icon: Clock },
@@ -522,6 +521,48 @@ const handleSubmit = async (e: React.FormEvent) => {
                   </p>
                 </form>
               )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================
+          MAPA - SAN JUAN DE MIRAFLORES, LIMA
+          ============================================================ */}
+      <section className="relative overflow-hidden bg-[#F7F7F4] pb-12 lg:pb-16">
+        <div
+          ref={mapRef}
+          className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8"
+          style={{
+            opacity: mapInView ? 1 : 0,
+            transform: mapInView ? "translateY(0)" : "translateY(20px)",
+            transition:
+              "opacity 700ms cubic-bezier(0.16,1,0.3,1), transform 700ms cubic-bezier(0.16,1,0.3,1)",
+          }}
+        >
+          <div className="relative rounded-sm overflow-hidden border border-[#E3E1D8] shadow-md bg-[#14161A] aspect-[21/9] min-h-[300px]">
+            <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3900.0!2d-76.9731!3d-12.1486!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9105b9f6c9c2e4e3%3A0x6b7c8a9f2e4d8b1c!2sSan%20Juan%20de%20Miraflores%2C%20Lima%2C%20Per%C3%BA!5e0!3m2!1ses!2spe!4v1713456789012"
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              className="w-full h-full"
+              title="Ubicación de LUDIER en San Juan de Miraflores, Lima"
+            />
+            <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+            <div className="absolute bottom-4 left-4 bg-black/60 backdrop-blur-sm border border-white/10 px-4 py-2 rounded-sm flex items-center gap-2">
+              <MapPin className="h-4 w-4 text-[#FF5A1F]" />
+              <span className="text-white text-xs font-medium" style={{ fontFamily: FONT_MONO }}>
+                San Juan de Miraflores, Lima
+              </span>
+            </div>
+            <div className="absolute top-4 right-4 bg-black/50 backdrop-blur-sm px-3 py-1 rounded-sm border border-white/10">
+              <span className="text-white text-[10px] font-medium" style={{ fontFamily: FONT_MONO }}>
+                📍 Ver en Google Maps
+              </span>
             </div>
           </div>
         </div>

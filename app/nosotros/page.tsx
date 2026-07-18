@@ -26,6 +26,7 @@ import {
   ClipboardCheck,
   Hammer,
 } from "lucide-react";
+import CertificacionesDetalle from "@/components/public/CertificacionesDetalle"; // ✅ BIEN
 
 const FONT_DISPLAY = 'var(--font-display, Oswald, ui-sans-serif, sans-serif)';
 const FONT_BODY = 'var(--font-body, Inter, ui-sans-serif, system-ui, sans-serif)';
@@ -567,6 +568,11 @@ export default function NosotrosPage() {
           </div>
         </div>
       </section>
+
+      {/* ============================================================
+          🔥 NUEVO: CERTIFICACIONES Y HOMOLOGACIÓN
+          ============================================================ */}
+      <CertificacionesDetalle />
 
       {/* ============================================================
           CTA FINAL - CONVERSIÓN DIRECTA
