@@ -1,3 +1,4 @@
+// app/api/auth/[...nextauth]/route.ts
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
@@ -37,7 +38,7 @@ const handler = NextAuth({
               id: user.id,
               email: user.email,
               name: user.name,
-              role: user.role,
+              role: user.role || undefined, // ✅ Asegurar que no sea null
             };
           }
           console.log("❌ Contraseña incorrecta o usuario no existe");
