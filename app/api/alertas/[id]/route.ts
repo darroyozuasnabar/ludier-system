@@ -3,8 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
-const createSupabaseClient = () => {
-  const cookieStore = cookies();
+const createSupabaseClient = async () => {
+  const cookieStore = await cookies();
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -31,7 +31,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const supabase = createSupabaseClient();
+    const supabase = await createSupabaseClient();
 
     const { data, error } = await supabase
       .from('Notificacion')
@@ -70,7 +70,7 @@ export async function PUT(
     const { id } = await params;
     const body = await req.json();
     const { leida, ...rest } = body;
-    const supabase = createSupabaseClient();
+    const supabase = await createSupabaseClient();
 
     const updateData: any = { ...rest };
     if (leida !== undefined) {
@@ -116,7 +116,7 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const supabase = createSupabaseClient();
+    const supabase = await createSupabaseClient();
 
     const { error } = await supabase
       .from('Notificacion')
@@ -154,7 +154,7 @@ export async function PATCH(
     const { id } = await params;
     const body = await req.json();
     const { action } = body;
-    const supabase = createSupabaseClient();
+    const supabase = await createSupabaseClient();
 
     let updateData: any = {};
 
