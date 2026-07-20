@@ -1,18 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createBrowserClient } from '@supabase/ssr';
-
-const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { createRouteHandlerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 
 // GET: Obtener documento por ID
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
+    const supabase = createRouteHandlerClient({ cookies });
 
     const { data, error } = await supabase
       .from('Documento')
@@ -58,12 +55,13 @@ export async function GET(
 // PUT: Actualizar documento
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await req.json();
     const { nombre, descripcion, tipo, proyecto_id, etiquetas } = body;
+    const supabase = createRouteHandlerClient({ cookies });
 
     const { data, error } = await supabase
       .from('Documento')
@@ -107,10 +105,11 @@ export async function PUT(
 // DELETE: Eliminar documento (soft delete)
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
+    const supabase = createRouteHandlerClient({ cookies });
 
     const { data, error } = await supabase
       .from('Documento')

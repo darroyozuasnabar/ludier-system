@@ -1,18 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createBrowserClient } from '@supabase/ssr';
-
-const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { createRouteHandlerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 
 // GET: Obtener álbumes de una foto
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
+    const supabase = createRouteHandlerClient({ cookies });
 
     // Verificar que la foto existe
     const { data: foto, error: fotoError } = await supabase
@@ -65,12 +62,13 @@ export async function GET(
 // POST: Agregar foto a un álbum
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await req.json();
     const { album_id, orden } = body;
+    const supabase = createRouteHandlerClient({ cookies });
 
     if (!album_id) {
       return NextResponse.json(
@@ -152,12 +150,13 @@ export async function POST(
 // DELETE: Remover foto de un álbum
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const { searchParams } = new URL(req.url);
     const album_id = searchParams.get('album_id');
+    const supabase = createRouteHandlerClient({ cookies });
 
     if (!album_id) {
       return NextResponse.json(

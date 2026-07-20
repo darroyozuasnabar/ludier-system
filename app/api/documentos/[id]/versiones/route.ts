@@ -1,18 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createBrowserClient } from '@supabase/ssr';
-
-const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { createRouteHandlerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 
 // GET: Obtener versiones de un documento
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
+    const supabase = createRouteHandlerClient({ cookies });
 
     // Verificar que el documento existe
     const { data: documento, error: docError } = await supabase
@@ -61,15 +58,16 @@ export async function GET(
 // POST: Crear nueva versión del documento
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const formData = await req.formData();
     
     const file = formData.get('file') as File;
     const comentario = formData.get('comentario') as string;
     const subidoPor = formData.get('subido_por') as string;
+    const supabase = createRouteHandlerClient({ cookies });
 
     if (!file) {
       return NextResponse.json(
