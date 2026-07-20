@@ -1,19 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createBrowserClient } from '@supabase/ssr';
-
-const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { createRouteHandlerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await req.json();
     const { project_name, fecha_inicio, fecha_fin_estimada } = body;
+    const supabase = createRouteHandlerClient({ cookies });
 
     // 1. Obtener la cotización con sus items
     const { data: cotizacion, error: cotizacionError } = await supabase

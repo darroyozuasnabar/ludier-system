@@ -1,7 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // ✅ Eliminar swcMinify (ya no es necesario, SWC es el compilador predeterminado)
-  
   // Eliminar console.logs en producción
   compiler: {
     removeConsole: process.env.NODE_ENV === "production",
@@ -27,7 +25,6 @@ const nextConfig = {
       "xlsx",
       "pdfjs-dist",
     ],
-    // ❌ Eliminar turbo: { resolveAlias: {} } porque no es necesario en producción
   },
   
   // Transpilación de paquetes (para pdfjs-dist que puede dar problemas)
