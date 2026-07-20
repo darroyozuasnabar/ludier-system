@@ -99,7 +99,6 @@ export default function DashboardPage() {
   const loadData = async () => {
     setLoading(true);
     try {
-      // Cargar TODOS los proyectos (sin filtro de estado)
       const { data: proyectosData } = await supabase
         .from("Project")
         .select("*")
@@ -142,7 +141,6 @@ export default function DashboardPage() {
       .order("monto", { ascending: false });
 
     setContratosDelProyecto(data || []);
-    // Solo auto-seleccionar si no hay uno ya seleccionado
     if (data && data.length > 0 && !selectedContratoId) {
       setSelectedContratoId(data[0].id);
     }
@@ -217,26 +215,21 @@ export default function DashboardPage() {
   let ultimaValPeriodo = "Sin valorizaciones";
 
   if (contratoSeleccionado?.estado === "COBRADO") {
-    // Contrato ya cobrado completamente
     totalCobradoContrato = montoContrato;
     avanceContrato = 100;
     proximoMonto = 0;
     ultimaValPeriodo = "Contrato cobrado";
   } else {
-    // Filtrar valorizaciones del contrato seleccionado por contrato_id
     const valorizacionesDelContrato = valorizaciones.filter(
       (v) => v.contrato_id === contratoSeleccionado?.id,
     );
 
-    // Cobrado = suma de valorizaciones COBRADAS de este contrato
     totalCobradoContrato = valorizacionesDelContrato
       .filter((v) => v.status === "COBRADA")
       .reduce((sum, v) => sum + Number(v.netoCobrar), 0);
 
     avanceContrato = montoContrato > 0 ? (totalCobradoContrato / montoContrato) * 100 : 0;
 
-    // Próxima = primera valorización no cobrada de este contrato
-    // Orden: FIRMADA > EMITIDA > BORRADOR (más avanzada primero)
     const ORDEN_ESTADO: Record<string, number> = { FIRMADA: 0, EMITIDA: 1, BORRADOR: 2 };
     const pendientes = valorizacionesDelContrato
       .filter((v) => v.status !== "COBRADA")
@@ -251,7 +244,6 @@ export default function DashboardPage() {
         : "Sin valorizaciones";
   }
 
-  // Referencia de última valorización cobrada (para mostrar desglose)
   const ultimaValCobrada =
     valorizaciones
       .filter((v) => v.contrato_id === contratoSeleccionado?.id)
@@ -861,7 +853,11 @@ export default function DashboardPage() {
                           innerRadius={40}
                           outerRadius={70}
                           dataKey="value"
-                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                          label={({ name, percent }) => {
+                            // 🔥 CORRECCIÓN: verificamos que percent no sea undefined
+                            const pct = percent ? (percent * 100).toFixed(0) : 0;
+                            return `${name} ${pct}%`;
+                          }}
                         >
                           {pieData.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
