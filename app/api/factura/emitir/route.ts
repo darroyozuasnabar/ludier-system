@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
+import { createMiddlewareClient } from '@supabase/ssr'
 import { cookies } from "next/headers";
 
 // Función para convertir número a letras (completa)
