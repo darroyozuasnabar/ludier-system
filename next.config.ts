@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // SWC minificación más rápida
-  swcMinify: true,
+  // ✅ Eliminar swcMinify (ya no es necesario, SWC es el compilador predeterminado)
   
   // Eliminar console.logs en producción
   compiler: {
@@ -19,7 +18,7 @@ const nextConfig = {
     ],
   },
   
-  // Experimentales para mejor rendimiento
+  // Experimentales para mejor rendimiento (sin turbo)
   experimental: {
     optimizeCss: true,
     optimizePackageImports: [
@@ -28,11 +27,7 @@ const nextConfig = {
       "xlsx",
       "pdfjs-dist",
     ],
-    turbo: {
-      resolveAlias: {
-        // Alias para mejorar resolución
-      },
-    },
+    // ❌ Eliminar turbo: { resolveAlias: {} } porque no es necesario en producción
   },
   
   // Transpilación de paquetes (para pdfjs-dist que puede dar problemas)

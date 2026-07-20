@@ -1,18 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createBrowserClient } from '@supabase/ssr';
-
-const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { createRouteHandlerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 
 // GET - Obtener una notificación específica
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
+    const supabase = createRouteHandlerClient({ cookies });
 
     const { data, error } = await supabase
       .from('Notificacion')
@@ -45,12 +42,13 @@ export async function GET(
 // PUT - Actualizar notificación (marcar como leída)
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await req.json();
     const { leida, ...rest } = body;
+    const supabase = createRouteHandlerClient({ cookies });
 
     const updateData: any = { ...rest };
     if (leida !== undefined) {
@@ -92,10 +90,11 @@ export async function PUT(
 // DELETE - Eliminar notificación
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
+    const supabase = createRouteHandlerClient({ cookies });
 
     const { error } = await supabase
       .from('Notificacion')
@@ -127,12 +126,13 @@ export async function DELETE(
 // PATCH - Marcar como leída (más específico)
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await req.json();
     const { action } = body;
+    const supabase = createRouteHandlerClient({ cookies });
 
     let updateData: any = {};
 
