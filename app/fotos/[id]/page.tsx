@@ -1,5 +1,6 @@
 "use client";
 
+import { use } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -71,7 +72,12 @@ function Toast({ type, msg, onClose }: { type: "ok" | "err"; msg: string; onClos
   );
 }
 
-export default function FotoDetallePage({ params }: { params: { id: string } }) {
+export default function FotoDetallePage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = use(params);
   const { data: session, status } = useSession();
   const router = useRouter();
 
@@ -100,7 +106,7 @@ export default function FotoDetallePage({ params }: { params: { id: string } }) 
       loadProyectos();
       loadAlbumes();
     }
-  }, [status, params.id]);
+  }, [status, id]);
 
   const showToast = (type: "ok" | "err", msg: string) => {
     setToast({ type, msg });
@@ -135,7 +141,7 @@ export default function FotoDetallePage({ params }: { params: { id: string } }) 
   const loadFoto = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/fotos/${params.id}`);
+      const response = await fetch(`/api/fotos/${id}`);
       const data = await response.json();
 
       if (!data.success) throw new Error(data.error);
@@ -183,7 +189,7 @@ export default function FotoDetallePage({ params }: { params: { id: string } }) 
     if (!confirm("¿Eliminar esta foto?")) return;
 
     try {
-      const response = await fetch(`/api/fotos/${params.id}`, { method: "DELETE" });
+      const response = await fetch(`/api/fotos/${id}`, { method: "DELETE" });
       const data = await response.json();
 
       if (!data.success) throw new Error(data.error);
@@ -203,7 +209,7 @@ export default function FotoDetallePage({ params }: { params: { id: string } }) 
 
     setSaving(true);
     try {
-      const response = await fetch(`/api/fotos/${params.id}`, {
+      const response = await fetch(`/api/fotos/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
@@ -313,7 +319,6 @@ export default function FotoDetallePage({ params }: { params: { id: string } }) 
       </header>
 
       <main className="max-w-4xl mx-auto px-6 py-8 space-y-6">
-        {/* Imagen */}
         <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-4">
           <div className="bg-zinc-100 rounded-xl overflow-hidden flex items-center justify-center min-h-[400px]">
             <img
@@ -327,7 +332,6 @@ export default function FotoDetallePage({ params }: { params: { id: string } }) 
           </div>
         </div>
 
-        {/* Información */}
         <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-6">
           {editando ? (
             <div className="space-y-4">

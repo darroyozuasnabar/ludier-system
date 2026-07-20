@@ -1,5 +1,6 @@
 "use client";
 
+import { use } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -80,7 +81,12 @@ function Toast({ type, msg, onClose }: { type: "ok" | "err"; msg: string; onClos
   );
 }
 
-export default function DocumentoDetallePage({ params }: { params: { id: string } }) {
+export default function DocumentoDetallePage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = use(params);
   const { data: session, status } = useSession();
   const router = useRouter();
 
@@ -104,7 +110,7 @@ export default function DocumentoDetallePage({ params }: { params: { id: string 
       loadDocumento();
       loadProyectos();
     }
-  }, [status, params.id]);
+  }, [status, id]);
 
   const showToast = (type: "ok" | "err", msg: string) => {
     setToast({ type, msg });
@@ -126,7 +132,7 @@ export default function DocumentoDetallePage({ params }: { params: { id: string 
   const loadDocumento = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/documentos/${params.id}`);
+      const response = await fetch(`/api/documentos/${id}`);
       const data = await response.json();
 
       if (!data.success) throw new Error(data.error);
@@ -172,7 +178,7 @@ export default function DocumentoDetallePage({ params }: { params: { id: string 
     if (!confirm("¿Eliminar este documento?")) return;
 
     try {
-      const response = await fetch(`/api/documentos/${params.id}`, { method: "DELETE" });
+      const response = await fetch(`/api/documentos/${id}`, { method: "DELETE" });
       const data = await response.json();
 
       if (!data.success) throw new Error(data.error);
@@ -192,7 +198,7 @@ export default function DocumentoDetallePage({ params }: { params: { id: string 
 
     setSaving(true);
     try {
-      const response = await fetch(`/api/documentos/${params.id}`, {
+      const response = await fetch(`/api/documentos/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
@@ -305,7 +311,6 @@ export default function DocumentoDetallePage({ params }: { params: { id: string 
       </header>
 
       <main className="max-w-4xl mx-auto px-6 py-8 space-y-6">
-        {/* Información del documento */}
         <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-6">
           {editando ? (
             <div className="space-y-4">
@@ -465,7 +470,6 @@ export default function DocumentoDetallePage({ params }: { params: { id: string 
           )}
         </div>
 
-        {/* Versiones (placeholder) */}
         <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-6">
           <h2 className="text-sm font-bold text-zinc-800 uppercase tracking-wider mb-4">Versiones</h2>
           <div className="text-center py-6 text-sm text-zinc-400">

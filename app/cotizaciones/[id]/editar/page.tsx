@@ -95,7 +95,12 @@ function Toast({ type, msg, onClose }: { type: "ok" | "err"; msg: string; onClos
   );
 }
 
-export default function EditarCotizacionPage({ params }: { params: { id: string } }) {
+export default function EditarCotizacionPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = use(params);
   const { data: session, status } = useSession();
   const router = useRouter();
 
@@ -137,7 +142,7 @@ export default function EditarCotizacionPage({ params }: { params: { id: string 
       loadProyectos();
       loadCotizacion();
     }
-  }, [status, params.id]);
+  }, [status, id]);
 
   const loadProyectos = async () => {
     try {
@@ -154,7 +159,7 @@ export default function EditarCotizacionPage({ params }: { params: { id: string 
   const loadCotizacion = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/cotizaciones/${params.id}`);
+      const response = await fetch(`/api/cotizaciones/${id}`);
       const data = await response.json();
 
       if (!data.success) throw new Error(data.error);
@@ -285,7 +290,7 @@ export default function EditarCotizacionPage({ params }: { params: { id: string 
         })),
       };
 
-      const response = await fetch(`/api/cotizaciones/${params.id}`, {
+      const response = await fetch(`/api/cotizaciones/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -296,7 +301,7 @@ export default function EditarCotizacionPage({ params }: { params: { id: string 
       if (!data.success) throw new Error(data.error);
 
       showToast("ok", "Cotización actualizada exitosamente");
-      setTimeout(() => router.push(`/cotizaciones/${params.id}`), 1000);
+      setTimeout(() => router.push(`/cotizaciones/${id}`), 1000);
     } catch (error: any) {
       showToast("err", error.message || "Error al guardar");
     } finally {
@@ -326,7 +331,7 @@ export default function EditarCotizacionPage({ params }: { params: { id: string 
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
-              onClick={() => router.push(`/cotizaciones/${params.id}`)}
+              onClick={() => router.push(`/cotizaciones/${id}`)}
               className="flex items-center gap-1.5 text-zinc-400 hover:text-zinc-700 text-sm transition-colors"
             >
               <ChevronLeft className="h-4 w-4" />
@@ -342,7 +347,7 @@ export default function EditarCotizacionPage({ params }: { params: { id: string 
           </div>
           <div className="flex items-center gap-3">
             <button
-              onClick={() => router.push(`/cotizaciones/${params.id}`)}
+              onClick={() => router.push(`/cotizaciones/${id}`)}
               className="px-4 py-2 border border-zinc-200 text-zinc-600 text-xs font-medium rounded-lg hover:bg-zinc-50 transition-colors"
             >
               Cancelar
