@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
-// Configuración de Supabase para API routes
 const createSupabaseClient = () => {
   const cookieStore = cookies();
   return createServerClient(
@@ -11,13 +10,13 @@ const createSupabaseClient = () => {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name) {
+        get(name: string) {
           return cookieStore.get(name)?.value;
         },
-        set(name, value, options) {
+        set(name: string, value: string, options: any) {
           cookieStore.set(name, value, options);
         },
-        remove(name, options) {
+        remove(name: string, options: any) {
           cookieStore.set(name, '', { ...options, maxAge: 0 });
         },
       },
