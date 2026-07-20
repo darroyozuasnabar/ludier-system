@@ -154,8 +154,8 @@ export default function CostosPage() {
       const { data: contratosData } = await supabase
         .from("Contrato")
         .select("*")
-        .order("orden_estrategico", { ascending: true, nullsLast: true });
-      
+        .order("orden_estrategico", { ascending: true, nullsFirst: false }); // ✅ CORREGIDO
+
       setContratos(contratosData || []);
       
     } catch (error) {
