@@ -1,6 +1,27 @@
 import { NextResponse } from "next/server";
-import { createMiddlewareClient } from '@supabase/ssr'
+import { createServerClient } from '@supabase/ssr';
 import { cookies } from "next/headers";
+
+const createSupabaseClient = async () => {
+  const cookieStore = await cookies();
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value;
+        },
+        set(name: string, value: string, options: any) {
+          cookieStore.set(name, value, options);
+        },
+        remove(name: string, options: any) {
+          cookieStore.set(name, '', { ...options, maxAge: 0 });
+        },
+      },
+    }
+  );
+};
 
 // Función para convertir número a letras (completa)
 function numeroALetras(num: number): string {
@@ -62,7 +83,7 @@ export async function POST(request: Request) {
   try {
     const { valorizacionId, projectId } = await request.json();
     
-    const supabase = createRouteHandlerClient({ cookies });
+    const supabase = await createSupabaseClient();
     
     // Obtener datos de la valorización con el proyecto
     const { data: valorizacion, error: valError } = await supabase

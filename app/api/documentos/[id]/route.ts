@@ -1,6 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/ssr';
+import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+
+const createSupabaseClient = async () => {
+  const cookieStore = await cookies();
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value;
+        },
+        set(name: string, value: string, options: any) {
+          cookieStore.set(name, value, options);
+        },
+        remove(name: string, options: any) {
+          cookieStore.set(name, '', { ...options, maxAge: 0 });
+        },
+      },
+    }
+  );
+};
 
 // GET: Obtener documento por ID
 export async function GET(
@@ -9,7 +30,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const supabase = createRouteHandlerClient({ cookies });
+    const supabase = await createSupabaseClient();
 
     const { data, error } = await supabase
       .from('Documento')
@@ -61,7 +82,7 @@ export async function PUT(
     const { id } = await params;
     const body = await req.json();
     const { nombre, descripcion, tipo, proyecto_id, etiquetas } = body;
-    const supabase = createRouteHandlerClient({ cookies });
+    const supabase = await createSupabaseClient();
 
     const { data, error } = await supabase
       .from('Documento')
@@ -71,8 +92,7 @@ export async function PUT(
         tipo,
         proyecto_id: proyecto_id || null,
         etiquetas: etiquetas ? etiquetas.split(',').map((e: string) => e.trim()) : [],
-        fecha_actualizacion: new Date().toISOString(),
-        version: supabase.sql`version + 1`
+        fecha_actualizacion: new Date().toISOString()
       })
       .eq('id', id)
       .select()
@@ -109,7 +129,7 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const supabase = createRouteHandlerClient({ cookies });
+    const supabase = await createSupabaseClient();
 
     const { data, error } = await supabase
       .from('Documento')
