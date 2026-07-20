@@ -1,6 +1,29 @@
+// app/api/alertas/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/ssr';
+import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+
+// Configuración de Supabase para API routes
+const createSupabaseClient = () => {
+  const cookieStore = cookies();
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name) {
+          return cookieStore.get(name)?.value;
+        },
+        set(name, value, options) {
+          cookieStore.set(name, value, options);
+        },
+        remove(name, options) {
+          cookieStore.set(name, '', { ...options, maxAge: 0 });
+        },
+      },
+    }
+  );
+};
 
 // GET - Obtener una notificación específica
 export async function GET(
@@ -9,7 +32,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const supabase = createRouteHandlerClient({ cookies });
+    const supabase = createSupabaseClient();
 
     const { data, error } = await supabase
       .from('Notificacion')
@@ -48,7 +71,7 @@ export async function PUT(
     const { id } = await params;
     const body = await req.json();
     const { leida, ...rest } = body;
-    const supabase = createRouteHandlerClient({ cookies });
+    const supabase = createSupabaseClient();
 
     const updateData: any = { ...rest };
     if (leida !== undefined) {
@@ -94,7 +117,7 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const supabase = createRouteHandlerClient({ cookies });
+    const supabase = createSupabaseClient();
 
     const { error } = await supabase
       .from('Notificacion')
@@ -132,7 +155,7 @@ export async function PATCH(
     const { id } = await params;
     const body = await req.json();
     const { action } = body;
-    const supabase = createRouteHandlerClient({ cookies });
+    const supabase = createSupabaseClient();
 
     let updateData: any = {};
 
