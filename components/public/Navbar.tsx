@@ -1,23 +1,26 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X } from "lucide-react";
+import { Menu, X, ChevronDown } from "lucide-react";
 
 const navItems = [
   { href: "/", label: "Inicio" },
   { href: "/servicios", label: "Servicios" },
   { href: "/proyectos", label: "Proyectos" },
   { href: "/nosotros", label: "Nosotros" },
+  {
+    label: "Recursos",
+    subItems: [
+      { href: "/testimonios", label: "Testimonios" },
+      { href: "/blog", label: "Blog" },
+      { href: "/faq", label: "FAQ" },
+    ],
+  },
   { href: "/contacto", label: "Contacto" },
 ];
 
-/**
- * Marcas de esquina — mismo elemento firma que en el Hero y el Footer.
- * Enmarcan el logo; se "activan" en naranja al hacer hover, como si
- * el cursor estuviera enfocando una lámina de plano.
- */
 function CornerFrame() {
   const base =
     "pointer-events-none absolute h-2 w-2 border-[#FF5A1F]/0 transition-colors duration-300 group-hover:border-[#FF5A1F]";
@@ -34,8 +37,11 @@ function CornerFrame() {
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const pathname = usePathname();
+  const dropdownTimeout = useRef<NodeJS.Timeout | null>(null);
 
+  // Solo usamos isScrolled para la línea de progreso y el borde inferior (opcional)
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
     handleScroll();
@@ -43,12 +49,21 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Cierra el menú mobile al cambiar de ruta (ej. botón atrás del navegador)
+  const handleMouseEnter = (label: string) => {
+    if (dropdownTimeout.current) clearTimeout(dropdownTimeout.current);
+    setOpenDropdown(label);
+  };
+
+  const handleMouseLeave = () => {
+    dropdownTimeout.current = setTimeout(() => {
+      setOpenDropdown(null);
+    }, 200);
+  };
+
   useEffect(() => {
     setIsOpen(false);
   }, [pathname]);
 
-  // Bloquea el scroll del body mientras el menú mobile está abierto
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "";
     return () => {
@@ -56,7 +71,6 @@ export default function Navbar() {
     };
   }, [isOpen]);
 
-  // Cierra con Escape
   useEffect(() => {
     if (!isOpen) return;
     const handleKey = (e: KeyboardEvent) => {
@@ -68,34 +82,19 @@ export default function Navbar() {
 
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname?.startsWith(href));
 
-  // Índice de la página activa, tipo "lámina N de un juego de planos"
-  const activeIndex = navItems.findIndex((item) => isActive(item.href));
+  const mainItems = navItems.filter((item) => !item.subItems);
+  const activeIndex = mainItems.findIndex((item) => isActive(item.href));
   const pageNumber = String(activeIndex >= 0 ? activeIndex + 1 : 1).padStart(2, "0");
-  const totalPages = String(navItems.length).padStart(2, "0");
+  const totalPages = String(mainItems.length).padStart(2, "0");
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        isScrolled
-          ? "border-b border-[#3A3F45] bg-[#14161A]/95 shadow-2xl backdrop-blur-xl"
-          : "bg-transparent"
+      className={`fixed top-0 left-0 right-0 z-50 bg-[#14161A] transition-all duration-500 ${
+        isScrolled ? "border-b border-[#3A3F45] shadow-2xl backdrop-blur-xl" : "border-b border-[#3A3F45]/40"
       }`}
     >
-      {/* Degradado de respaldo cuando el header es transparente, para que el
-          logo y los links se lean bien sobre cualquier fondo de página */}
-      {!isScrolled && (
-        <div
-          className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/35 to-transparent"
-          aria-hidden="true"
-        />
-      )}
-
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div
-          className={`flex items-center justify-between transition-[height] duration-300 ${
-            isScrolled ? "h-16" : "h-16 md:h-20"
-          }`}
-        >
+        <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           <Link href="/" className="group flex shrink-0 items-center gap-3">
             <div className="relative h-10 w-10 shrink-0">
@@ -122,31 +121,75 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop Nav */}
-          <nav className="hidden items-center gap-8 md:flex" aria-label="Navegación principal">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`group relative text-sm font-medium transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#FF5A1F] ${
-                  isActive(item.href) ? "text-[#FF5A1F]" : "text-[#C7CBD1] hover:text-white"
-                }`}
-                style={{ fontFamily: "var(--font-body, Inter, ui-sans-serif, system-ui, sans-serif)" }}
-                aria-current={isActive(item.href) ? "page" : undefined}
-              >
-                {item.label}
-                {/* Línea indicadora tipo plano técnico */}
-                <span
-                  className={`absolute -bottom-1 left-0 h-[2px] w-full origin-left transition-transform duration-300 ${
-                    isActive(item.href)
-                      ? "scale-x-100 bg-[#FF5A1F]"
-                      : "scale-x-0 bg-[#FF5A1F] group-hover:scale-x-100"
-                  }`}
-                />
-              </Link>
-            ))}
+          <nav className="hidden items-center gap-6 md:flex" aria-label="Navegación principal">
+            {navItems.map((item) => {
+              if (item.subItems) {
+                const isDropdownOpen = openDropdown === item.label;
+                return (
+                  <div
+                    key={item.label}
+                    className="relative"
+                    onMouseEnter={() => handleMouseEnter(item.label)}
+                    onMouseLeave={handleMouseLeave}
+                  >
+                    <button
+                      className={`group flex items-center gap-1 text-sm font-medium transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#FF5A1F] ${
+                        item.subItems.some((sub) => isActive(sub.href))
+                          ? "text-[#FF5A1F]"
+                          : "text-[#C7CBD1] hover:text-white"
+                      }`}
+                      style={{ fontFamily: "var(--font-body, Inter, ui-sans-serif, system-ui, sans-serif)" }}
+                    >
+                      {item.label}
+                      <ChevronDown
+                        className={`h-4 w-4 transition-transform duration-200 ${
+                          isDropdownOpen ? "rotate-180" : ""
+                        }`}
+                      />
+                    </button>
+                    {isDropdownOpen && (
+                      <div className="absolute left-0 top-full mt-1 w-48 rounded-sm border border-[#3A3F45] bg-[#1D2024] py-2 shadow-xl">
+                        {item.subItems.map((sub) => (
+                          <Link
+                            key={sub.href}
+                            href={sub.href}
+                            className={`block px-4 py-2 text-sm transition-colors duration-200 ${
+                              isActive(sub.href)
+                                ? "bg-[#FF5A1F]/10 text-[#FF5A1F]"
+                                : "text-[#C7CBD1] hover:bg-[#3A3F45]/30 hover:text-white"
+                            }`}
+                          >
+                            {sub.label}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              }
 
-            {/* Lectura tipo "lámina X de Y" — el mismo lenguaje del cuadro de
-                rotulación de la vitrina del Hero, aplicado a la navegación */}
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`group relative text-sm font-medium transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#FF5A1F] ${
+                    isActive(item.href) ? "text-[#FF5A1F]" : "text-[#C7CBD1] hover:text-white"
+                  }`}
+                  style={{ fontFamily: "var(--font-body, Inter, ui-sans-serif, system-ui, sans-serif)" }}
+                  aria-current={isActive(item.href) ? "page" : undefined}
+                >
+                  {item.label}
+                  <span
+                    className={`absolute -bottom-1 left-0 h-[2px] w-full origin-left transition-transform duration-300 ${
+                      isActive(item.href)
+                        ? "scale-x-100 bg-[#FF5A1F]"
+                        : "scale-x-0 bg-[#FF5A1F] group-hover:scale-x-100"
+                    }`}
+                  />
+                </Link>
+              );
+            })}
+
             <div
               className="hidden items-baseline gap-1.5 border-l border-[#3A3F45] pl-5 text-[10px] uppercase tracking-[0.1em] text-[#6E7379] lg:flex"
               style={{ fontFamily: "var(--font-mono, 'JetBrains Mono', ui-monospace, monospace)" }}
@@ -158,7 +201,6 @@ export default function Navbar() {
               </span>
             </div>
 
-            {/* 🔥 BOTÓN INGRESAR (NUEVO) */}
             <Link
               href="/login"
               className="px-5 py-2.5 text-sm font-semibold uppercase tracking-wide text-[#FF5A1F] border border-[#FF5A1F] rounded-lg transition-all duration-300 hover:bg-[#FF5A1F]/10 hover:border-[#FF7A44] hover:text-[#FF7A44] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
@@ -190,7 +232,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Menu — se lee como un índice de láminas de un juego de planos */}
+      {/* Mobile Menu */}
       <div
         id="mobile-menu"
         className={`overflow-hidden border-b border-[#3A3F45] bg-[#14161A]/98 backdrop-blur-xl transition-all duration-300 ease-in-out md:hidden ${
@@ -198,29 +240,58 @@ export default function Navbar() {
         }`}
       >
         <div className="space-y-1 px-4 py-6">
-          {navItems.map((item, index) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => setIsOpen(false)}
-              aria-current={isActive(item.href) ? "page" : undefined}
-              className={`flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors duration-200 ${
-                isActive(item.href)
-                  ? "bg-[#FF5A1F]/10 text-[#FF5A1F]"
-                  : "text-[#C7CBD1] hover:bg-[#3A3F45]/30 hover:text-white"
-              }`}
-            >
-              <span
-                className="text-[10px] tracking-[0.1em] text-[#6E7379]"
-                style={{ fontFamily: "var(--font-mono, 'JetBrains Mono', ui-monospace, monospace)" }}
-              >
-                {String(index + 1).padStart(2, "0")}
-              </span>
-              {item.label}
-            </Link>
-          ))}
+          {navItems.map((item, index) => {
+            if (item.subItems) {
+              return (
+                <div key={item.label} className="space-y-1">
+                  <div className="px-4 py-2 text-sm font-medium text-[#8A8F96]">{item.label}</div>
+                  {item.subItems.map((sub) => (
+                    <Link
+                      key={sub.href}
+                      href={sub.href}
+                      onClick={() => setIsOpen(false)}
+                      className={`flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors duration-200 ${
+                        isActive(sub.href)
+                          ? "bg-[#FF5A1F]/10 text-[#FF5A1F]"
+                          : "text-[#C7CBD1] hover:bg-[#3A3F45]/30 hover:text-white"
+                      }`}
+                    >
+                      <span
+                        className="text-[10px] tracking-[0.1em] text-[#6E7379]"
+                        style={{ fontFamily: "var(--font-mono, 'JetBrains Mono', ui-monospace, monospace)" }}
+                      >
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      {sub.label}
+                    </Link>
+                  ))}
+                </div>
+              );
+            }
 
-          {/* 🔥 BOTÓN INGRESAR (móvil) */}
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setIsOpen(false)}
+                aria-current={isActive(item.href) ? "page" : undefined}
+                className={`flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors duration-200 ${
+                  isActive(item.href)
+                    ? "bg-[#FF5A1F]/10 text-[#FF5A1F]"
+                    : "text-[#C7CBD1] hover:bg-[#3A3F45]/30 hover:text-white"
+                }`}
+              >
+                <span
+                  className="text-[10px] tracking-[0.1em] text-[#6E7379]"
+                  style={{ fontFamily: "var(--font-mono, 'JetBrains Mono', ui-monospace, monospace)" }}
+                >
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                {item.label}
+              </Link>
+            );
+          })}
+
           <Link
             href="/login"
             onClick={() => setIsOpen(false)}
@@ -228,7 +299,6 @@ export default function Navbar() {
           >
             Ingresar al sistema
           </Link>
-
           <Link
             href="/contacto"
             onClick={() => setIsOpen(false)}
@@ -239,7 +309,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Línea de progreso sutil en la parte inferior al hacer scroll */}
+      {/* Línea de progreso sutil al hacer scroll */}
       {isScrolled && (
         <div className="absolute bottom-0 left-0 h-[2px] w-full bg-gradient-to-r from-[#FF5A1F] via-[#FF7A44] to-[#FF5A1F] opacity-60" />
       )}

@@ -153,7 +153,7 @@ const categorias = [
 
 const STATS = [
   { value: "10+", label: "Años de experiencia", icon: Award },
-  { value: "40+", label: "Proyectos ejecutados", icon: Building2 },
+  { value: "20+", label: "Proyectos ejecutados", icon: Building2 },
   { value: "95%", label: "Cumplimiento de plazos", icon: Clock },
   { value: "100%", label: "Compromiso garantizado", icon: CheckCircle },
 ];
