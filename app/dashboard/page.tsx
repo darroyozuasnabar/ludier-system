@@ -854,7 +854,6 @@ export default function DashboardPage() {
                           outerRadius={70}
                           dataKey="value"
                           label={({ name, percent }) => {
-                            // 🔥 CORRECCIÓN: verificamos que percent no sea undefined
                             const pct = percent ? (percent * 100).toFixed(0) : 0;
                             return `${name} ${pct}%`;
                           }}
@@ -874,7 +873,7 @@ export default function DashboardPage() {
                         <div key={i} className="flex items-center gap-2">
                           <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
                           <span className="text-xs text-gray-600">{item.name}</span>
-                          <span className="text-xs font-semibold">{formatCOP(item.value)}</span>
+                          <span className="text-xs font-semibold">{formatCOP(Number(item.value))}</span>
                         </div>
                       ))}
                     </div>
