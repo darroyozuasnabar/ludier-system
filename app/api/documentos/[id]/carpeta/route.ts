@@ -1,6 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/ssr';
+import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+
+const createSupabaseClient = async () => {
+  const cookieStore = await cookies();
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value;
+        },
+        set(name: string, value: string, options: any) {
+          cookieStore.set(name, value, options);
+        },
+        remove(name: string, options: any) {
+          cookieStore.set(name, '', { ...options, maxAge: 0 });
+        },
+      },
+    }
+  );
+};
 
 // GET: Obtener carpetas de un documento
 export async function GET(
@@ -9,7 +30,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const supabase = createRouteHandlerClient({ cookies });
+    const supabase = await createSupabaseClient();
 
     // Verificar que el documento existe
     const { data: documento, error: docError } = await supabase
@@ -66,7 +87,7 @@ export async function POST(
     const { id } = await params;
     const body = await req.json();
     const { carpeta_id } = body;
-    const supabase = createRouteHandlerClient({ cookies });
+    const supabase = await createSupabaseClient();
 
     if (!carpeta_id) {
       return NextResponse.json(
@@ -153,7 +174,7 @@ export async function DELETE(
     const { id } = await params;
     const { searchParams } = new URL(req.url);
     const carpeta_id = searchParams.get('carpeta_id');
-    const supabase = createRouteHandlerClient({ cookies });
+    const supabase = await createSupabaseClient();
 
     if (!carpeta_id) {
       return NextResponse.json(

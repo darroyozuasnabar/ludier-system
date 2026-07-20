@@ -1,17 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/ssr';
+import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
-// GET: Obtener álbumes de una foto
+const createSupabaseClient = async () => {
+  const cookieStore = await cookies();
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value;
+        },
+        set(name: string, value: string, options: any) {
+          cookieStore.set(name, value, options);
+        },
+        remove(name: string, options: any) {
+          cookieStore.set(name, '', { ...options, maxAge: 0 });
+        },
+      },
+    }
+  );
+};
+
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
-    const supabase = createRouteHandlerClient({ cookies });
+    const supabase = await createSupabaseClient();
 
-    // Verificar que la foto existe
     const { data: foto, error: fotoError } = await supabase
       .from('Foto')
       .select('id')
@@ -25,7 +44,6 @@ export async function GET(
       );
     }
 
-    // Obtener álbumes asociados a la foto
     const { data, error } = await supabase
       .from('AlbumFoto')
       .select(`
@@ -59,7 +77,6 @@ export async function GET(
   }
 }
 
-// POST: Agregar foto a un álbum
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -68,7 +85,7 @@ export async function POST(
     const { id } = await params;
     const body = await req.json();
     const { album_id, orden } = body;
-    const supabase = createRouteHandlerClient({ cookies });
+    const supabase = await createSupabaseClient();
 
     if (!album_id) {
       return NextResponse.json(
@@ -77,7 +94,6 @@ export async function POST(
       );
     }
 
-    // Verificar que la foto existe
     const { data: foto, error: fotoError } = await supabase
       .from('Foto')
       .select('id')
@@ -91,7 +107,6 @@ export async function POST(
       );
     }
 
-    // Verificar que el álbum existe
     const { data: album, error: albumError } = await supabase
       .from('Album')
       .select('id')
@@ -105,8 +120,7 @@ export async function POST(
       );
     }
 
-    // Verificar si ya está en el álbum
-    const { data: existing, error: existingError } = await supabase
+    const { data: existing } = await supabase
       .from('AlbumFoto')
       .select('*')
       .eq('foto_id', id)
@@ -120,7 +134,6 @@ export async function POST(
       });
     }
 
-    // Agregar foto al álbum
     const { data, error } = await supabase
       .from('AlbumFoto')
       .insert({
@@ -147,7 +160,6 @@ export async function POST(
   }
 }
 
-// DELETE: Remover foto de un álbum
 export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -156,7 +168,7 @@ export async function DELETE(
     const { id } = await params;
     const { searchParams } = new URL(req.url);
     const album_id = searchParams.get('album_id');
-    const supabase = createRouteHandlerClient({ cookies });
+    const supabase = await createSupabaseClient();
 
     if (!album_id) {
       return NextResponse.json(
