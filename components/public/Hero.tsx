@@ -15,7 +15,14 @@ import {
   MessageCircle,
 } from "lucide-react";
 
-// 🧾 "Ficha técnica"
+/**
+ * FUENTES
+ * Igual que en el Footer: carga Oswald + JetBrains Mono con next/font/google
+ * en layout.tsx y expórtalas como variables --font-display / --font-mono
+ * para que coincida el 100% del look. Sin eso, cae a un fallback razonable.
+ */
+
+// 🧾 "Ficha técnica" — reemplaza el stat-counter genérico por filas tipo hoja de specs
 const specs = [
   { label: "Proyectos ejecutados", value: "20+" },
   { label: "Años en el rubro", value: "10+" },
@@ -28,6 +35,7 @@ const trustPoints = [
   { icon: Wrench, label: "Seguimiento durante toda la instalación" },
 ];
 
+// 📸 Imágenes y video reales de proyectos
 const mediaItems = [
   {
     type: "image" as const,
@@ -45,6 +53,8 @@ const mediaItems = [
   },
   {
     type: "video" as const,
+    // ⚠️ .MOV tiene soporte limitado en navegadores (falla en Chrome/Firefox Windows).
+    // Recomendado convertir a .mp4 (H.264) antes de producción.
     src: "/img/Soldando.MOV",
     poster: undefined,
     project: "LUDIER",
@@ -52,6 +62,7 @@ const mediaItems = [
   },
 ];
 
+/** Marca de esquina tipo plano técnico — mismo elemento firma que en el Footer */
 function CornerMarks({ active = false }: { active?: boolean }) {
   const base = "pointer-events-none absolute h-4 w-4 transition-colors duration-300";
   const color = active ? "border-[#FF5A1F]" : "border-[#FF5A1F]/0";
@@ -65,6 +76,7 @@ function CornerMarks({ active = false }: { active?: boolean }) {
   );
 }
 
+/** Fondo de armadura metálica (truss) — se dibuja una vez al cargar la página */
 function TrussBackdrop() {
   return (
     <svg
@@ -84,6 +96,11 @@ function TrussBackdrop() {
   );
 }
 
+/**
+ * Sello de aprobación — como el que se estampa sobre un plano revisado.
+ * Estático (sin spin infinito), con un único golpe de animación al montar
+ * que imita el impacto de un sello real. Respeta prefers-reduced-motion.
+ */
 function ApprovalStamp() {
   return (
     <div className="stamp-badge pointer-events-none absolute -left-8 -top-8 z-10 hidden h-32 w-32 items-center justify-center border-[3px] border-double border-[#FF5A1F] bg-[#1D2024] sm:flex">
@@ -106,6 +123,7 @@ function ApprovalStamp() {
   );
 }
 
+/** Hook: cuenta desde 0 hasta el valor objetivo (respeta prefers-reduced-motion) */
 function useCountUp(target: string, durationMs = 1400) {
   const [display, setDisplay] = useState("0");
 
@@ -140,6 +158,7 @@ function useCountUp(target: string, durationMs = 1400) {
   return display;
 }
 
+/** Fila de la ficha técnica: etiqueta ... línea punteada ... valor (como una hoja de specs) */
 function SpecRow({ label, value }: { label: string; value: string }) {
   const display = useCountUp(value);
   return (
@@ -158,6 +177,7 @@ function SpecRow({ label, value }: { label: string; value: string }) {
   );
 }
 
+/** Hook: detecta preferencia de movimiento reducido, para pausar el autoplay del carrusel */
 function usePrefersReducedMotion() {
   const [reduced, setReduced] = useState(false);
   useEffect(() => {
@@ -193,6 +213,7 @@ export default function Hero() {
   const nextSlide = useCallback(() => goTo(currentIndex + 1), [currentIndex, goTo]);
   const prevSlide = useCallback(() => goTo(currentIndex - 1), [currentIndex, goTo]);
 
+  // Avance automático: solo entre imágenes, se detiene con video, hover, o movimiento reducido
   useEffect(() => {
     if (isHovering || currentMedia.type === "video" || prefersReducedMotion) return;
     const id = setInterval(() => {
@@ -201,6 +222,7 @@ export default function Hero() {
     return () => clearInterval(id);
   }, [isHovering, currentMedia.type, totalItems, prefersReducedMotion]);
 
+  // Parallax sutil del resplandor de fondo, solo escritorio, respeta movimiento reducido
   useEffect(() => {
     if (prefersReducedMotion) return;
     const section = sectionRef.current;
@@ -232,12 +254,13 @@ export default function Hero() {
   return (
     <section
       ref={sectionRef}
-      className="relative flex min-h-[100dvh] items-center overflow-hidden bg-[#14161A] py-8 md:py-12"
+      className="relative flex min-h-screen items-center overflow-hidden bg-[#14161A] pt-16 md:pt-20"
       style={{
         fontFamily: "var(--font-body, Inter, ui-sans-serif, system-ui, sans-serif)",
+        // @ts-expect-error -- custom properties for the parallax glow
         "--mx": "34%",
         "--my": "38%",
-      } as React.CSSProperties}
+      }}
     >
       <style>{`
         .truss-path {
@@ -297,18 +320,9 @@ export default function Hero() {
           0%, 100% { transform: translateY(0); }
           50% { transform: translateY(5px); }
         }
-
-        /* ─── RESPONSIVE: móviles pequeños ─── */
-        @media (max-width: 480px) {
-          .hero-title { font-size: 2.25rem; }
-          .hero-subtitle { font-size: 0.9rem; }
-          .cta-btn { padding: 0.75rem 1.5rem; font-size: 0.75rem; }
-          .spec-row { padding: 0.5rem 0; }
-          .spec-row span:first-child { font-size: 0.6rem; }
-          .spec-row span:last-child { font-size: 0.9rem; }
-        }
       `}</style>
 
+      {/* Textura de fondo: líneas finas tipo plancha cepillada */}
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.05]"
         style={{
@@ -317,6 +331,8 @@ export default function Hero() {
         }}
         aria-hidden="true"
       />
+      {/* Resplandor con parallax de mouse — más chico y discreto, sesgado al lado del texto
+          para que nunca quede "flotando" solo sobre el hueco vacío del lado de la imagen */}
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.08] transition-[background] duration-300"
         style={{
@@ -326,68 +342,74 @@ export default function Hero() {
         aria-hidden="true"
       />
       <TrussBackdrop />
+      {/* Línea central tipo eje de plano técnico, solo visible en desktop */}
       <div
         className="pointer-events-none absolute inset-y-0 left-1/2 hidden w-px bg-[#3A3F45] lg:block"
         aria-hidden="true"
       />
 
       <div className="relative mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid items-start gap-10 lg:grid-cols-2 lg:gap-20">
-          {/* Columna izquierda: texto */}
-          <div className="space-y-6 md:space-y-8">
-            <div className="inline-flex items-center gap-2.5 border border-[#3A3F45] bg-[#1D2024] px-3 py-1.5">
+        {/* items-start: ambas columnas arrancan a la misma altura, sin hueco vacío arriba de la foto */}
+        <div className="grid items-start gap-14 lg:grid-cols-2 lg:gap-20">
+          {/* Contenido de texto */}
+          <div className="space-y-8">
+            <div className="inline-flex items-center gap-2.5 border border-[#3A3F45] bg-[#1D2024] px-3.5 py-1.5">
               <span className="relative flex h-1.5 w-1.5 shrink-0" aria-hidden="true">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#FF5A1F] opacity-75 motion-reduce:animate-none" />
                 <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#FF5A1F]" />
               </span>
-              <span className="text-[10px] font-medium uppercase tracking-[0.14em] text-[#C7CBD1] sm:text-xs">
+              <span className="text-xs font-medium uppercase tracking-[0.14em] text-[#C7CBD1]">
                 Líder en soluciones metalmecánicas · Lima, Perú
               </span>
             </div>
 
             <h1
-              className="hero-title text-3xl font-semibold leading-[1.08] tracking-tight text-white sm:text-5xl md:text-[3.4rem]"
+              className="text-4xl font-semibold leading-[1.08] tracking-tight text-white sm:text-5xl md:text-[3.4rem]"
               style={{ fontFamily: "var(--font-display, Oswald, ui-sans-serif, sans-serif)" }}
             >
               Construimos <span className="text-[#FF5A1F]">estructuras</span>
-              <br className="hidden sm:block" />
+              <br />
               que transforman espacios
             </h1>
 
-            <p className="hero-subtitle max-w-lg text-base leading-relaxed text-[#9AA0A6] sm:text-lg">
+            <p className="max-w-lg text-lg leading-relaxed text-[#9AA0A6]">
               Fabricación e instalación de soluciones metalmecánicas de alta
               calidad para proyectos residenciales, comerciales e
               industriales en Perú.
             </p>
 
-            <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+            {/* CTAs */}
+            <div className="flex flex-wrap items-center gap-4">
               <Link
                 href="/contacto"
-                className="cta-shine group inline-flex items-center gap-2 bg-[#FF5A1F] px-6 py-3 text-sm font-semibold uppercase tracking-wide text-white shadow-lg shadow-[#FF5A1F]/20 transition-all hover:bg-[#FF7A44] sm:px-8 sm:py-4"
+                className="cta-shine group inline-flex items-center gap-2 bg-[#FF5A1F] px-8 py-4 text-sm font-semibold uppercase tracking-wide text-white shadow-lg shadow-[#FF5A1F]/20 transition-all hover:bg-[#FF7A44] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF5A1F]"
               >
                 Cotizar ahora
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
               <Link
                 href="/proyectos"
-                className="inline-flex items-center gap-2 border border-[#3A3F45] px-6 py-3 text-sm font-semibold uppercase tracking-wide text-[#C7CBD1] transition-all hover:border-[#FF5A1F] hover:text-white sm:px-8 sm:py-4"
+                className="inline-flex items-center gap-2 border border-[#3A3F45] px-8 py-4 text-sm font-semibold uppercase tracking-wide text-[#C7CBD1] transition-all hover:border-[#FF5A1F] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF5A1F]"
               >
                 Ver proyectos
               </Link>
             </div>
 
-            <p className="flex items-center gap-2 text-[10px] uppercase tracking-[0.12em] text-[#6E7379] sm:text-xs">
+            <p className="flex items-center gap-2 text-xs uppercase tracking-[0.12em] text-[#6E7379]">
               <span className="h-1 w-1 rounded-full bg-[#FF5A1F]" aria-hidden="true" />
               Cotización sin costo · Respuesta en menos de 24 horas
             </p>
 
+            {/* Ficha técnica — reemplaza el bloque de contadores gigantes por algo
+                que se lee como una hoja de especificaciones real */}
             <div className="divide-y divide-[#22262B] border-y border-[#3A3F45]">
               {specs.map((spec) => (
                 <SpecRow key={spec.label} label={spec.label} value={spec.value} />
               ))}
             </div>
 
-            <ul className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            {/* Puntos de confianza */}
+            <ul className="grid gap-3 sm:grid-cols-3 sm:gap-2">
               {trustPoints.map(({ icon: Icon, label }) => (
                 <li key={label} className="flex items-start gap-2 text-xs text-[#9AA0A6] sm:flex-col sm:gap-2">
                   <Icon className="h-4 w-4 shrink-0 text-[#FF5A1F]" strokeWidth={1.75} />
@@ -397,7 +419,7 @@ export default function Hero() {
             </ul>
           </div>
 
-          {/* Columna derecha: vitrina multimedia */}
+          {/* Vitrina multimedia — estilo lámina de plano técnico */}
           <div
             className="relative"
             onMouseEnter={() => setIsHovering(true)}
@@ -407,6 +429,7 @@ export default function Hero() {
               <div className="relative aspect-[4/3]">
                 <CornerMarks active />
 
+                {/* Tag de clasificación, como en una lámina real: FOTO / VÍDEO */}
                 <span
                   className="absolute bottom-3 right-3 z-10 border border-[#3A3F45] bg-[#14161A]/90 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-[#C7CBD1] backdrop-blur-sm"
                   style={{ fontFamily: "var(--font-mono, 'JetBrains Mono', ui-monospace, monospace)" }}
@@ -437,8 +460,8 @@ export default function Hero() {
                           aria-label="Reproducir video"
                           className="absolute inset-0 flex items-center justify-center bg-black/40 transition-colors hover:bg-black/50"
                         >
-                          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FF5A1F] shadow-xl transition-transform hover:scale-105 sm:h-16 sm:w-16">
-                            <Play className="ml-0.5 h-6 w-6 text-white sm:h-7 sm:w-7" />
+                          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#FF5A1F] shadow-xl transition-transform hover:scale-105">
+                            <Play className="ml-0.5 h-7 w-7 text-white" />
                           </div>
                         </button>
                       )}
@@ -446,9 +469,9 @@ export default function Hero() {
                         <button
                           onClick={handlePlayVideo}
                           aria-label="Pausar video"
-                          className="absolute bottom-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-black/70 transition-colors hover:bg-black/90 sm:h-10 sm:w-10"
+                          className="absolute bottom-4 right-4 flex h-10 w-10 items-center justify-center rounded-full bg-black/70 transition-colors hover:bg-black/90"
                         >
-                          <Pause className="h-3 w-3 text-white sm:h-4 sm:w-4" />
+                          <Pause className="h-4 w-4 text-white" />
                         </button>
                       )}
                     </div>
@@ -456,43 +479,46 @@ export default function Hero() {
                 </div>
               </div>
 
+              {/* Cuadro de rotulación — como el de un plano de verdad: proyecto / escala / lámina */}
               <div
                 className="grid grid-cols-[1fr_auto_auto] divide-x divide-[#3A3F45] border-t border-[#3A3F45] bg-[#14161A]/95"
                 style={{ fontFamily: "var(--font-mono, 'JetBrains Mono', ui-monospace, monospace)" }}
               >
-                <div className="px-3 py-2 sm:px-4 sm:py-3">
+                <div className="px-4 py-3">
                   <p
-                    className="truncate text-xs font-medium text-white sm:text-sm"
+                    className="truncate text-sm font-medium text-white"
                     style={{ fontFamily: "var(--font-body, Inter, ui-sans-serif, system-ui, sans-serif)" }}
                   >
                     {currentMedia.caption}
                   </p>
-                  <p className="mt-0.5 text-[8px] uppercase tracking-[0.14em] text-[#8A8F96] sm:text-[10px]">
+                  <p className="mt-0.5 text-[10px] uppercase tracking-[0.14em] text-[#8A8F96]">
                     Ejecución · {currentMedia.project}
                   </p>
                 </div>
-                <div className="flex flex-col items-center justify-center px-3 py-2 sm:px-4 sm:py-3">
-                  <p className="text-[8px] uppercase tracking-[0.14em] text-[#6E7379] sm:text-[9px]">Escala</p>
-                  <p className="text-[10px] text-[#C7CBD1] sm:text-xs">S/E</p>
+                <div className="flex flex-col items-center justify-center px-4 py-3">
+                  <p className="text-[9px] uppercase tracking-[0.14em] text-[#6E7379]">Escala</p>
+                  <p className="text-xs text-[#C7CBD1]">S/E</p>
                 </div>
-                <div className="flex flex-col items-center justify-center px-3 py-2 sm:px-4 sm:py-3">
-                  <p className="text-[8px] uppercase tracking-[0.14em] text-[#6E7379] sm:text-[9px]">Lámina</p>
-                  <p className="text-[10px] text-[#C7CBD1] sm:text-xs">
+                <div className="flex flex-col items-center justify-center px-4 py-3">
+                  <p className="text-[9px] uppercase tracking-[0.14em] text-[#6E7379]">Lámina</p>
+                  <p className="text-xs text-[#C7CBD1]">
                     {laminaActual}/{laminaTotal}
                   </p>
                 </div>
               </div>
             </div>
 
+            {/* Sello de aprobación — firma visual del Hero, ya no choca con el carrusel */}
             <ApprovalStamp />
 
-            <div className="absolute -bottom-5 left-1/2 flex -translate-x-1/2 items-center gap-2 border border-[#3A3F45] bg-[#1D2024] px-3 py-2 shadow-lg sm:gap-3 sm:px-4 sm:py-2.5">
+            {/* Controles del carrusel */}
+            <div className="absolute -bottom-6 left-1/2 flex -translate-x-1/2 items-center gap-3 border border-[#3A3F45] bg-[#1D2024] px-4 py-2.5 shadow-lg">
               <button
                 onClick={prevSlide}
-                className="rounded-full p-1 text-[#9AA0A6] transition-colors hover:bg-[#22262B] hover:text-white sm:p-1.5"
+                className="rounded-full p-1.5 text-[#9AA0A6] transition-colors hover:bg-[#22262B] hover:text-white"
                 aria-label="Anterior"
               >
-                <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
+                <ChevronLeft className="h-4 w-4" />
               </button>
 
               <div className="flex items-center gap-1.5">
@@ -500,10 +526,10 @@ export default function Hero() {
                   <button
                     key={index}
                     onClick={() => goTo(index)}
-                    className={`h-1 rounded-full transition-all ${
+                    className={`h-1.5 rounded-full transition-all ${
                       index === currentIndex
-                        ? "w-4 bg-[#FF5A1F] sm:w-6"
-                        : "w-1 bg-[#3A3F45] hover:bg-[#6E7379]"
+                        ? "w-6 bg-[#FF5A1F]"
+                        : "w-1.5 bg-[#3A3F45] hover:bg-[#6E7379]"
                     }`}
                     aria-label={`Ir a slide ${index + 1}`}
                   />
@@ -512,38 +538,28 @@ export default function Hero() {
 
               <button
                 onClick={nextSlide}
-                className="rounded-full p-1 text-[#9AA0A6] transition-colors hover:bg-[#22262B] hover:text-white sm:p-1.5"
+                className="rounded-full p-1.5 text-[#9AA0A6] transition-colors hover:bg-[#22262B] hover:text-white"
                 aria-label="Siguiente"
               >
-                <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
+                <ChevronRight className="h-4 w-4" />
               </button>
             </div>
 
-            {/* WhatsApp flotante - Desktop */}
+            {/* CTA flotante de WhatsApp */}
             <a
               href="https://wa.me/51930747399?text=Hola%20LUDIER%2C%20quiero%20cotizar%20un%20proyecto"
               target="_blank"
               rel="noopener noreferrer"
-              className="absolute -right-2 -top-2 hidden items-center gap-2 rounded-full bg-[#25D366] px-3 py-2 text-[10px] font-semibold text-[#0B1A0F] shadow-lg transition-transform hover:scale-105 sm:flex sm:px-4 sm:py-2.5 sm:text-xs"
+              className="absolute -right-3 -top-3 hidden items-center gap-2 rounded-full bg-[#25D366] px-4 py-2.5 text-xs font-semibold text-[#0B1A0F] shadow-lg transition-transform hover:scale-105 sm:flex"
             >
-              <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4" />
+              <MessageCircle className="h-4 w-4" />
               Escríbenos
-            </a>
-
-            {/* WhatsApp fijo para móviles */}
-            <a
-              href="https://wa.me/51930747399?text=Hola%20LUDIER%2C%20quiero%20cotizar%20un%20proyecto"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="fixed bottom-4 right-4 z-50 flex items-center gap-2 rounded-full bg-[#25D366] px-4 py-3 text-xs font-semibold text-[#0B1A0F] shadow-lg transition-transform hover:scale-105 sm:hidden"
-            >
-              <MessageCircle className="h-5 w-5" />
             </a>
           </div>
         </div>
 
         {/* Indicador de scroll */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-4 hidden justify-center lg:flex">
+        <div className="pointer-events-none absolute inset-x-0 bottom-6 hidden justify-center lg:flex">
           <div className="flex flex-col items-center gap-1.5 text-[#6E7379]">
             <span className="text-[10px] uppercase tracking-[0.16em]">Desliza para conocer más</span>
             <ChevronDown className="scroll-cue-icon h-4 w-4" />
