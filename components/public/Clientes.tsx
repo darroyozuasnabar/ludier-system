@@ -134,7 +134,7 @@ function StatItem({
 
   return (
     <div
-      className="flex flex-col items-center px-6 py-6 sm:items-start sm:px-8 sm:py-0 first:pl-0 last:pr-0"
+      className="flex flex-col items-center px-4 py-5 xs:px-6 xs:py-6 sm:items-start sm:px-8 sm:py-0 first:pl-0 last:pr-0"
       style={{
         opacity: active ? 1 : 0,
         transform: active ? "translateY(0)" : "translateY(18px)",
@@ -142,7 +142,7 @@ function StatItem({
       }}
     >
       <span
-        className="text-3xl font-semibold tabular-nums text-white sm:text-4xl md:text-5xl"
+        className="text-2xl font-semibold tabular-nums text-white xs:text-3xl sm:text-4xl md:text-5xl"
         style={{ fontFamily: FONT_DISPLAY }}
       >
         <span className="text-[#FF5A1F]">{prefix}</span>
@@ -150,7 +150,7 @@ function StatItem({
         <span className="text-[#FF5A1F]">{suffix}</span>
       </span>
       <span
-        className="mt-2 text-[10px] uppercase tracking-[0.16em] text-[#8A8F96] sm:text-[11px]"
+        className="mt-2 text-center text-[9px] uppercase tracking-[0.14em] text-[#8A8F96] xs:text-[10px] sm:text-left sm:text-[11px] sm:tracking-[0.16em]"
         style={{ fontFamily: FONT_MONO }}
       >
         {label}
@@ -202,7 +202,7 @@ function LogoDesktop({
           alt={cliente.nombre}
           loading="lazy"
           decoding="async"
-          className="h-14 w-auto max-w-[180px] object-contain transition-transform duration-500 ease-out md:h-16 md:max-w-[200px] lg:h-20 lg:max-w-[240px]"
+          className="h-12 w-auto max-w-[130px] object-contain transition-transform duration-500 ease-out md:h-16 md:max-w-[200px] lg:h-20 lg:max-w-[240px]"
           style={{
             filter: isHovered ? filterActive : filterIdle,
             transform: isHovered ? "translateY(-6px)" : "translateY(0)",
@@ -211,7 +211,7 @@ function LogoDesktop({
         />
       </span>
       <span
-        className="mt-4 w-px md:mt-5"
+        className="mt-3 w-px md:mt-5"
         style={{
           height: 34,
           background: isHovered
@@ -252,7 +252,7 @@ function LogoMobile({
 
   return (
     <li
-      className="flex items-center gap-5 outline-none"
+      className="flex items-center gap-4 outline-none xs:gap-5"
       tabIndex={0}
       onMouseEnter={onEnter}
       onMouseLeave={onLeave}
@@ -283,7 +283,7 @@ function LogoMobile({
           alt={cliente.nombre}
           loading="lazy"
           decoding="async"
-          className="h-12 w-auto max-w-[160px] object-contain"
+          className="h-10 w-auto max-w-[140px] object-contain xs:h-12 xs:max-w-[160px]"
           style={{
             filter: isHovered ? filterActive : filterIdle,
             transitionProperty: "filter",
@@ -305,7 +305,7 @@ export default function Clientes() {
       ref={mergeRefs(revealRef, parallaxRef)}
       id="clientes"
       aria-label="Clientes de LUDIER"
-      className="relative overflow-hidden bg-[#050505] py-20 sm:py-24 lg:py-28"
+      className="relative overflow-hidden bg-[#050505] py-16 sm:py-24 lg:py-28"
       style={{ fontFamily: FONT_BODY }}
     >
       {/* Grano / textura industrial */}
@@ -364,7 +364,7 @@ export default function Clientes() {
         aria-hidden="true"
       />
 
-      <div className="relative mx-auto max-w-7xl px-6 sm:px-8 lg:px-12">
+      <div className="relative mx-auto max-w-7xl px-5 xs:px-6 sm:px-8 lg:px-12">
         {/* Eyebrow */}
         <div
           style={{
@@ -374,7 +374,7 @@ export default function Clientes() {
           }}
         >
           <span
-            className="inline-flex items-center gap-2.5 text-[10px] uppercase tracking-[0.22em] text-[#8A8F96] sm:text-xs"
+            className="inline-flex items-center gap-2 text-[9px] uppercase tracking-[0.18em] text-[#8A8F96] xs:gap-2.5 xs:text-[10px] sm:text-xs sm:tracking-[0.22em]"
             style={{ fontFamily: FONT_MONO }}
           >
             <span className="text-[#FF5A1F]">//</span>
@@ -384,7 +384,7 @@ export default function Clientes() {
 
         {/* Headline editorial */}
         <h2
-          className="mt-6 max-w-4xl text-3xl font-semibold leading-[1.1] tracking-tight text-white sm:text-4xl md:text-5xl lg:text-6xl"
+          className="mt-5 max-w-4xl break-words text-[1.9rem] font-semibold leading-[1.15] tracking-tight text-white xs:text-3xl sm:mt-6 sm:text-4xl md:text-5xl lg:text-6xl"
           style={{
             fontFamily: FONT_DISPLAY,
             opacity: inView ? 1 : 0,
@@ -399,7 +399,7 @@ export default function Clientes() {
 
         {/* Subline - TAMAÑO AJUSTADO PARA COINCIDIR CON SERVICIOS */}
         <p
-          className="mt-6 max-w-xl text-base leading-relaxed text-[#9AA0A6] md:text-lg"
+          className="mt-5 max-w-xl text-[15px] leading-relaxed text-[#9AA0A6] sm:mt-6 sm:text-base md:text-lg"
           style={{
             opacity: inView ? 1 : 0,
             transform: inView ? "translateY(0)" : "translateY(16px)",
@@ -454,7 +454,7 @@ export default function Clientes() {
         </div>
 
         {/* Carrusel móvil - logos GRANDES */}
-        <div className="relative mt-12 md:hidden">
+        <div className="relative mt-10 xs:mt-12 md:hidden">
           <div className="pointer-events-none absolute bottom-2 left-[15px] top-2 w-px">
             <div className="absolute inset-0 bg-[#26282C]" />
             <div
@@ -478,7 +478,7 @@ export default function Clientes() {
             />
           </div>
 
-          <ul className="relative flex flex-col gap-y-9" aria-label="Empresas cliente de LUDIER">
+          <ul className="relative flex flex-col gap-y-7 xs:gap-y-9" aria-label="Empresas cliente de LUDIER">
             {clientes.map((cliente, index) => (
               <LogoMobile
                 key={cliente.nombre}
@@ -494,7 +494,7 @@ export default function Clientes() {
         </div>
 
         {/* Estadísticas */}
-        <div className="mt-16 flex flex-col divide-y divide-[#1E2024] sm:flex-row sm:divide-x sm:divide-y-0 lg:mt-20">
+        <div className="mt-14 flex flex-col divide-y divide-[#1E2024] sm:flex-row sm:divide-x sm:divide-y-0 lg:mt-20">
           {stats.map((stat, index) => (
             <StatItem
               key={stat.label}
