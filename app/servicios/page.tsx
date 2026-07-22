@@ -222,7 +222,8 @@ function useScrollReveal<T extends HTMLElement>(threshold = 0.12) {
 
 function CategoriaCard({ categoria, index }: { categoria: typeof categorias[0]; index: number }) {
   const Icon = categoria.icon;
-  const { ref, inView } = useScrollReveal<HTMLDivElement>(0.1);
+  // 🔥 CORRECCIÓN: Usamos HTMLAnchorElement en lugar de HTMLDivElement
+  const { ref, inView } = useScrollReveal<HTMLAnchorElement>(0.1);
 
   return (
     <Link
