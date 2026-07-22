@@ -5,7 +5,7 @@ const nextConfig = {
     removeConsole: process.env.NODE_ENV === "production",
   },
   
-  // ⚠️ Ignorar errores de ESLint durante el build (temporal)
+  // Ignorar errores de ESLint durante el build
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -66,7 +66,8 @@ const nextConfig = {
   // Compresión
   compress: true,
   
-  // ❌ ELIMINADO: output: "standalone", (no es necesario en Vercel)
+  // ⚠️ ELIMINA ESTA LÍNEA:
+  // output: "standalone",
 };
 
 export default nextConfig;
