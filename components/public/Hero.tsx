@@ -15,14 +15,7 @@ import {
   MessageCircle,
 } from "lucide-react";
 
-/**
- * FUENTES
- * Igual que en el Footer: carga Oswald + JetBrains Mono con next/font/google
- * en layout.tsx y expórtalas como variables --font-display / --font-mono
- * para que coincida el 100% del look. Sin eso, cae a un fallback razonable.
- */
-
-// 🧾 "Ficha técnica" — reemplaza el stat-counter genérico por filas tipo hoja de specs
+// 🧾 "Ficha técnica"
 const specs = [
   { label: "Proyectos ejecutados", value: "20+" },
   { label: "Años en el rubro", value: "10+" },
@@ -35,7 +28,6 @@ const trustPoints = [
   { icon: Wrench, label: "Seguimiento durante toda la instalación" },
 ];
 
-// 📸 Imágenes y video reales de proyectos
 const mediaItems = [
   {
     type: "image" as const,
@@ -53,8 +45,6 @@ const mediaItems = [
   },
   {
     type: "video" as const,
-    // ⚠️ .MOV tiene soporte limitado en navegadores (falla en Chrome/Firefox Windows).
-    // Recomendado convertir a .mp4 (H.264) antes de producción.
     src: "/img/Soldando.MOV",
     poster: undefined,
     project: "LUDIER",
@@ -62,7 +52,6 @@ const mediaItems = [
   },
 ];
 
-/** Marca de esquina tipo plano técnico — mismo elemento firma que en el Footer */
 function CornerMarks({ active = false }: { active?: boolean }) {
   const base = "pointer-events-none absolute h-4 w-4 transition-colors duration-300";
   const color = active ? "border-[#FF5A1F]" : "border-[#FF5A1F]/0";
@@ -76,7 +65,6 @@ function CornerMarks({ active = false }: { active?: boolean }) {
   );
 }
 
-/** Fondo de armadura metálica (truss) — se dibuja una vez al cargar la página */
 function TrussBackdrop() {
   return (
     <svg
@@ -96,11 +84,6 @@ function TrussBackdrop() {
   );
 }
 
-/**
- * Sello de aprobación — como el que se estampa sobre un plano revisado.
- * Estático (sin spin infinito), con un único golpe de animación al montar
- * que imita el impacto de un sello real. Respeta prefers-reduced-motion.
- */
 function ApprovalStamp() {
   return (
     <div className="stamp-badge pointer-events-none absolute -left-8 -top-8 z-10 hidden h-32 w-32 items-center justify-center border-[3px] border-double border-[#FF5A1F] bg-[#1D2024] sm:flex">
@@ -123,7 +106,6 @@ function ApprovalStamp() {
   );
 }
 
-/** Hook: cuenta desde 0 hasta el valor objetivo (respeta prefers-reduced-motion) */
 function useCountUp(target: string, durationMs = 1400) {
   const [display, setDisplay] = useState("0");
 
@@ -158,7 +140,6 @@ function useCountUp(target: string, durationMs = 1400) {
   return display;
 }
 
-/** Fila de la ficha técnica: etiqueta ... línea punteada ... valor (como una hoja de specs) */
 function SpecRow({ label, value }: { label: string; value: string }) {
   const display = useCountUp(value);
   return (
@@ -177,7 +158,6 @@ function SpecRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-/** Hook: detecta preferencia de movimiento reducido, para pausar el autoplay del carrusel */
 function usePrefersReducedMotion() {
   const [reduced, setReduced] = useState(false);
   useEffect(() => {
@@ -213,7 +193,6 @@ export default function Hero() {
   const nextSlide = useCallback(() => goTo(currentIndex + 1), [currentIndex, goTo]);
   const prevSlide = useCallback(() => goTo(currentIndex - 1), [currentIndex, goTo]);
 
-  // Avance automático: solo entre imágenes, se detiene con video, hover, o movimiento reducido
   useEffect(() => {
     if (isHovering || currentMedia.type === "video" || prefersReducedMotion) return;
     const id = setInterval(() => {
@@ -222,7 +201,6 @@ export default function Hero() {
     return () => clearInterval(id);
   }, [isHovering, currentMedia.type, totalItems, prefersReducedMotion]);
 
-  // Parallax sutil del resplandor de fondo, solo escritorio, respeta movimiento reducido
   useEffect(() => {
     if (prefersReducedMotion) return;
     const section = sectionRef.current;
@@ -257,10 +235,9 @@ export default function Hero() {
       className="relative flex min-h-[100dvh] items-center overflow-hidden bg-[#14161A] py-8 md:py-12"
       style={{
         fontFamily: "var(--font-body, Inter, ui-sans-serif, system-ui, sans-serif)",
-        // @ts-expect-error -- custom properties for the parallax glow
         "--mx": "34%",
         "--my": "38%",
-      }}
+      } as React.CSSProperties}
     >
       <style>{`
         .truss-path {
@@ -332,7 +309,6 @@ export default function Hero() {
         }
       `}</style>
 
-      {/* Textura de fondo: líneas finas tipo plancha cepillada */}
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.05]"
         style={{
@@ -341,7 +317,6 @@ export default function Hero() {
         }}
         aria-hidden="true"
       />
-      {/* Resplandor con parallax de mouse — más chico y discreto */}
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.08] transition-[background] duration-300"
         style={{
@@ -351,7 +326,6 @@ export default function Hero() {
         aria-hidden="true"
       />
       <TrussBackdrop />
-      {/* Línea central tipo eje de plano técnico, solo visible en desktop */}
       <div
         className="pointer-events-none absolute inset-y-0 left-1/2 hidden w-px bg-[#3A3F45] lg:block"
         aria-hidden="true"
@@ -482,7 +456,6 @@ export default function Hero() {
                 </div>
               </div>
 
-              {/* Cuadro de rotulación */}
               <div
                 className="grid grid-cols-[1fr_auto_auto] divide-x divide-[#3A3F45] border-t border-[#3A3F45] bg-[#14161A]/95"
                 style={{ fontFamily: "var(--font-mono, 'JetBrains Mono', ui-monospace, monospace)" }}
