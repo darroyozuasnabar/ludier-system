@@ -252,7 +252,7 @@ function LogoMobile({
 
   return (
     <li
-      className="flex items-center gap-4 outline-none xs:gap-5"
+      className="flex items-center gap-3 outline-none"
       tabIndex={0}
       onMouseEnter={onEnter}
       onMouseLeave={onLeave}
@@ -267,7 +267,26 @@ function LogoMobile({
         transitionDelay: inView ? `${index * 90}ms` : "0ms",
       }}
     >
+      {/* Numeración tipo lámina técnica, refuerza la lectura de línea cronológica */}
+      <span
+        className="w-6 shrink-0 text-right text-[10px] font-medium tabular-nums tracking-[0.08em] xs:text-[11px]"
+        style={{
+          fontFamily: FONT_MONO,
+          color: isHovered ? "#FF5A1F" : "#4A4F55",
+          transition: "color 300ms ease-out",
+        }}
+      >
+        {String(index + 1).padStart(2, "0")}
+      </span>
+      {/* Nodo de la línea: anillo + punto, centrado exactamente sobre el riel vertical */}
       <span className="relative flex h-8 w-8 shrink-0 items-center justify-center">
+        <span
+          className="absolute h-3.5 w-3.5 rounded-full border transition-all duration-300"
+          style={{
+            borderColor: isHovered ? "#FF5A1F" : "#2C2F34",
+            boxShadow: isHovered ? "0 0 14px 3px rgba(255,90,31,0.35)" : "none",
+          }}
+        />
         <span
           className="h-1.5 w-1.5 rounded-full"
           style={{
@@ -455,7 +474,19 @@ export default function Clientes() {
 
         {/* Carrusel móvil - logos GRANDES */}
         <div className="relative mt-10 xs:mt-12 md:hidden">
-          <div className="pointer-events-none absolute bottom-2 left-[15px] top-2 w-px">
+          {/* Remates tipo línea de cota, arriba y abajo del riel */}
+          <span
+            className="pointer-events-none absolute top-2 h-px w-3 -translate-x-1/2 bg-[#3A3F45]"
+            style={{ left: 52 }}
+            aria-hidden="true"
+          />
+          <span
+            className="pointer-events-none absolute bottom-2 h-px w-3 -translate-x-1/2 bg-[#3A3F45]"
+            style={{ left: 52 }}
+            aria-hidden="true"
+          />
+
+          <div className="pointer-events-none absolute bottom-2 top-2 w-px" style={{ left: 52 }}>
             <div className="absolute inset-0 bg-[#26282C]" />
             <div
               className="absolute inset-0 origin-top bg-[#FF5A1F]"
@@ -478,7 +509,7 @@ export default function Clientes() {
             />
           </div>
 
-          <ul className="relative flex flex-col gap-y-7 xs:gap-y-9" aria-label="Empresas cliente de LUDIER">
+          <ul className="relative flex flex-col gap-y-6 xs:gap-y-8" aria-label="Empresas cliente de LUDIER">
             {clientes.map((cliente, index) => (
               <LogoMobile
                 key={cliente.nombre}
