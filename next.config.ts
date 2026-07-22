@@ -66,8 +66,7 @@ const nextConfig = {
   // Compresión
   compress: true,
   
-  // Salida standalone para despliegue optimizado
-  output: "standalone",
+  // ❌ ELIMINADO: output: "standalone", (no es necesario en Vercel)
 };
 
 export default nextConfig;
