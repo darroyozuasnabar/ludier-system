@@ -21,9 +21,8 @@ const nextConfig = {
     ],
   },
   
-  // Experimentales para mejor rendimiento
+  // ✅ SIN experimental.optimizeCss (es el que causa el error)
   experimental: {
-    optimizeCss: true,
     optimizePackageImports: [
       "lucide-react",
       "recharts",
@@ -66,7 +65,7 @@ const nextConfig = {
   // Compresión
   compress: true,
   
-  // ⚠️ ELIMINA ESTA LÍNEA:
+  // ✅ ELIMINA "output: standalone" si está
   // output: "standalone",
 };
 
