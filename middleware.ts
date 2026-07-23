@@ -2,7 +2,7 @@
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 
-// 🔥 Rutas públicas (no requieren autenticación)
+// 🔥 Rutas públicas (NO requieren autenticación)
 const publicRoutes = [
   "/",
   "/login",
@@ -15,7 +15,13 @@ const publicRoutes = [
   "/testimonios",
   "/api/auth",
   "/api/contacto",
-  "/api/cotizaciones",
+];
+
+// 🔥 Prefijos públicos (cualquier ruta que empiece con estos prefijos es pública)
+const publicPrefixes = [
+  "/servicios/",
+  "/proyectos/",
+  "/blog/",
 ];
 
 export default withAuth(
@@ -23,19 +29,24 @@ export default withAuth(
     const token = req.nextauth.token;
     const path = req.nextUrl.pathname;
 
-    // 🔥 Si la ruta es pública, permitir acceso sin token
-    if (publicRoutes.some(route => path === route || path.startsWith(route + "/"))) {
+    // 🔥 1. Verificar si es una ruta pública exacta
+    if (publicRoutes.includes(path)) {
       return NextResponse.next();
     }
 
-    // 🔥 Si no hay token y no es pública, redirigir a login
+    // 🔥 2. Verificar si es un prefijo público
+    if (publicPrefixes.some(prefix => path.startsWith(prefix))) {
+      return NextResponse.next();
+    }
+
+    // 🔥 3. Si no hay token y no es pública, redirigir a login
     if (!token) {
       const loginUrl = new URL("/login", req.url);
-      loginUrl.searchParams.set("callbackUrl", req.nextUrl.pathname);
+      loginUrl.searchParams.set("callbackUrl", path);
       return NextResponse.redirect(loginUrl);
     }
 
-    // 🔥 (Opcional) Verificación de roles
+    // 🔥 4. Verificación de roles (opcional)
     // const role = token.role as string;
     // if (path.startsWith("/dashboard") && role !== "FUNDADOR") {
     //   return NextResponse.redirect(new URL("/unauthorized", req.url));
@@ -46,7 +57,7 @@ export default withAuth(
   {
     callbacks: {
       authorized: ({ token }) => {
-        // Solo autoriza si hay token (esto es para rutas que no pasaron el filtro anterior)
+        // 🔥 Solo autoriza si hay token (para rutas protegidas)
         return !!token;
       },
     },
@@ -56,11 +67,9 @@ export default withAuth(
   }
 );
 
-// 🔥 El matcher ahora aplica a todas las rutas
-// La lógica de exclusión está dentro del middleware
+// 🔥 Configuración del matcher (aplica a todas las rutas excepto archivos estáticos)
 export const config = {
   matcher: [
-    // Aplica a todas las rutas excepto archivos estáticos
     "/((?!_next/static|_next/image|favicon.ico|img|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
