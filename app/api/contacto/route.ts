@@ -76,9 +76,10 @@ export async function POST(req: NextRequest) {
 
     // ============================================================
     // 3. CORREO PARA EL CLIENTE (confirmación de recepción)
+    // 🔥 DOMINIO VERIFICADO: contacto@grupoludier.com
     // ============================================================
     const clientEmail = await resend.emails.send({
-      from: 'LUDIER - Construcciones Generales <onboarding@resend.dev>',
+      from: 'LUDIER <contacto@grupoludier.com>',
       to: email,
       subject: `Hemos recibido tu mensaje - ${sanitizedAsunto}`,
       html: `
@@ -114,9 +115,10 @@ export async function POST(req: NextRequest) {
 
     // ============================================================
     // 4. CORREO PARA LA EMPRESA (notificación de nuevo mensaje)
+    // 🔥 DOMINIO VERIFICADO: contacto@grupoludier.com
     // ============================================================
     const empresaEmail = await resend.emails.send({
-      from: 'LUDIER - Contacto Web <onboarding@resend.dev>',
+      from: 'LUDIER <contacto@grupoludier.com>',
       to: 'ernestoarroyo1969@hotmail.com',
       subject: `Nuevo mensaje de contacto - ${sanitizedAsunto}`,
       html: `
