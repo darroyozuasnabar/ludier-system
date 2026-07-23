@@ -44,7 +44,7 @@ const footerLinks = [
 
 const socialLinks = [
   { icon: Instagram, href: "https://instagram.com", label: "Instagram" },
-  { icon: Linkedin, href: "https://linkedin.com", label: "LinkedIn" },
+  { icon: Linkedin, href: "https://www.linkedin.com/company/ludier/", label: "LinkedIn" },
   { icon: Youtube, href: "https://youtube.com", label: "YouTube" },
   { icon: Facebook, href: "https://facebook.com", label: "Facebook" },
 ];
@@ -74,7 +74,6 @@ export default function Footer() {
       className="relative overflow-hidden bg-[#14161A] text-[#C7CBD1]"
       style={{ fontFamily: "var(--font-body, Inter, ui-sans-serif, system-ui, sans-serif)" }}
     >
-      {/* Franja de seguridad diagonal */}
       <div
         className="h-[6px] w-full"
         style={{
@@ -84,7 +83,6 @@ export default function Footer() {
         aria-hidden="true"
       />
 
-      {/* Textura de fondo */}
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.05]"
         style={{
@@ -101,10 +99,8 @@ export default function Footer() {
         aria-hidden="true"
       />
 
-      {/* Cuerpo principal */}
       <div className="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
         <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-4 lg:gap-12">
-          {/* Marca con logo real */}
           <div className="space-y-5">
             <Link href="/" className="flex items-center gap-3.5">
               <img
@@ -132,7 +128,6 @@ export default function Footer() {
               calidad en Perú.
             </p>
 
-            {/* 🔥 BOTÓN DE WHATSAPP CON LOGO REAL */}
             <a
               href="https://wa.me/51930747399?text=Hola%20LUDIER%2C%20quiero%20cotizar%20un%20proyecto"
               target="_blank"
@@ -167,7 +162,6 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Columnas de enlaces */}
           {footerLinks.map((group) => (
             <div key={group.title}>
               <h3
@@ -193,7 +187,6 @@ export default function Footer() {
           ))}
         </div>
 
-        {/* Placa de contacto */}
         <div className="mt-10 border-t border-[#3A3F45] pt-8">
           <div className="grid grid-cols-1 gap-px overflow-hidden rounded-sm border border-[#3A3F45] bg-[#3A3F45] md:grid-cols-3">
             <div className="group relative flex items-center gap-3 bg-[#1D2024] p-4 transition-colors hover:bg-[#22262B]">
@@ -233,7 +226,6 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Línea inferior */}
         <div className="mt-8 flex flex-col items-center justify-between gap-4 border-t border-[#3A3F45] pt-6 sm:flex-row">
           <p className="text-xs text-[#6E7379]">
             © {new Date().getFullYear()} LUDIER · Construcciones Generales. Todos los derechos reservados.
