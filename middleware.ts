@@ -7,18 +7,25 @@ export default withAuth(
     const token = req.nextauth.token;
     const path = req.nextUrl.pathname;
 
-    // Si no hay token y no está en login, redirigir a login
-    if (!token && path !== "/login") {
+    // 🔥 Si no hay token, redirigir al login (excepto para rutas públicas)
+    if (!token) {
       return NextResponse.redirect(new URL("/login", req.url));
     }
+
+    // 🔥 (Opcional) Verificación de roles por ruta
+    // Ejemplo: solo FUNDADOR puede acceder a /dashboard
+    // const role = token.role as string;
+    // if (path.startsWith("/dashboard") && role !== "FUNDADOR") {
+    //   return NextResponse.redirect(new URL("/unauthorized", req.url));
+    // }
 
     return NextResponse.next();
   },
   {
     callbacks: {
       authorized: ({ token }) => {
-        // Permitir acceso a login sin token
-        return true;
+        // ✅ Solo autoriza si hay un token válido
+        return !!token;
       },
     },
     pages: {
@@ -27,8 +34,10 @@ export default withAuth(
   }
 );
 
+// 🔥 RUTAS PROTEGIDAS: incluye API y todas las rutas del dashboard
 export const config = {
   matcher: [
+    // Rutas del dashboard
     "/dashboard/:path*",
     "/obras/:path*",
     "/valorizaciones/:path*",
@@ -44,5 +53,11 @@ export const config = {
     "/reportes/:path*",
     "/documentos/:path*",
     "/calidad/:path*",
+    "/cotizaciones/:path*",
+    "/reuniones/:path*",
+    "/finanzas/:path*",
+
+    // 🔥 Rutas de API (requieren autenticación)
+    "/api/:path*",
   ],
 };

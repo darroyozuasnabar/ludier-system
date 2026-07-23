@@ -1,45 +1,30 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Eliminar console.logs en producción
   compiler: {
     removeConsole: process.env.NODE_ENV === "production",
   },
   
-  // Ignorar errores de ESLint durante el build
   eslint: {
     ignoreDuringBuilds: true,
   },
   
-  // Optimización de imágenes
   images: {
     formats: ["image/avif", "image/webp"],
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "**",
-      },
-    ],
+    remotePatterns: [{ protocol: "https", hostname: "**" }],
   },
   
-  // ✅ SIN experimental.optimizeCss (es el que causa el error)
   experimental: {
-    optimizePackageImports: [
-      "lucide-react",
-      "recharts",
-      "xlsx",
-      "pdfjs-dist",
-    ],
+    optimizePackageImports: ["lucide-react", "recharts", "xlsx", "pdfjs-dist"],
   },
   
-  // Transpilación de paquetes
   transpilePackages: ["pdfjs-dist"],
   
-  // Headers de seguridad y caché
   async headers() {
     return [
       {
         source: "/:path*",
         headers: [
+          // 🔒 Seguridad básica
           {
             key: "X-DNS-Prefetch-Control",
             value: "on",
@@ -47,6 +32,31 @@ const nextConfig = {
           {
             key: "X-Frame-Options",
             value: "SAMEORIGIN",
+          },
+          {
+            key: "X-Content-Type-Options",
+            value: "nosniff",
+          },
+          {
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
+          },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=()",
+          },
+          // 🔒 Content Security Policy (CSP) básica
+          {
+            key: "Content-Security-Policy",
+            value: `
+              default-src 'self';
+              script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live;
+              style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+              font-src 'self' https://fonts.gstatic.com;
+              img-src 'self' data: https://*.supabase.co;
+              connect-src 'self' https://*.supabase.co https://api.resend.com;
+              frame-src 'self' https://www.google.com;
+            `.replace(/\s+/g, " ").trim(),
           },
         ],
       },
@@ -62,11 +72,7 @@ const nextConfig = {
     ];
   },
   
-  // Compresión
   compress: true,
-  
-  // ✅ ELIMINA "output: standalone" si está
-  // output: "standalone",
 };
 
 export default nextConfig;
