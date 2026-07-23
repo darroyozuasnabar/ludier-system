@@ -3,6 +3,8 @@ import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
+import { loginRateLimit } from "@/lib/rate-limit";
+import { headers } from "next/headers";
 
 const handler = NextAuth({
   adapter: PrismaAdapter(prisma),
@@ -14,6 +16,14 @@ const handler = NextAuth({
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
+        // 🔥 Rate limiting
+        const headersList = await headers();
+        const ip = headersList.get("x-forwarded-for")?.split(",")[0] ?? "anonymous";
+        const { success } = await loginRateLimit.limit(ip);
+        if (!success) {
+          throw new Error("Demasiados intentos de inicio de sesión. Espera 5 minutos.");
+        }
+
         console.log("📍 authorize iniciado");
         console.log("📧 Email recibido:", credentials?.email);
         console.log("🔑 Password recibida:", credentials?.password ? "****" : "no");
@@ -38,7 +48,7 @@ const handler = NextAuth({
               id: user.id,
               email: user.email,
               name: user.name,
-              role: user.role || undefined, // ✅ Asegurar que no sea null
+              role: user.role || undefined,
             };
           }
           console.log("❌ Contraseña incorrecta o usuario no existe");
