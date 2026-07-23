@@ -2,18 +2,40 @@
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 
+// 🔥 Rutas públicas (no requieren autenticación)
+const publicRoutes = [
+  "/",
+  "/login",
+  "/servicios",
+  "/proyectos",
+  "/nosotros",
+  "/contacto",
+  "/faq",
+  "/blog",
+  "/testimonios",
+  "/api/auth",
+  "/api/contacto",
+  "/api/cotizaciones",
+];
+
 export default withAuth(
   function middleware(req) {
     const token = req.nextauth.token;
     const path = req.nextUrl.pathname;
 
-    // 🔥 Si no hay token, redirigir al login (excepto para rutas públicas)
-    if (!token) {
-      return NextResponse.redirect(new URL("/login", req.url));
+    // 🔥 Si la ruta es pública, permitir acceso sin token
+    if (publicRoutes.some(route => path === route || path.startsWith(route + "/"))) {
+      return NextResponse.next();
     }
 
-    // 🔥 (Opcional) Verificación de roles por ruta
-    // Ejemplo: solo FUNDADOR puede acceder a /dashboard
+    // 🔥 Si no hay token y no es pública, redirigir a login
+    if (!token) {
+      const loginUrl = new URL("/login", req.url);
+      loginUrl.searchParams.set("callbackUrl", req.nextUrl.pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    // 🔥 (Opcional) Verificación de roles
     // const role = token.role as string;
     // if (path.startsWith("/dashboard") && role !== "FUNDADOR") {
     //   return NextResponse.redirect(new URL("/unauthorized", req.url));
@@ -24,7 +46,7 @@ export default withAuth(
   {
     callbacks: {
       authorized: ({ token }) => {
-        // ✅ Solo autoriza si hay un token válido
+        // Solo autoriza si hay token (esto es para rutas que no pasaron el filtro anterior)
         return !!token;
       },
     },
@@ -34,30 +56,11 @@ export default withAuth(
   }
 );
 
-// 🔥 RUTAS PROTEGIDAS: incluye API y todas las rutas del dashboard
+// 🔥 El matcher ahora aplica a todas las rutas
+// La lógica de exclusión está dentro del middleware
 export const config = {
   matcher: [
-    // Rutas del dashboard
-    "/dashboard/:path*",
-    "/obras/:path*",
-    "/valorizaciones/:path*",
-    "/facturacion/:path*",
-    "/personal/:path*",
-    "/inventario/:path*",
-    "/compras/:path*",
-    "/produccion/:path*",
-    "/costos/:path*",
-    "/indicadores/:path*",
-    "/fotos/:path*",
-    "/alertas/:path*",
-    "/reportes/:path*",
-    "/documentos/:path*",
-    "/calidad/:path*",
-    "/cotizaciones/:path*",
-    "/reuniones/:path*",
-    "/finanzas/:path*",
-
-    // 🔥 Rutas de API (requieren autenticación)
-    "/api/:path*",
+    // Aplica a todas las rutas excepto archivos estáticos
+    "/((?!_next/static|_next/image|favicon.ico|img|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
