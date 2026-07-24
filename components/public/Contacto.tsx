@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import Swal from "sweetalert2";
 import {
   Building2,
   MapPin,
@@ -203,9 +204,27 @@ export default function Contacto() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
+    // 🔥 Validación frontend rápida
     if (!formState.nombre || !formState.email || !formState.asunto || !formState.mensaje) {
-      alert('Por favor, completa todos los campos obligatorios.');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Campos incompletos',
+        text: 'Por favor, completa todos los campos obligatorios.',
+        confirmButtonColor: '#FF5A1F',
+      });
+      return;
+    }
+
+    // 🔥 Validación de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formState.email)) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Correo inválido',
+        text: 'Por favor, ingresa un correo electrónico válido (ej. usuario@dominio.com).',
+        confirmButtonColor: '#FF5A1F',
+      });
       return;
     }
 
@@ -223,14 +242,39 @@ export default function Contacto() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Error al enviar el mensaje');
+        // 🔥 Manejar errores de validación de Zod
+        if (response.status === 400 && data.errors) {
+          const errorMessages = data.errors.map((err: any) => err.message).join('\n');
+          throw new Error(errorMessages);
+        } else if (response.status === 429) {
+          throw new Error(data.error || 'Demasiados mensajes. Espera una hora.');
+        } else {
+          throw new Error(data.error || 'Error al enviar el mensaje.');
+        }
       }
+
+      // ✅ Éxito
+      Swal.fire({
+        icon: 'success',
+        title: '¡Mensaje enviado!',
+        text: 'Te responderemos en menos de 24 horas.',
+        confirmButtonColor: '#FF5A1F',
+        timer: 5000,
+        timerProgressBar: true,
+      });
 
       setEnviado(true);
       setFormState({ nombre: '', email: '', telefono: '', asunto: '', mensaje: '' });
       setTimeout(() => setEnviado(false), 5000);
+
     } catch (error: any) {
-      alert(error.message || 'Ocurrió un error al enviar el mensaje. Inténtalo nuevamente.');
+      // 🔥 Mostrar error con SweetAlert
+      Swal.fire({
+        icon: 'error',
+        title: 'Error al enviar',
+        text: error.message || 'Ocurrió un error. Inténtalo nuevamente.',
+        confirmButtonColor: '#FF5A1F',
+      });
     } finally {
       setCargando(false);
     }
