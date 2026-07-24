@@ -1,15 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { contactRateLimit } from '@/lib/rate-limit';
+import { validateBody } from '@/lib/validate';
+import { contactoSchema } from '@/lib/validations';
 
-// 🔥 Inicializar Resend con la API Key desde .env
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: NextRequest) {
   try {
-    // ============================================================
-    // 🔥 1. RATE LIMITING (protección contra spam)
-    // ============================================================
+    // 1. Rate limiting
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0] ?? 'anonymous';
     const { success, limit, reset, remaining } = await contactRateLimit.limit(ip);
 
@@ -17,7 +16,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { 
           error: 'Has enviado demasiados mensajes. Por favor, espera una hora antes de intentar nuevamente.',
-          retryAfter: Math.ceil((reset - Date.now()) / 1000 / 60), // minutos restantes
+          retryAfter: Math.ceil((reset - Date.now()) / 1000 / 60),
         },
         { 
           status: 429,
@@ -31,53 +30,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ============================================================
-    // 2. VALIDACIÓN DE DATOS
-    // ============================================================
-    const body = await req.json();
-    const { nombre, email, telefono, asunto, mensaje } = body;
+    // 2. Validación con Zod
+    const validated = await validateBody(req, contactoSchema);
+    if (validated instanceof NextResponse) return validated;
 
-    // 🔥 Validar campos requeridos
-    if (!nombre || !email || !asunto || !mensaje) {
-      return NextResponse.json(
-        { error: 'Todos los campos obligatorios deben estar completos' },
-        { status: 400 }
-      );
-    }
+    const { nombre, email, telefono, asunto, mensaje } = validated;
 
-    // 🔥 Validar longitud mínima
-    if (nombre.length < 2) {
-      return NextResponse.json(
-        { error: 'El nombre debe tener al menos 2 caracteres' },
-        { status: 400 }
-      );
-    }
-
-    if (mensaje.length < 10) {
-      return NextResponse.json(
-        { error: 'El mensaje debe tener al menos 10 caracteres' },
-        { status: 400 }
-      );
-    }
-
-    // 🔥 Validar formato de email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return NextResponse.json(
-        { error: 'El correo electrónico no es válido' },
-        { status: 400 }
-      );
-    }
-
-    // 🔥 Sanitizar datos (evitar XSS)
+    // 3. Sanitizar (capa extra de seguridad)
     const sanitizedNombre = nombre.replace(/[<>]/g, '');
     const sanitizedAsunto = asunto.replace(/[<>]/g, '');
     const sanitizedMensaje = mensaje.replace(/[<>]/g, '');
 
-    // ============================================================
-    // 3. CORREO PARA EL CLIENTE (confirmación de recepción)
-    // 🔥 DOMINIO VERIFICADO: contacto@grupoludier.com
-    // ============================================================
+    // 4. Correo al cliente
     const clientEmail = await resend.emails.send({
       from: 'LUDIER <contacto@grupoludier.com>',
       to: email,
@@ -113,10 +77,7 @@ export async function POST(req: NextRequest) {
       `,
     });
 
-    // ============================================================
-    // 4. CORREO PARA LA EMPRESA (notificación de nuevo mensaje)
-    // 🔥 DOMINIO VERIFICADO: contacto@grupoludier.com
-    // ============================================================
+    // 5. Correo a la empresa
     const empresaEmail = await resend.emails.send({
       from: 'LUDIER <contacto@grupoludier.com>',
       to: 'ernestoarroyo1969@hotmail.com',
@@ -162,15 +123,15 @@ export async function POST(req: NextRequest) {
       `,
     });
 
-    console.log('✅ Correo enviado al cliente:', clientEmail);
-    console.log('✅ Correo enviado a la empresa:', empresaEmail);
+    console.log('✅ Correo al cliente:', clientEmail);
+    console.log('✅ Correo a la empresa:', empresaEmail);
 
     return NextResponse.json(
       { message: 'Mensaje enviado correctamente' },
       { status: 200 }
     );
   } catch (error) {
-    console.error('❌ Error al enviar correos:', error);
+    console.error('❌ Error en contacto:', error);
     return NextResponse.json(
       { error: 'Error al enviar el mensaje. Inténtalo nuevamente.' },
       { status: 500 }
