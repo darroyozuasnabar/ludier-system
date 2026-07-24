@@ -5,6 +5,8 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import { loginRateLimit } from "@/lib/rate-limit";
 import { headers } from "next/headers";
+import { loginSchema } from "@/lib/validations";
+import { z } from "zod";
 
 const handler = NextAuth({
   adapter: PrismaAdapter(prisma),
@@ -16,33 +18,33 @@ const handler = NextAuth({
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        // 🔥 Rate limiting
-        const headersList = await headers();
-        const ip = headersList.get("x-forwarded-for")?.split(",")[0] ?? "anonymous";
-        const { success } = await loginRateLimit.limit(ip);
-        if (!success) {
-          throw new Error("Demasiados intentos de inicio de sesión. Espera 5 minutos.");
-        }
-
-        console.log("📍 authorize iniciado");
-        console.log("📧 Email recibido:", credentials?.email);
-        console.log("🔑 Password recibida:", credentials?.password ? "****" : "no");
-
-        if (!credentials?.email || !credentials?.password) {
-          console.log("❌ Credenciales faltantes");
-          return null;
-        }
-
         try {
-          console.log("🔍 Buscando usuario en BD...");
+          // 1. Rate limiting
+          const headersList = await headers();
+          const ip = headersList.get("x-forwarded-for")?.split(",")[0] ?? "anonymous";
+          const { success } = await loginRateLimit.limit(ip);
+          if (!success) {
+            throw new Error("Demasiados intentos de inicio de sesión. Espera 5 minutos.");
+          }
+
+          // 2. Validar con Zod
+          const validated = loginSchema.parse(credentials);
+
+          console.log("📍 authorize iniciado");
+          console.log("📧 Email recibido:", validated.email);
+          console.log("🔑 Password recibida:", validated.password ? "****" : "no");
+
+          // 3. Buscar usuario
           const user = await prisma.user.findUnique({
-            where: { email: credentials.email },
+            where: { email: validated.email },
           });
 
           console.log("👤 Usuario encontrado:", user ? user.email : "NO ENCONTRADO");
           console.log("📝 Rol del usuario:", user?.role);
 
-          if (user && credentials.password === "admin123") {
+          // 4. Verificar contraseña (temporal: admin123)
+          // ⚠️ EN PRODUCCIÓN: comparar con bcrypt
+          if (user && validated.password === "admin123") {
             console.log("✅ Autenticación exitosa");
             return {
               id: user.id,
@@ -54,7 +56,11 @@ const handler = NextAuth({
           console.log("❌ Contraseña incorrecta o usuario no existe");
           return null;
         } catch (error) {
-          console.error("❌ Error en la base de datos:", error);
+          if (error instanceof z.ZodError) {
+            console.log("❌ Validación fallida:", error.errors);
+            return null; // Credenciales inválidas
+          }
+          console.error("❌ Error en authorize:", error);
           return null;
         }
       }
