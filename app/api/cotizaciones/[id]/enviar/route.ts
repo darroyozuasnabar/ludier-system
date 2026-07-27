@@ -1,17 +1,53 @@
+// app/api/cotizaciones/[id]/enviar/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { createBrowserClient } from '@supabase/ssr';
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
+import { rateLimit } from '@/lib/rate-limit';
+import { z } from 'zod';
 
-const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+// 🔥 Esquema de validación (aunque no recibe body, lo dejamos para futuras extensiones)
+const enviarSchema = z.object({
+  // Si se necesita algún campo en el futuro
+}).optional();
+
+const createSupabaseClient = async () => {
+  const cookieStore = await cookies();
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value;
+        },
+        set(name: string, value: string, options: any) {
+          cookieStore.set(name, value, options);
+        },
+        remove(name: string, options: any) {
+          cookieStore.set(name, '', { ...options, maxAge: 0 });
+        },
+      },
+    }
+  );
+};
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }  // 🔥 Promise
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;  // 🔥 Await params
+    // 🔥 1. Rate limiting
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0] ?? 'anonymous';
+    const { success } = await rateLimit.limit(ip);
+    if (!success) {
+      return NextResponse.json(
+        { error: 'Demasiadas solicitudes. Intenta nuevamente en unos segundos.' },
+        { status: 429 }
+      );
+    }
+
+    const { id } = await params;
+    const supabase = await createSupabaseClient();
 
     // Verificar que la cotización existe
     const { data: cotizacion, error: findError } = await supabase

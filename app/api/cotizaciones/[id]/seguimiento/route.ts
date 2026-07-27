@@ -1,6 +1,18 @@
+// app/api/cotizaciones/[id]/seguimiento/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { rateLimit } from '@/lib/rate-limit';
+import { z } from 'zod';
+
+// 🔥 Esquema de validación para seguimiento
+const seguimientoSchema = z.object({
+  tipo: z.enum(['NOTA', 'EMAIL', 'LLAMADA', 'REUNION']).default('NOTA'),
+  descripcion: z.string().min(3, "La descripción debe tener al menos 3 caracteres").max(500),
+  proximo_contacto: z.string().refine((val) => !isNaN(Date.parse(val)), {
+    message: "Fecha de próximo contacto inválida",
+  }).optional().nullable(),
+});
 
 const createSupabaseClient = async () => {
   const cookieStore = await cookies();
@@ -28,17 +40,24 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
-    const body = await req.json();
-    const { tipo, descripcion, proximo_contacto } = body;
-    const supabase = await createSupabaseClient();
-
-    if (!descripcion) {
+    // 🔥 1. Rate limiting
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0] ?? 'anonymous';
+    const { success } = await rateLimit.limit(ip);
+    if (!success) {
       return NextResponse.json(
-        { success: false, error: 'La descripción es requerida' },
-        { status: 400 }
+        { error: 'Demasiadas solicitudes. Intenta nuevamente en unos segundos.' },
+        { status: 429 }
       );
     }
+
+    const { id } = await params;
+    const body = await req.json();
+
+    // 🔥 2. Validar con Zod
+    const validated = seguimientoSchema.parse(body);
+    const { tipo, descripcion, proximo_contacto } = validated;
+
+    const supabase = await createSupabaseClient();
 
     const { data, error } = await supabase
       .from('CotizacionSeguimiento')
@@ -69,6 +88,12 @@ export async function POST(
       message: 'Seguimiento agregado exitosamente'
     });
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { success: false, error: 'Datos inválidos', details: error.errors },
+        { status: 400 }
+      );
+    }
     console.error('❌ Error en POST /api/cotizaciones/[id]/seguimiento:', error);
     return NextResponse.json(
       { success: false, error: String(error) },

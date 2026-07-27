@@ -2,6 +2,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { rateLimit } from '@/lib/rate-limit';
+import { z } from 'zod';
+
+// 🔥 Esquema de validación para conversión
+const convertirSchema = z.object({
+  project_name: z.string().min(3, "El nombre del proyecto debe tener al menos 3 caracteres").max(150).optional(),
+  fecha_inicio: z.string().refine((val) => !isNaN(Date.parse(val)), {
+    message: "Fecha de inicio inválida",
+  }).optional(),
+  fecha_fin_estimada: z.string().refine((val) => !isNaN(Date.parse(val)), {
+    message: "Fecha de fin estimada inválida",
+  }).optional(),
+});
 
 const createSupabaseClient = async () => {
   const cookieStore = await cookies();
@@ -29,9 +42,23 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // 🔥 1. Rate limiting
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0] ?? 'anonymous';
+    const { success } = await rateLimit.limit(ip);
+    if (!success) {
+      return NextResponse.json(
+        { error: 'Demasiadas solicitudes. Intenta nuevamente en unos segundos.' },
+        { status: 429 }
+      );
+    }
+
     const { id } = await params;
     const body = await req.json();
-    const { project_name, fecha_inicio, fecha_fin_estimada } = body;
+
+    // 🔥 2. Validar con Zod
+    const validated = convertirSchema.parse(body);
+    const { project_name, fecha_inicio, fecha_fin_estimada } = validated;
+
     const supabase = await createSupabaseClient();
 
     // 1. Obtener la cotización con sus items
@@ -132,6 +159,12 @@ export async function POST(
       message: 'Cotización convertida a obra exitosamente'
     });
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { success: false, error: 'Datos inválidos', details: error.errors },
+        { status: 400 }
+      );
+    }
     console.error('❌ Error en POST /api/cotizaciones/[id]/convertir:', error);
     return NextResponse.json(
       { success: false, error: String(error) },
