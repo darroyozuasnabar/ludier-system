@@ -7,8 +7,10 @@ import { getToken } from "next-auth/jwt";
 // 🔥 CONFIGURACIÓN DE RUTAS PÚBLICAS
 // ============================================================
 
-// Rutas públicas exactas (NO requieren autenticación)
-const publicRoutes = [
+// TODAS las rutas que comiencen con estos prefijos son PÚBLICAS
+// (no requieren autenticación)
+const PUBLIC_PREFIXES = [
+  // Páginas públicas del sitio
   "/",
   "/login",
   "/servicios",
@@ -18,20 +20,19 @@ const publicRoutes = [
   "/faq",
   "/blog",
   "/testimonios",
+  
+  // 🔥 IMPORTANTE: Todas las rutas de NextAuth DEBEN ser públicas
   "/api/auth",
   "/api/contacto",
+  "/api/cotizaciones",
 ];
 
-// Prefijos públicos (cualquier ruta que empiece con estos prefijos es pública)
-const publicPrefixes = [
+// Prefijos con sub-rutas (cualquier ruta que empiece con esto es pública)
+const PUBLIC_PATH_PREFIXES = [
   "/servicios/",
   "/proyectos/",
   "/blog/",
-];
-
-// Rutas API públicas (solo GET - lectura pública)
-const publicApiRoutes = [
-  "/api/cotizaciones",
+  "/api/auth/",      // 👈 ¡ESTA LÍNEA ES CLAVE! Permite /api/auth/session, /api/auth/csrf, etc.
 ];
 
 // ============================================================
@@ -41,53 +42,54 @@ const publicApiRoutes = [
 export async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
 
-  // ─── 1. Verificar si es una ruta pública exacta ───
-  if (publicRoutes.includes(path)) {
+  // ─── 1. VERIFICAR SI ES UNA RUTA PÚBLICA ───
+  // Verificar coincidencia exacta con PUBLIC_PREFIXES
+  const isExactPublic = PUBLIC_PREFIXES.some(prefix => path === prefix);
+  
+  // Verificar si empieza con algún prefijo público
+  const isPathPublic = PUBLIC_PATH_PREFIXES.some(prefix => path.startsWith(prefix));
+
+  // Si es pública, permitir acceso inmediato (sin verificar token)
+  if (isExactPublic || isPathPublic) {
     return NextResponse.next();
   }
 
-  // ─── 2. Verificar si es un prefijo público ───
-  if (publicPrefixes.some(prefix => path.startsWith(prefix))) {
-    return NextResponse.next();
-  }
-
-  // ─── 3. Verificar si es una API pública (solo GET) ───
-  const isPublicApi = publicApiRoutes.some(route => {
-    if (path === route) return true;
-    if (path.startsWith(route + "/")) {
-      // Si es una ruta con ID (ej. /api/cotizaciones/123)
-      // Permitir solo GET (lectura pública)
-      return req.method === "GET";
-    }
-    return false;
-  });
-
-  if (isPublicApi) {
-    return NextResponse.next();
-  }
-
-  // ─── 4. Obtener token de sesión ───
+  // ─── 2. OBTENER TOKEN DE SESIÓN ───
   const token = await getToken({ 
     req, 
     secret: process.env.NEXTAUTH_SECRET 
   });
 
-  // ─── 5. Si no hay token, redirigir a login ───
+  // ─── 3. SI NO HAY TOKEN, REDIRIGIR A LOGIN ───
   if (!token) {
     const loginUrl = new URL("/login", req.url);
     loginUrl.searchParams.set("callbackUrl", path);
     
-    // Usar status 303 para convertir POST a GET (evita errores 405)
+    // Usamos status 303 para convertir POST a GET (evita errores 405)
     return NextResponse.redirect(loginUrl, { status: 303 });
   }
 
-  // ─── 6. (Opcional) Verificación de roles ───
-  // const role = token.role as string;
-  // if (path.startsWith("/dashboard") && role !== "FUNDADOR") {
-  //   return NextResponse.redirect(new URL("/unauthorized", req.url));
-  // }
+  // ─── 4. VERIFICACIÓN DE ROLES ───
+  const role = token.role as string;
+  
+  // Si es ingeniero de campo u operativo, bloquear módulos financieros
+  if (role === "FIELD_ENGINEER" || role === "OPERATIVO") {
+    const blockedPaths = [
+      "/costos",
+      "/finanzas", 
+      "/reportes",
+      "/indicadores",
+      "/facturacion",
+      "/dashboard",
+    ];
+    
+    if (blockedPaths.some(p => path.startsWith(p))) {
+      // Redirigir a una página de "No autorizado"
+      return NextResponse.redirect(new URL("/unauthorized", req.url));
+    }
+  }
 
-  // ─── 7. Si todo está bien, continuar ───
+  // ─── 5. SI TODO ESTÁ BIEN, CONTINUAR ───
   return NextResponse.next();
 }
 
@@ -97,7 +99,7 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    // Aplica a todas las rutas excepto archivos estáticos
+    // Aplica a todas las rutas EXCEPTO archivos estáticos
     "/((?!_next/static|_next/image|favicon.ico|img|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
