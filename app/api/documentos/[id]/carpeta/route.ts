@@ -1,7 +1,13 @@
+// app/api/documentos/[id]/carpeta/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { rateLimit } from '@/lib/rate-limit';
+import { z } from 'zod';
 
+// ============================================================
+// 🔥 CLIENTE SUPABASE
+// ============================================================
 const createSupabaseClient = async () => {
   const cookieStore = await cookies();
   return createServerClient(
@@ -23,7 +29,16 @@ const createSupabaseClient = async () => {
   );
 };
 
-// GET: Obtener carpetas de un documento
+// ============================================================
+// 🔥 ESQUEMA ZOD
+// ============================================================
+const carpetaSchema = z.object({
+  carpeta_id: z.string().uuid("ID de carpeta inválido"),
+});
+
+// ============================================================
+// 📌 GET - Obtener carpetas de un documento
+// ============================================================
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -78,23 +93,32 @@ export async function GET(
   }
 }
 
-// POST: Asignar documento a una carpeta
+// ============================================================
+// 📌 POST - Asignar documento a una carpeta (con Zod + Rate Limiting)
+// ============================================================
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
-    const body = await req.json();
-    const { carpeta_id } = body;
-    const supabase = await createSupabaseClient();
-
-    if (!carpeta_id) {
+    // 🔥 Rate Limiting
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0] ?? 'anonymous';
+    const { success } = await rateLimit.limit(ip);
+    if (!success) {
       return NextResponse.json(
-        { success: false, error: 'carpeta_id es requerido' },
-        { status: 400 }
+        { error: 'Demasiadas solicitudes. Intenta nuevamente en unos segundos.' },
+        { status: 429 }
       );
     }
+
+    const { id } = await params;
+    const body = await req.json();
+
+    // 🔥 Validar con Zod
+    const validated = carpetaSchema.parse(body);
+    const { carpeta_id } = validated;
+
+    const supabase = await createSupabaseClient();
 
     // Verificar que el documento existe
     const { data: documento, error: docError } = await supabase
@@ -157,6 +181,12 @@ export async function POST(
       message: 'Documento asignado a la carpeta exitosamente'
     });
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { success: false, error: 'Datos inválidos', details: error.errors },
+        { status: 400 }
+      );
+    }
     console.error('❌ Error en POST /api/documentos/[id]/carpeta:', error);
     return NextResponse.json(
       { success: false, error: String(error) },
@@ -165,16 +195,27 @@ export async function POST(
   }
 }
 
-// DELETE: Remover documento de una carpeta
+// ============================================================
+// 📌 DELETE - Remover documento de una carpeta (con Rate Limiting)
+// ============================================================
 export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // 🔥 Rate Limiting
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0] ?? 'anonymous';
+    const { success } = await rateLimit.limit(ip);
+    if (!success) {
+      return NextResponse.json(
+        { error: 'Demasiadas solicitudes. Intenta nuevamente en unos segundos.' },
+        { status: 429 }
+      );
+    }
+
     const { id } = await params;
     const { searchParams } = new URL(req.url);
     const carpeta_id = searchParams.get('carpeta_id');
-    const supabase = await createSupabaseClient();
 
     if (!carpeta_id) {
       return NextResponse.json(
@@ -182,6 +223,8 @@ export async function DELETE(
         { status: 400 }
       );
     }
+
+    const supabase = await createSupabaseClient();
 
     const { error } = await supabase
       .from('DocumentoCarpeta')

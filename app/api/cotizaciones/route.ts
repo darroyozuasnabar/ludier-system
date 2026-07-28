@@ -1,12 +1,72 @@
+// app/api/cotizaciones/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { createBrowserClient } from '@supabase/ssr';
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
+import { rateLimit } from '@/lib/rate-limit';
+import { z } from 'zod';
 
-const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+// ============================================================
+// 🔥 CLIENTE SUPABASE
+// ============================================================
+const createSupabaseClient = async () => {
+  const cookieStore = await cookies();
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value;
+        },
+        set(name: string, value: string, options: any) {
+          cookieStore.set(name, value, options);
+        },
+        remove(name: string, options: any) {
+          cookieStore.set(name, '', { ...options, maxAge: 0 });
+        },
+      },
+    }
+  );
+};
 
-// GET: Listar cotizaciones con filtros (INCLUYENDO ITEMS)
+// ============================================================
+// 🔥 ESQUEMA ZOD PARA COTIZACIONES
+// ============================================================
+const cotizacionItemSchema = z.object({
+  descripcion: z.string().min(3, "La descripción es requerida"),
+  cantidad: z.number().positive("La cantidad debe ser mayor a 0"),
+  unidad: z.string().default("UND"),
+  precio_unitario: z.number().positive("El precio unitario debe ser mayor a 0"),
+  descuento: z.number().min(0).default(0),
+  orden: z.number().int().min(0).default(0),
+});
+
+const cotizacionSchema = z.object({
+  project_id: z.string().uuid().nullable().optional(),
+  cliente: z.string().min(2, "El cliente es requerido").max(150),
+  cliente_ruc: z.string().regex(/^\d{11}$/, "El RUC debe tener 11 dígitos").optional().nullable(),
+  cliente_contacto: z.string().max(100).optional().nullable(),
+  cliente_telefono: z.string().max(20).optional().nullable(),
+  cliente_email: z.string().email("Email inválido").optional().nullable(),
+  cliente_direccion: z.string().max(200).optional().nullable(),
+  fecha_emision: z.string().refine((val) => !isNaN(Date.parse(val)), {
+    message: "Fecha de emisión inválida",
+  }).optional(),
+  fecha_validez: z.string().refine((val) => !isNaN(Date.parse(val)), {
+    message: "Fecha de validez inválida",
+  }).optional().nullable(),
+  estado: z.enum(['BORRADOR', 'ENVIADA', 'VISTA', 'APROBADA', 'RECHAZADA', 'EXPIRADA', 'CONVERTIDA_A_OBRA']).default('BORRADOR'),
+  items: z.array(cotizacionItemSchema).min(1, "Agrega al menos un item"),
+  condiciones: z.string().max(1000).optional().nullable(),
+  notas: z.string().max(1000).optional().nullable(),
+  creado_por: z.string().uuid().optional().nullable(),
+  moneda: z.enum(['PEN', 'USD']).default('PEN'),
+  tipo_cambio: z.number().positive().optional().nullable(),
+});
+
+// ============================================================
+// 📌 GET - Listar cotizaciones
+// ============================================================
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
@@ -15,6 +75,8 @@ export async function GET(req: NextRequest) {
     const fechaInicio = searchParams.get('fechaInicio');
     const fechaFin = searchParams.get('fechaFin');
     const limit = parseInt(searchParams.get('limit') || '50');
+
+    const supabase = await createSupabaseClient();
 
     let query = supabase
       .from('Cotizacion')
@@ -65,7 +127,6 @@ export async function GET(req: NextRequest) {
 
     if (error) throw error;
 
-    // Asegurar que items siempre sea un array
     const dataWithItems = data?.map((cotizacion: any) => ({
       ...cotizacion,
       items: cotizacion.items || []
@@ -85,10 +146,25 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// POST: Crear nueva cotización (CON CORRECCIÓN DE NÚMEROS)
+// ============================================================
+// 📌 POST - Crear cotización (con Zod + Rate Limiting)
+// ============================================================
 export async function POST(req: NextRequest) {
   try {
+    // 🔥 1. Rate Limiting
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0] ?? 'anonymous';
+    const { success } = await rateLimit.limit(ip);
+    if (!success) {
+      return NextResponse.json(
+        { error: 'Demasiadas solicitudes. Intenta nuevamente en unos segundos.' },
+        { status: 429 }
+      );
+    }
+
+    // 🔥 2. Validar con Zod
     const body = await req.json();
+    const validated = cotizacionSchema.parse(body);
+
     const {
       project_id,
       cliente,
@@ -106,45 +182,22 @@ export async function POST(req: NextRequest) {
       creado_por,
       moneda,
       tipo_cambio
-    } = body;
+    } = validated;
 
-    // Validar campos requeridos
-    if (!cliente) {
-      return NextResponse.json(
-        { success: false, error: 'El cliente es requerido' },
-        { status: 400 }
-      );
-    }
+    const supabase = await createSupabaseClient();
 
-    if (!items || items.length === 0) {
-      return NextResponse.json(
-        { success: false, error: 'Agrega al menos un item' },
-        { status: 400 }
-      );
-    }
-
-    // Calcular totales con números
+    // Calcular totales
     let subtotal = 0;
-    const itemsCalculados = items.map((item: any) => {
-      const cantidad = Number(item.cantidad) || 0;
-      const precioUnitario = Number(item.precio_unitario) || 0;
-      const descuento = Number(item.descuento) || 0;
-      const total = (cantidad * precioUnitario) - descuento;
+    const itemsCalculados = items.map((item) => {
+      const total = (item.cantidad * item.precio_unitario) - (item.descuento || 0);
       subtotal += total;
-      
-      return {
-        ...item,
-        cantidad,
-        precio_unitario: precioUnitario,
-        descuento,
-        total
-      };
+      return { ...item, total };
     });
 
     const igv = subtotal * 0.18;
     const total = subtotal + igv;
 
-    // Crear cabecera de cotización
+    // Crear cotización
     const { data: cotizacion, error: cotizacionError } = await supabase
       .from('Cotizacion')
       .insert({
@@ -173,15 +226,15 @@ export async function POST(req: NextRequest) {
     if (cotizacionError) throw cotizacionError;
 
     // Crear items
-    const itemsWithCotizacionId = itemsCalculados.map((item: any) => ({
+    const itemsWithCotizacionId = itemsCalculados.map((item, index) => ({
       cotizacion_id: cotizacion.id,
       descripcion: item.descripcion,
-      cantidad: Number(item.cantidad) || 0,
+      cantidad: item.cantidad,
       unidad: item.unidad || 'UND',
-      precio_unitario: Number(item.precio_unitario) || 0,
-      descuento: Number(item.descuento) || 0,
-      total: Number(item.total) || 0,
-      orden: Number(item.orden) || 0
+      precio_unitario: item.precio_unitario,
+      descuento: item.descuento || 0,
+      total: item.total,
+      orden: index + 1
     }));
 
     const { error: itemsError } = await supabase
@@ -190,7 +243,6 @@ export async function POST(req: NextRequest) {
 
     if (itemsError) {
       console.error('❌ Error insertando items:', itemsError);
-      // Si falla, eliminar la cotización creada
       await supabase.from('Cotizacion').delete().eq('id', cotizacion.id);
       throw itemsError;
     }
@@ -201,6 +253,12 @@ export async function POST(req: NextRequest) {
       message: 'Cotización creada exitosamente'
     });
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { success: false, error: 'Datos inválidos', details: error.errors },
+        { status: 400 }
+      );
+    }
     console.error('❌ Error en POST /api/cotizaciones:', error);
     return NextResponse.json(
       { success: false, error: String(error) },

@@ -1,7 +1,13 @@
+// app/api/documentos/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { rateLimit } from '@/lib/rate-limit';
+import { z } from 'zod';
 
+// ============================================================
+// 🔥 CLIENTE SUPABASE
+// ============================================================
 const createSupabaseClient = async () => {
   const cookieStore = await cookies();
   return createServerClient(
@@ -23,7 +29,20 @@ const createSupabaseClient = async () => {
   );
 };
 
-// GET: Obtener documento por ID
+// ============================================================
+// 🔥 ESQUEMA ZOD PARA DOCUMENTOS
+// ============================================================
+const documentoSchema = z.object({
+  nombre: z.string().min(2, "El nombre es requerido").max(150),
+  descripcion: z.string().max(500).optional(),
+  tipo: z.string().max(50).optional(),
+  proyecto_id: z.string().uuid().optional().nullable(),
+  etiquetas: z.string().optional(),
+});
+
+// ============================================================
+// 📌 GET - Obtener documento por ID
+// ============================================================
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -73,23 +92,39 @@ export async function GET(
   }
 }
 
-// PUT: Actualizar documento
+// ============================================================
+// 📌 PUT - Actualizar documento (con Zod + Rate Limiting)
+// ============================================================
 export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // 🔥 1. Rate Limiting
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0] ?? 'anonymous';
+    const { success } = await rateLimit.limit(ip);
+    if (!success) {
+      return NextResponse.json(
+        { error: 'Demasiadas solicitudes. Intenta nuevamente en unos segundos.' },
+        { status: 429 }
+      );
+    }
+
     const { id } = await params;
     const body = await req.json();
-    const { nombre, descripcion, tipo, proyecto_id, etiquetas } = body;
+
+    // 🔥 2. Validar con Zod
+    const validated = documentoSchema.parse(body);
+    const { nombre, descripcion, tipo, proyecto_id, etiquetas } = validated;
+
     const supabase = await createSupabaseClient();
 
     const { data, error } = await supabase
       .from('Documento')
       .update({
         nombre,
-        descripcion,
-        tipo,
+        descripcion: descripcion || null,
+        tipo: tipo || null,
         proyecto_id: proyecto_id || null,
         etiquetas: etiquetas ? etiquetas.split(',').map((e: string) => e.trim()) : [],
         fecha_actualizacion: new Date().toISOString()
@@ -114,6 +149,12 @@ export async function PUT(
       message: 'Documento actualizado exitosamente'
     });
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { success: false, error: 'Datos inválidos', details: error.errors },
+        { status: 400 }
+      );
+    }
     console.error('❌ Error en PUT /api/documentos/[id]:', error);
     return NextResponse.json(
       { success: false, error: String(error) },
@@ -122,12 +163,24 @@ export async function PUT(
   }
 }
 
-// DELETE: Eliminar documento (soft delete)
+// ============================================================
+// 📌 DELETE - Eliminar documento (con Rate Limiting)
+// ============================================================
 export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // 🔥 Rate Limiting
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0] ?? 'anonymous';
+    const { success } = await rateLimit.limit(ip);
+    if (!success) {
+      return NextResponse.json(
+        { error: 'Demasiadas solicitudes. Intenta nuevamente en unos segundos.' },
+        { status: 429 }
+      );
+    }
+
     const { id } = await params;
     const supabase = await createSupabaseClient();
 
