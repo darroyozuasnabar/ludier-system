@@ -1,19 +1,62 @@
+// app/api/fotos/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { createBrowserClient } from '@supabase/ssr';
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
+import { rateLimit } from '@/lib/rate-limit';
 import { randomUUID } from 'crypto';
+import { z } from 'zod';
 
-const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+// ============================================================
+// 🔥 CLIENTE SUPABASE
+// ============================================================
+const createSupabaseClient = async () => {
+  const cookieStore = await cookies();
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value;
+        },
+        set(name: string, value: string, options: any) {
+          cookieStore.set(name, value, options);
+        },
+        remove(name: string, options: any) {
+          cookieStore.set(name, '', { ...options, maxAge: 0 });
+        },
+      },
+    }
+  );
+};
 
-// GET: Listar fotos
+// ============================================================
+// 🔥 ESQUEMA ZOD PARA FOTOS
+// ============================================================
+const fotoSchema = z.object({
+  nombre: z.string().min(2, "El nombre es requerido").max(150).optional(),
+  descripcion: z.string().max(500).optional(),
+  categoria: z.enum(['AVANCE', 'CALIDAD', 'SEGURIDAD', 'INSTALACION', 'FABRICACION', 'ACABADO', 'REUNION', 'OTRO']).default('OTRO'),
+  proyecto_id: z.string().uuid().optional().nullable(),
+  etiquetas: z.string().optional(),
+  ubicacion: z.string().max(200).optional().nullable(),
+  fecha_tomada: z.string().refine((val) => !isNaN(Date.parse(val)), {
+    message: "Fecha inválida",
+  }).optional().nullable(),
+  subido_por: z.string().uuid().optional().nullable(),
+});
+
+// ============================================================
+// 📌 GET - Listar fotos
+// ============================================================
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const categoria = searchParams.get('categoria');
     const proyectoId = searchParams.get('proyectoId');
     const search = searchParams.get('search');
+
+    const supabase = await createSupabaseClient();
 
     let query = supabase
       .from('Foto')
@@ -63,9 +106,21 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// POST: Subir foto
+// ============================================================
+// 📌 POST - Subir foto (con Zod + Rate Limiting)
+// ============================================================
 export async function POST(req: NextRequest) {
   try {
+    // 🔥 1. Rate Limiting
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0] ?? 'anonymous';
+    const { success } = await rateLimit.limit(ip);
+    if (!success) {
+      return NextResponse.json(
+        { error: 'Demasiadas solicitudes. Intenta nuevamente en unos segundos.' },
+        { status: 429 }
+      );
+    }
+
     const formData = await req.formData();
     
     const file = formData.get('file') as File;
@@ -77,6 +132,18 @@ export async function POST(req: NextRequest) {
     const ubicacion = formData.get('ubicacion') as string;
     const fechaTomada = formData.get('fecha_tomada') as string;
     const subidoPor = formData.get('subido_por') as string;
+
+    // 🔥 2. Validar con Zod
+    const validated = fotoSchema.parse({
+      nombre,
+      descripcion,
+      categoria,
+      proyecto_id: proyectoId,
+      etiquetas,
+      ubicacion,
+      fecha_tomada: fechaTomada,
+      subido_por: subidoPor,
+    });
 
     if (!file) {
       return NextResponse.json(
@@ -92,6 +159,8 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+
+    const supabase = await createSupabaseClient();
 
     const extension = file.name.split('.').pop();
     const fileName = `${randomUUID()}.${extension}`;
@@ -117,7 +186,7 @@ export async function POST(req: NextRequest) {
 
     console.log('✅ Archivo subido a storage:', uploadData);
 
-    // 🔧 OBTENER URL PÚBLICA COMPLETA
+    // Obtener URL pública completa
     const { data: urlData } = supabase.storage
       .from('fotos')
       .getPublicUrl(filePath);
@@ -125,21 +194,21 @@ export async function POST(req: NextRequest) {
     const publicUrl = urlData?.publicUrl;
     console.log('🔗 URL pública:', publicUrl);
 
-    // Guardar en base de datos con URL pública
+    // Guardar en base de datos
     const { data: fotoData, error: fotoError } = await supabase
       .from('Foto')
       .insert({
-        nombre: nombre || file.name,
-        descripcion: descripcion || null,
-        categoria: categoria || 'OTRO',
-        proyecto_id: proyectoId || null,
-        url: publicUrl, // 🔧 URL pública completa
+        nombre: validated.nombre || file.name,
+        descripcion: validated.descripcion || null,
+        categoria: validated.categoria || 'OTRO',
+        proyecto_id: validated.proyecto_id || null,
+        url: publicUrl,
         tamanio: file.size,
         extension: extension,
-        etiquetas: etiquetas ? etiquetas.split(',').map((e: string) => e.trim()) : [],
-        ubicacion: ubicacion || null,
-        fecha_tomada: fechaTomada || null,
-        subido_por: subidoPor || null,
+        etiquetas: validated.etiquetas ? validated.etiquetas.split(',').map((e: string) => e.trim()) : [],
+        ubicacion: validated.ubicacion || null,
+        fecha_tomada: validated.fecha_tomada || null,
+        subido_por: validated.subido_por || null,
         fecha_subida: new Date().toISOString(),
         activo: true
       })
@@ -148,7 +217,6 @@ export async function POST(req: NextRequest) {
 
     if (fotoError) {
       console.error('❌ Error guardando en BD:', fotoError);
-      // Si falla, eliminar el archivo de storage
       await supabase.storage.from('fotos').remove([filePath]);
       throw fotoError;
     }
@@ -161,6 +229,12 @@ export async function POST(req: NextRequest) {
       message: 'Foto subida exitosamente'
     });
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { success: false, error: 'Datos inválidos', details: error.errors },
+        { status: 400 }
+      );
+    }
     console.error('❌ Error en POST /api/fotos:', error);
     return NextResponse.json(
       { success: false, error: String(error) },

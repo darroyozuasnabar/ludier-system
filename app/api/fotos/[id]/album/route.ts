@@ -1,7 +1,13 @@
+// app/api/fotos/[id]/album/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { rateLimit } from '@/lib/rate-limit';
+import { z } from 'zod';
 
+// ============================================================
+// 🔥 CLIENTE SUPABASE
+// ============================================================
 const createSupabaseClient = async () => {
   const cookieStore = await cookies();
   return createServerClient(
@@ -23,6 +29,17 @@ const createSupabaseClient = async () => {
   );
 };
 
+// ============================================================
+// 🔥 ESQUEMA ZOD
+// ============================================================
+const albumFotoSchema = z.object({
+  album_id: z.string().uuid("ID de álbum inválido"),
+  orden: z.number().int().min(0).default(0),
+});
+
+// ============================================================
+// 📌 GET - Obtener álbumes de una foto
+// ============================================================
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -77,23 +94,34 @@ export async function GET(
   }
 }
 
+// ============================================================
+// 📌 POST - Agregar foto a álbum (con Zod + Rate Limiting)
+// ============================================================
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
-    const body = await req.json();
-    const { album_id, orden } = body;
-    const supabase = await createSupabaseClient();
-
-    if (!album_id) {
+    // 🔥 1. Rate Limiting
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0] ?? 'anonymous';
+    const { success } = await rateLimit.limit(ip);
+    if (!success) {
       return NextResponse.json(
-        { success: false, error: 'album_id es requerido' },
-        { status: 400 }
+        { error: 'Demasiadas solicitudes. Intenta nuevamente en unos segundos.' },
+        { status: 429 }
       );
     }
 
+    const { id } = await params;
+    const body = await req.json();
+
+    // 🔥 2. Validar con Zod
+    const validated = albumFotoSchema.parse(body);
+    const { album_id, orden } = validated;
+
+    const supabase = await createSupabaseClient();
+
+    // Verificar que la foto existe
     const { data: foto, error: fotoError } = await supabase
       .from('Foto')
       .select('id')
@@ -107,6 +135,7 @@ export async function POST(
       );
     }
 
+    // Verificar que el álbum existe
     const { data: album, error: albumError } = await supabase
       .from('Album')
       .select('id')
@@ -120,6 +149,7 @@ export async function POST(
       );
     }
 
+    // Verificar si ya está asignado
     const { data: existing } = await supabase
       .from('AlbumFoto')
       .select('*')
@@ -134,6 +164,7 @@ export async function POST(
       });
     }
 
+    // Agregar foto al álbum
     const { data, error } = await supabase
       .from('AlbumFoto')
       .insert({
@@ -152,6 +183,12 @@ export async function POST(
       message: 'Foto agregada al álbum exitosamente'
     });
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { success: false, error: 'Datos inválidos', details: error.errors },
+        { status: 400 }
+      );
+    }
     console.error('❌ Error en POST /api/fotos/[id]/album:', error);
     return NextResponse.json(
       { success: false, error: String(error) },
@@ -160,11 +197,24 @@ export async function POST(
   }
 }
 
+// ============================================================
+// 📌 DELETE - Remover foto de álbum (con Rate Limiting)
+// ============================================================
 export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // 🔥 1. Rate Limiting
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0] ?? 'anonymous';
+    const { success } = await rateLimit.limit(ip);
+    if (!success) {
+      return NextResponse.json(
+        { error: 'Demasiadas solicitudes. Intenta nuevamente en unos segundos.' },
+        { status: 429 }
+      );
+    }
+
     const { id } = await params;
     const { searchParams } = new URL(req.url);
     const album_id = searchParams.get('album_id');

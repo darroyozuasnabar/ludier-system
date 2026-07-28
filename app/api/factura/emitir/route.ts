@@ -1,7 +1,13 @@
+// app/api/factura/emitir/route.ts
 import { NextResponse } from "next/server";
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from "next/headers";
+import { rateLimit } from '@/lib/rate-limit';
+import { z } from 'zod';
 
+// ============================================================
+// 🔥 CLIENTE SUPABASE
+// ============================================================
 const createSupabaseClient = async () => {
   const cookieStore = await cookies();
   return createServerClient(
@@ -23,7 +29,17 @@ const createSupabaseClient = async () => {
   );
 };
 
-// Función para convertir número a letras (completa)
+// ============================================================
+// 🔥 ESQUEMA ZOD PARA FACTURA
+// ============================================================
+const facturaSchema = z.object({
+  valorizacionId: z.string().uuid("ID de valorización inválido"),
+  projectId: z.string().uuid("ID de proyecto inválido").optional(),
+});
+
+// ============================================================
+// 🔥 FUNCIONES AUXILIARES (igual que antes)
+// ============================================================
 function numeroALetras(num: number): string {
   const unidades = ["", "UN", "DOS", "TRES", "CUATRO", "CINCO", "SEIS", "SIETE", "OCHO", "NUEVE"];
   const especiales: Record<number, string> = {
@@ -63,7 +79,6 @@ function numeroALetras(num: number): string {
   return `${texto} Y ${parteDecimal.toString().padStart(2, '0')}/100 SOLES`;
 }
 
-// Obtener el siguiente número de factura por serie
 async function getNextNumero(supabase: any, serie: string): Promise<number> {
   const { data } = await supabase
     .from("Valorizacion")
@@ -79,9 +94,25 @@ async function getNextNumero(supabase: any, serie: string): Promise<number> {
   return 1;
 }
 
+// ============================================================
+// 📌 POST - Emitir factura (con Zod + Rate Limiting)
+// ============================================================
 export async function POST(request: Request) {
   try {
-    const { valorizacionId, projectId } = await request.json();
+    // 🔥 1. Rate Limiting
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0] ?? 'anonymous';
+    const { success } = await rateLimit.limit(ip);
+    if (!success) {
+      return NextResponse.json(
+        { error: 'Demasiadas solicitudes. Intenta nuevamente en unos segundos.' },
+        { status: 429 }
+      );
+    }
+
+    // 🔥 2. Validar con Zod
+    const body = await request.json();
+    const validated = facturaSchema.parse(body);
+    const { valorizacionId, projectId } = validated;
     
     const supabase = await createSupabaseClient();
     
@@ -175,7 +206,7 @@ export async function POST(request: Request) {
     
     console.log("Respuesta Nubefact:", result);
     
-    // Verificar respuesta (Nubefact puede devolver codigo "0" para éxito)
+    // Verificar respuesta
     if (result.success === true || result.codigo === "0") {
       // Actualizar la valorización
       await supabase
@@ -208,6 +239,12 @@ export async function POST(request: Request) {
       });
     }
   } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { success: false, error: 'Datos inválidos', details: error.errors },
+        { status: 400 }
+      );
+    }
     console.error("Error:", error);
     return NextResponse.json({
       success: false,
