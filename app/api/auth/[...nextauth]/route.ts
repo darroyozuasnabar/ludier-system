@@ -7,10 +7,15 @@ import { loginSchema } from "@/lib/validations";
 import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
 
-// 👇 Cliente de Supabase con service_role (para verificar contraseñas)
+// 👇 Verificar variables de entorno
+console.log('🔍 [INIT] Verificando variables de entorno:');
+console.log('  - NEXT_PUBLIC_SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL ? '✅' : '❌');
+console.log('  - SUPABASE_SERVICE_ROLE_KEY:', process.env.SUPABASE_SERVICE_ROLE_KEY ? '✅' : '❌');
+console.log('  - NEXTAUTH_URL:', process.env.NEXTAUTH_URL);
+
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY! // 👈 ¡NECESITAS ESTA CLAVE!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
 const handler = NextAuth({
@@ -23,44 +28,66 @@ const handler = NextAuth({
       },
       async authorize(credentials) {
         console.log("🔐 [AUTHORIZE] Iniciando autenticación...");
+        console.log("📧 [AUTHORIZE] Email recibido:", credentials?.email);
 
         try {
           // 1. Rate limiting
           const headersList = await headers();
           const ip = headersList.get("x-forwarded-for")?.split(",")[0] ?? "anonymous";
+          console.log("📡 [AUTHORIZE] IP:", ip);
+          
           const { success } = await loginRateLimit.limit(ip);
           if (!success) {
+            console.log("⛔ [AUTHORIZE] Rate limit excedido");
             throw new Error("Demasiados intentos. Espera 5 minutos.");
           }
 
           // 2. Validar con Zod
           const validated = loginSchema.parse(credentials);
-          console.log("📧 [AUTHORIZE] Validando:", validated.email);
+          console.log("✅ [AUTHORIZE] Validación Zod exitosa para:", validated.email);
 
           // 3. 👇 VERIFICAR CONTRA SUPABASE AUTH
+          console.log("🔄 [AUTHORIZE] Intentando autenticar con Supabase...");
           const { data: authData, error: authError } = await supabaseAdmin.auth.signInWithPassword({
             email: validated.email,
             password: validated.password,
           });
 
-          if (authError || !authData.user) {
-            console.log("❌ [AUTHORIZE] Error de autenticación:", authError?.message);
+          if (authError) {
+            console.log("❌ [AUTHORIZE] Error de autenticación:", {
+              message: authError.message,
+              status: authError.status,
+              name: authError.name
+            });
+            return null;
+          }
+
+          if (!authData.user) {
+            console.log("❌ [AUTHORIZE] No se recibió usuario de Supabase");
             return null;
           }
 
           console.log("✅ [AUTHORIZE] Autenticación exitosa con Supabase Auth");
+          console.log("👤 [AUTHORIZE] Usuario autenticado:", {
+            id: authData.user.id,
+            email: authData.user.email,
+          });
 
           // 4. Buscar el usuario en public.User para obtener el rol
+          console.log("🔍 [AUTHORIZE] Buscando usuario en public.User...");
           const { data: userData, error: userError } = await supabaseAdmin
             .from("User")
             .select("id, email, name, role, active")
             .eq("email", validated.email)
             .single();
 
-          if (userError || !userData) {
-            console.log("⚠️ [AUTHORIZE] Usuario no encontrado en public.User");
+          if (userError) {
+            console.log("⚠️ [AUTHORIZE] Error buscando en public.User:", userError.message);
+          }
+
+          if (!userData) {
+            console.log("⚠️ [AUTHORIZE] Usuario no encontrado en public.User, creando...");
             
-            // Si el usuario autenticado no está en public.User, lo creamos
             const { data: newUser, error: insertError } = await supabaseAdmin
               .from("User")
               .insert({
@@ -78,6 +105,12 @@ const handler = NextAuth({
               return null;
             }
 
+            console.log("✅ [AUTHORIZE] Usuario creado en public.User:", {
+              id: newUser.id,
+              email: newUser.email,
+              role: newUser.role,
+            });
+
             return {
               id: newUser.id,
               email: newUser.email,
@@ -85,6 +118,12 @@ const handler = NextAuth({
               role: newUser.role || undefined,
             };
           }
+
+          console.log("✅ [AUTHORIZE] Usuario encontrado en public.User:", {
+            id: userData.id,
+            email: userData.email,
+            role: userData.role,
+          });
 
           return {
             id: userData.id,
