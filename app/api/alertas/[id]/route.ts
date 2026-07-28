@@ -2,7 +2,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { rateLimit } from '@/lib/rate-limit';
+import { z } from 'zod';
 
+// ============================================================
+// 🔥 CLIENTE SUPABASE
+// ============================================================
 const createSupabaseClient = async () => {
   const cookieStore = await cookies();
   return createServerClient(
@@ -24,7 +29,23 @@ const createSupabaseClient = async () => {
   );
 };
 
-// GET - Obtener una notificación específica
+// ============================================================
+// 🔥 ESQUEMA ZOD (opcional, para robustez)
+// ============================================================
+const alertaUpdateSchema = z.object({
+  leida: z.boolean().optional(),
+  titulo: z.string().optional(),
+  descripcion: z.string().optional(),
+  priority: z.enum(['ALTA', 'MEDIA', 'BAJA']).optional(),
+}).optional();
+
+const alertaPatchSchema = z.object({
+  action: z.enum(['leer', 'desmarcar']),
+});
+
+// ============================================================
+// 📌 GET - Obtener una notificación específica
+// ============================================================
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -61,12 +82,24 @@ export async function GET(
   }
 }
 
-// PUT - Actualizar notificación (marcar como leída)
+// ============================================================
+// 📌 PUT - Actualizar notificación (con Rate Limiting)
+// ============================================================
 export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // 🔥 Rate Limiting
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0] ?? 'anonymous';
+    const { success } = await rateLimit.limit(ip);
+    if (!success) {
+      return NextResponse.json(
+        { error: 'Demasiadas solicitudes. Intenta nuevamente en unos segundos.' },
+        { status: 429 }
+      );
+    }
+
     const { id } = await params;
     const body = await req.json();
     const { leida, ...rest } = body;
@@ -102,6 +135,12 @@ export async function PUT(
       notificacion: data
     });
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { success: false, error: 'Datos inválidos', details: error.errors },
+        { status: 400 }
+      );
+    }
     return NextResponse.json(
       { success: false, error: String(error) },
       { status: 500 }
@@ -109,12 +148,24 @@ export async function PUT(
   }
 }
 
-// DELETE - Eliminar notificación
+// ============================================================
+// 📌 DELETE - Eliminar notificación (con Rate Limiting)
+// ============================================================
 export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // 🔥 Rate Limiting
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0] ?? 'anonymous';
+    const { success } = await rateLimit.limit(ip);
+    if (!success) {
+      return NextResponse.json(
+        { error: 'Demasiadas solicitudes. Intenta nuevamente en unos segundos.' },
+        { status: 429 }
+      );
+    }
+
     const { id } = await params;
     const supabase = await createSupabaseClient();
 
@@ -145,15 +196,31 @@ export async function DELETE(
   }
 }
 
-// PATCH - Marcar como leída (más específico)
+// ============================================================
+// 📌 PATCH - Marcar como leída (con Rate Limiting + Zod)
+// ============================================================
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // 🔥 Rate Limiting
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0] ?? 'anonymous';
+    const { success } = await rateLimit.limit(ip);
+    if (!success) {
+      return NextResponse.json(
+        { error: 'Demasiadas solicitudes. Intenta nuevamente en unos segundos.' },
+        { status: 429 }
+      );
+    }
+
     const { id } = await params;
     const body = await req.json();
-    const { action } = body;
+
+    // 🔥 Validar con Zod
+    const validated = alertaPatchSchema.parse(body);
+    const { action } = validated;
+
     const supabase = await createSupabaseClient();
 
     let updateData: any = {};
@@ -168,11 +235,6 @@ export async function PATCH(
         leida: false,
         fecha_lectura: null
       };
-    } else {
-      return NextResponse.json(
-        { success: false, error: 'Acción no válida. Usa "leer" o "desmarcar"' },
-        { status: 400 }
-      );
     }
 
     const { data, error } = await supabase
@@ -197,6 +259,12 @@ export async function PATCH(
       notificacion: data
     });
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { success: false, error: 'Datos inválidos', details: error.errors },
+        { status: 400 }
+      );
+    }
     return NextResponse.json(
       { success: false, error: String(error) },
       { status: 500 }
