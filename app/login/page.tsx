@@ -1,22 +1,40 @@
 "use client";
 
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
 
+  // ─── Redirigir según el rol ──────────────────────────────────────
+  const redirectByRole = (role: string) => {
+    const routes: Record<string, string> = {
+      FUNDADOR: "/dashboard",
+      ADMIN: "/dashboard",
+      FIELD_ENGINEER: "/personal",
+      PRODUCTION: "/produccion",
+      VIEWER: "/obras",
+    };
+    router.push(routes[role] || "/");
+  };
+
   useEffect(() => {
     setMounted(true);
-  }, []);
+    // Si ya hay sesión (ej. recarga de página), redirigir directamente
+    if (status === "authenticated" && session?.user?.role) {
+      redirectByRole(session.user.role);
+    }
+  }, [status, session]);
 
+  // ─── Enviar formulario ───────────────────────────────────────────
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -31,9 +49,23 @@ export default function LoginPage() {
     if (result?.error) {
       setError("Correo o contraseña incorrectos.");
       setLoading(false);
-    } else {
-      router.push("/dashboard");
+      return;
     }
+
+    // Pequeña pausa para que la sesión se actualice en el servidor
+    setTimeout(async () => {
+      try {
+        const res = await fetch("/api/auth/session");
+        const sessionData = await res.json();
+        if (sessionData?.user?.role) {
+          redirectByRole(sessionData.user.role);
+        } else {
+          router.push("/dashboard");
+        }
+      } catch {
+        router.push("/dashboard");
+      }
+    }, 300);
   };
 
   return (

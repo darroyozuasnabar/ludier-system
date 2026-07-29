@@ -117,6 +117,11 @@ export default function PersonalPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
+  // 👇 Obtener el rol del usuario para condicionar la vista
+  const role = session?.user?.role;
+  const isAdmin = role === "FUNDADOR" || role === "ADMIN";
+  const isFieldEngineer = role === "FIELD_ENGINEER";
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [workers, setWorkers] = useState<Worker[]>([]);
@@ -139,7 +144,9 @@ export default function PersonalPage() {
   const [searchTerm, setSearchTerm] = useState("");
 
   // ── Partes diarios ──────────────────────────────────────────────────────
-  const [activeTab, setActiveTab] = useState<"planilla" | "checklist" | "partes">("planilla");
+  const [activeTab, setActiveTab] = useState<"planilla" | "checklist" | "partes">(
+    isFieldEngineer ? "checklist" : "planilla"
+  );
   const [partes, setPartes] = useState<any[]>([]);
   const [showParteForm, setShowParteForm] = useState(false);
   const [parteProyectos, setParteProyectos] = useState<any[]>([]);
@@ -163,9 +170,12 @@ export default function PersonalPage() {
 
   // ── 🔥 Función para sincronizar HistorialPagos desde AsistenciaSemanal ──
   const sincronizarHistorialPagos = async () => {
+    if (!isAdmin) {
+      showToastMsg("err", "No tienes permiso para sincronizar pagos");
+      return;
+    }
     setLoading(true);
     try {
-      // Obtener todas las asistencias de la semana actual
       const { data: asistenciasData, error } = await supabase
         .from("AsistenciaSemanal")
         .select("*")
@@ -179,7 +189,6 @@ export default function PersonalPage() {
         return;
       }
 
-      // Obtener trabajadores
       const { data: workersData } = await supabase
         .from("Worker")
         .select("id, name, tarifa_diaria, tarifa_hora_extra, tipo_pago, tarifa_mensual")
@@ -195,7 +204,6 @@ export default function PersonalPage() {
         const worker = workersMap[asistencia.worker_id];
         if (!worker) continue;
 
-        // Verificar si ya existe un pago para esta semana
         const { data: pagoExistente } = await supabase
           .from("HistorialPagos")
           .select("id")
@@ -203,7 +211,6 @@ export default function PersonalPage() {
           .eq("periodo_inicio", asistencia.semana_inicio)
           .single();
 
-        // Calcular montos
         const totalDias = asistencia.total_dias || 0;
         const horasExtras = asistencia.horas_extras || 0;
 
@@ -217,7 +224,6 @@ export default function PersonalPage() {
         const pagoHorasExtras = (worker.tarifa_hora_extra || 0) * horasExtras;
         const montoTotal = montoBase + pagoHorasExtras;
 
-        // Si no existe, crear; si existe, actualizar
         if (pagoExistente) {
           const { error: updateError } = await supabase
             .from("HistorialPagos")
@@ -734,6 +740,11 @@ export default function PersonalPage() {
   };
 
   const handleGenerarPago = async (asistenciaId: string, workerId: string) => {
+    if (!isAdmin) {
+      showToastMsg("err", "No tienes permiso para generar pagos");
+      return;
+    }
+
     const asistencia = asistencias.find((a) => a.id === asistenciaId);
     if (!asistencia) return;
     const worker = workers.find((w) => w.id === workerId);
@@ -770,6 +781,11 @@ export default function PersonalPage() {
   };
 
   const handleMarcarPago = async (pagoId: string) => {
+    if (!isAdmin) {
+      showToastMsg("err", "No tienes permiso para marcar pagos");
+      return;
+    }
+
     setSaving(true);
     try {
       const { error } = await supabase
@@ -831,6 +847,15 @@ export default function PersonalPage() {
     });
   };
 
+  // Redirigir según el rol al hacer clic en "Dashboard" del header
+  const handleDashboardClick = () => {
+    if (isFieldEngineer) {
+      router.push("/personal");
+    } else {
+      router.push("/dashboard");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-zinc-50">
       {toast && (
@@ -856,11 +881,11 @@ export default function PersonalPage() {
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
-              onClick={() => router.push("/")}
+              onClick={handleDashboardClick}
               className="flex items-center gap-1.5 text-zinc-400 hover:text-zinc-700 text-sm transition-colors"
             >
               <ChevronLeft className="h-4 w-4" />
-              Dashboard
+              {isFieldEngineer ? "Personal" : "Dashboard"}
             </button>
             <div className="h-4 w-px bg-zinc-200" />
             <div className="flex items-center gap-2.5">
@@ -877,7 +902,6 @@ export default function PersonalPage() {
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
-            {/* Botón Cargar semana actual */}
             <button
               onClick={() => {
                 const now = new Date();
@@ -894,14 +918,15 @@ export default function PersonalPage() {
               Cargar semana
             </button>
 
-            {/* Botón Sincronizar pagos */}
-            <button
-              onClick={sincronizarHistorialPagos}
-              className="flex items-center gap-2 px-3 py-1.5 bg-purple-50 text-purple-700 text-xs font-medium rounded-lg hover:bg-purple-100 transition-colors"
-            >
-              <RefreshCw className="h-3.5 w-3.5" />
-              Sincronizar pagos
-            </button>
+            {isAdmin && (
+              <button
+                onClick={sincronizarHistorialPagos}
+                className="flex items-center gap-2 px-3 py-1.5 bg-purple-50 text-purple-700 text-xs font-medium rounded-lg hover:bg-purple-100 transition-colors"
+              >
+                <RefreshCw className="h-3.5 w-3.5" />
+                Sincronizar pagos
+              </button>
+            )}
 
             {activeTab === "partes" ? (
               <button
@@ -939,48 +964,89 @@ export default function PersonalPage() {
       <div className="max-w-7xl mx-auto px-6 pt-4">
         <div className="border-b border-zinc-200 bg-white rounded-t-xl">
           <div className="flex gap-1 px-4">
-            <button
-              onClick={() => setActiveTab("planilla")}
-              className={`px-4 py-2.5 text-xs font-medium transition-all ${activeTab === "planilla"
-                ? "border-b-2 border-zinc-900 text-zinc-900"
-                : "text-zinc-500 hover:text-zinc-700"
-                }`}
-            >
-              📋 Planilla
-            </button>
-            <button
-              onClick={() => setActiveTab("checklist")}
-              className={`px-4 py-2.5 text-xs font-medium transition-all ${activeTab === "checklist"
-                ? "border-b-2 border-zinc-900 text-zinc-900"
-                : "text-zinc-500 hover:text-zinc-700"
-                }`}
-            >
-              ✅ Checklist
-            </button>
-            <button
-              onClick={() => setActiveTab("partes")}
-              className={`px-4 py-2.5 text-xs font-medium transition-all ${activeTab === "partes"
-                ? "border-b-2 border-zinc-900 text-zinc-900"
-                : "text-zinc-500 hover:text-zinc-700"
-                }`}
-            >
-              📝 Partes diarios
-              {partes.length > 0 && (
-                <span className="ml-1.5 text-[10px] bg-zinc-200 text-zinc-700 px-1.5 py-0.5 rounded-full">
-                  {partes.length}
-                </span>
-              )}
-            </button>
+            {isFieldEngineer ? (
+              // 👇 Ingeniero ve solo Checklist y Partes
+              <>
+                <button
+                  onClick={() => setActiveTab("checklist")}
+                  className={`px-4 py-2.5 text-xs font-medium transition-all ${
+                    activeTab === "checklist"
+                      ? "border-b-2 border-zinc-900 text-zinc-900"
+                      : "text-zinc-500 hover:text-zinc-700"
+                  }`}
+                >
+                  ✅ Checklist
+                </button>
+                <button
+                  onClick={() => setActiveTab("partes")}
+                  className={`px-4 py-2.5 text-xs font-medium transition-all ${
+                    activeTab === "partes"
+                      ? "border-b-2 border-zinc-900 text-zinc-900"
+                      : "text-zinc-500 hover:text-zinc-700"
+                  }`}
+                >
+                  📝 Partes diarios
+                  {partes.length > 0 && (
+                    <span className="ml-1.5 text-[10px] bg-zinc-200 text-zinc-700 px-1.5 py-0.5 rounded-full">
+                      {partes.length}
+                    </span>
+                  )}
+                </button>
+              </>
+            ) : (
+              // 👇 Admin ve Planilla, Checklist y Partes
+              <>
+                <button
+                  onClick={() => setActiveTab("planilla")}
+                  className={`px-4 py-2.5 text-xs font-medium transition-all ${
+                    activeTab === "planilla"
+                      ? "border-b-2 border-zinc-900 text-zinc-900"
+                      : "text-zinc-500 hover:text-zinc-700"
+                  }`}
+                >
+                  📋 Planilla
+                </button>
+                <button
+                  onClick={() => setActiveTab("checklist")}
+                  className={`px-4 py-2.5 text-xs font-medium transition-all ${
+                    activeTab === "checklist"
+                      ? "border-b-2 border-zinc-900 text-zinc-900"
+                      : "text-zinc-500 hover:text-zinc-700"
+                  }`}
+                >
+                  ✅ Checklist
+                </button>
+                <button
+                  onClick={() => setActiveTab("partes")}
+                  className={`px-4 py-2.5 text-xs font-medium transition-all ${
+                    activeTab === "partes"
+                      ? "border-b-2 border-zinc-900 text-zinc-900"
+                      : "text-zinc-500 hover:text-zinc-700"
+                  }`}
+                >
+                  📝 Partes diarios
+                  {partes.length > 0 && (
+                    <span className="ml-1.5 text-[10px] bg-zinc-200 text-zinc-700 px-1.5 py-0.5 rounded-full">
+                      {partes.length}
+                    </span>
+                  )}
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
 
       <main className="max-w-7xl mx-auto px-6 py-8 space-y-8">
-        {/* KPIs (siempre visibles) */}
+        {/* KPIs - ocultar los financieros para FIELD_ENGINEER */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <KpiCard icon={Users} label="Trabajadores activos" value={totalWorkers} sub="En planilla" color="bg-blue-50" />
-          <KpiCard icon={DollarSign} label="Pendiente de pago" value={fmt(totalPendientePago)} sub="Por liquidar" color="bg-amber-50" />
-          <KpiCard icon={CreditCard} label="Pagado este mes" value={fmt(totalPagadoMes)} sub="Total desembolsado" color="bg-emerald-50" />
+          {!isFieldEngineer && (
+            <>
+              <KpiCard icon={DollarSign} label="Pendiente de pago" value={fmt(totalPendientePago)} sub="Por liquidar" color="bg-amber-50" />
+              <KpiCard icon={CreditCard} label="Pagado este mes" value={fmt(totalPagadoMes)} sub="Total desembolsado" color="bg-emerald-50" />
+            </>
+          )}
           <KpiCard
             icon={Calendar}
             label="Semana actual"
@@ -990,8 +1056,8 @@ export default function PersonalPage() {
           />
         </div>
 
-        {/* ── TAB: PLANILLA ────────────────────────────────────────────── */}
-        {activeTab === "planilla" && (
+        {/* ── TAB: PLANILLA (solo administradores) ──────────────────────── */}
+        {!isFieldEngineer && activeTab === "planilla" && (
           <section className="bg-white rounded-2xl border border-zinc-100 shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-zinc-100 flex items-center justify-between flex-wrap gap-4">
               <SectionTitle sub={`${filteredWorkers.length} trabajadores`}>Planilla de personal</SectionTitle>
@@ -1097,7 +1163,7 @@ export default function PersonalPage() {
           </section>
         )}
 
-        {/* ── TAB: CHECKLIST ──────────────────────────────────────────────── */}
+        {/* ── TAB: CHECKLIST (visible para todos) ────────────────────────── */}
         {activeTab === "checklist" && (
           <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-6">
             <div className="flex items-center justify-between mb-4">
@@ -1121,7 +1187,9 @@ export default function PersonalPage() {
                     ))}
                     <th className="text-center px-4 py-3 text-xs font-semibold text-zinc-600 min-w-[80px]">Total días</th>
                     <th className="text-center px-4 py-3 text-xs font-semibold text-zinc-600 min-w-[100px]">Horas extra</th>
-                    <th className="text-right px-4 py-3 text-xs font-semibold text-zinc-600 min-w-[120px]">Total a pagar</th>
+                    {isAdmin && (
+                      <th className="text-right px-4 py-3 text-xs font-semibold text-zinc-600 min-w-[120px]">Total a pagar</th>
+                    )}
                     <th className="text-center px-4 py-3 text-xs font-semibold text-zinc-600 min-w-[100px]">Acciones</th>
                   </tr>
                 </thead>
@@ -1139,13 +1207,16 @@ export default function PersonalPage() {
                           <td className="px-4 py-3 sticky left-0 bg-white">
                             <div>
                               <p className="font-semibold text-zinc-900">{worker.name}</p>
-                              <p className="text-[10px] text-zinc-400">
-                                {worker.tipo_pago === "MENSUAL"
-                                  ? `${fmt(worker.tarifa_mensual)}/mes`
-                                  : `${fmt(worker.tarifa_diaria)}/día`}
-                                {(worker.tarifa_hora_extra || 0) > 0 &&
-                                  ` · HE: ${fmt(worker.tarifa_hora_extra)}/h`}
-                              </p>
+                              {/* Ocultar tarifas para el ingeniero */}
+                              {!isFieldEngineer && (
+                                <p className="text-[10px] text-zinc-400">
+                                  {worker.tipo_pago === "MENSUAL"
+                                    ? `${fmt(worker.tarifa_mensual)}/mes`
+                                    : `${fmt(worker.tarifa_diaria)}/día`}
+                                  {(worker.tarifa_hora_extra || 0) > 0 &&
+                                    ` · HE: ${fmt(worker.tarifa_hora_extra)}/h`}
+                                </p>
+                              )}
                             </div>
                           </td>
                           {DIAS_SEMANA.map((dia) => (
@@ -1181,11 +1252,13 @@ export default function PersonalPage() {
                               <span className="text-[10px] text-zinc-400">horas</span>
                             </div>
                           </td>
-                          <td className="text-right px-4 py-3">
-                            <span className="font-bold text-emerald-700">{fmt(totalPagar)}</span>
-                          </td>
+                          {isAdmin && (
+                            <td className="text-right px-4 py-3">
+                              <span className="font-bold text-emerald-700">{fmt(totalPagar)}</span>
+                            </td>
+                          )}
                           <td className="text-center px-4 py-3">
-                            {asistenciaExistente && !asistenciaExistente.pagado && totalDias > 0 && (
+                            {asistenciaExistente && !asistenciaExistente.pagado && totalDias > 0 && isAdmin && (
                               <button
                                 onClick={() => handleGenerarPago(asistenciaExistente.id, worker.id)}
                                 className="text-xs bg-amber-50 text-amber-700 px-3 py-1.5 rounded-lg hover:bg-amber-100 transition-colors"
@@ -1193,8 +1266,11 @@ export default function PersonalPage() {
                                 Generar pago
                               </button>
                             )}
-                            {asistenciaExistente?.pagado && (
+                            {asistenciaExistente?.pagado && isAdmin && (
                               <span className="text-xs text-emerald-600">✓ Pagado</span>
+                            )}
+                            {!isAdmin && (
+                              <span className="text-xs text-zinc-400">Registrado</span>
                             )}
                           </td>
                         </tr>
@@ -1217,8 +1293,8 @@ export default function PersonalPage() {
           </div>
         )}
 
-        {/* ── TAB: PARTES DIARIOS ────────────────────────────────────── */}
-        {activeTab === "partes" && (
+        {/* ── TAB: PARTES DIARIOS (visible para todos) ────────────────── */}
+        {(activeTab === "partes" || isFieldEngineer) && (
           <div className="space-y-4">
             {showParteForm && (
               <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-6">
@@ -1302,7 +1378,6 @@ export default function PersonalPage() {
                   </div>
                 </div>
 
-                {/* Actividades del parte */}
                 <div className="border-t border-zinc-100 pt-4">
                   <p className="text-xs font-semibold text-zinc-700 mb-3">Actividades del personal</p>
                   <div className="grid grid-cols-12 gap-2 mb-2">
@@ -1406,7 +1481,6 @@ export default function PersonalPage() {
               </div>
             )}
 
-            {/* Lista de partes */}
             <div className="space-y-4">
               {partes.length === 0 ? (
                 <div className="bg-white rounded-2xl border border-zinc-100 p-12 text-center">
@@ -1562,8 +1636,8 @@ export default function PersonalPage() {
           </div>
         )}
 
-        {/* Historial de pagos (visible en todas las tabs) */}
-        {activeTab !== "partes" && (
+        {/* ── HISTORIAL DE PAGOS (solo administradores) ──────────────────── */}
+        {!isFieldEngineer && activeTab !== "partes" && (
           <section className="bg-white rounded-2xl border border-zinc-100 shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-zinc-100">
               <SectionTitle sub="Últimos pagos generados">Historial de pagos</SectionTitle>
@@ -1634,7 +1708,7 @@ export default function PersonalPage() {
         )}
       </main>
 
-      {/* Modal Checklist Semanal */}
+      {/* ── MODAL CHECKLIST (visible para todos) ──────────────────────────── */}
       {showChecklist && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl w-full max-w-7xl max-h-[90vh] overflow-hidden flex flex-col">
@@ -1665,7 +1739,9 @@ export default function PersonalPage() {
                       ))}
                       <th className="text-center px-4 py-3 text-xs font-semibold text-zinc-600 min-w-[80px]">Total días</th>
                       <th className="text-center px-4 py-3 text-xs font-semibold text-zinc-600 min-w-[100px]">Horas extra</th>
-                      <th className="text-right px-4 py-3 text-xs font-semibold text-zinc-600 min-w-[120px]">Total a pagar</th>
+                      {isAdmin && (
+                        <th className="text-right px-4 py-3 text-xs font-semibold text-zinc-600 min-w-[120px]">Total a pagar</th>
+                      )}
                       <th className="text-center px-4 py-3 text-xs font-semibold text-zinc-600 min-w-[100px]">Acciones</th>
                     </tr>
                   </thead>
@@ -1683,13 +1759,15 @@ export default function PersonalPage() {
                             <td className="px-4 py-3 sticky left-0 bg-white">
                               <div>
                                 <p className="font-semibold text-zinc-900">{worker.name}</p>
-                                <p className="text-[10px] text-zinc-400">
-                                  {worker.tipo_pago === "MENSUAL"
-                                    ? `${fmt(worker.tarifa_mensual)}/mes`
-                                    : `${fmt(worker.tarifa_diaria)}/día`}
-                                  {(worker.tarifa_hora_extra || 0) > 0 &&
-                                    ` · HE: ${fmt(worker.tarifa_hora_extra)}/h`}
-                                </p>
+                                {!isFieldEngineer && (
+                                  <p className="text-[10px] text-zinc-400">
+                                    {worker.tipo_pago === "MENSUAL"
+                                      ? `${fmt(worker.tarifa_mensual)}/mes`
+                                      : `${fmt(worker.tarifa_diaria)}/día`}
+                                    {(worker.tarifa_hora_extra || 0) > 0 &&
+                                      ` · HE: ${fmt(worker.tarifa_hora_extra)}/h`}
+                                  </p>
+                                )}
                               </div>
                             </td>
                             {DIAS_SEMANA.map((dia) => (
@@ -1725,11 +1803,13 @@ export default function PersonalPage() {
                                 <span className="text-[10px] text-zinc-400">horas</span>
                               </div>
                             </td>
-                            <td className="text-right px-4 py-3">
-                              <span className="font-bold text-emerald-700">{fmt(totalPagar)}</span>
-                            </td>
+                            {isAdmin && (
+                              <td className="text-right px-4 py-3">
+                                <span className="font-bold text-emerald-700">{fmt(totalPagar)}</span>
+                              </td>
+                            )}
                             <td className="text-center px-4 py-3">
-                              {asistenciaExistente && !asistenciaExistente.pagado && totalDias > 0 && (
+                              {asistenciaExistente && !asistenciaExistente.pagado && totalDias > 0 && isAdmin && (
                                 <button
                                   onClick={() => handleGenerarPago(asistenciaExistente.id, worker.id)}
                                   className="text-xs bg-amber-50 text-amber-700 px-3 py-1.5 rounded-lg hover:bg-amber-100 transition-colors"
@@ -1737,8 +1817,11 @@ export default function PersonalPage() {
                                   Generar pago
                                 </button>
                               )}
-                              {asistenciaExistente?.pagado && (
+                              {asistenciaExistente?.pagado && isAdmin && (
                                 <span className="text-xs text-emerald-600">✓ Pagado</span>
+                              )}
+                              {!isAdmin && (
+                                <span className="text-xs text-zinc-400">Registrado</span>
                               )}
                             </td>
                           </tr>

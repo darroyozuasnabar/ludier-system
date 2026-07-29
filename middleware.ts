@@ -7,10 +7,7 @@ import { getToken } from "next-auth/jwt";
 // 🔥 CONFIGURACIÓN DE RUTAS PÚBLICAS
 // ============================================================
 
-// TODAS las rutas que comiencen con estos prefijos son PÚBLICAS
-// (no requieren autenticación)
 const PUBLIC_PREFIXES = [
-  // Páginas públicas del sitio
   "/",
   "/login",
   "/servicios",
@@ -20,20 +17,110 @@ const PUBLIC_PREFIXES = [
   "/faq",
   "/blog",
   "/testimonios",
-  
-  // 🔥 IMPORTANTE: Todas las rutas de NextAuth DEBEN ser públicas
   "/api/auth",
   "/api/contacto",
   "/api/cotizaciones",
 ];
 
-// Prefijos con sub-rutas (cualquier ruta que empiece con esto es pública)
 const PUBLIC_PATH_PREFIXES = [
   "/servicios/",
   "/proyectos/",
   "/blog/",
-  "/api/auth/",      // 👈 ¡ESTA LÍNEA ES CLAVE! Permite /api/auth/session, /api/auth/csrf, etc.
+  "/api/auth/",
 ];
+
+// ============================================================
+// 🔥 MATRIZ DE PERMISOS POR ROL
+// ============================================================
+
+// Definición de qué rutas puede ver cada rol
+// - '*' significa todas las rutas
+// - Las rutas se verifican por prefijo (ej. "/dashboard" incluye "/dashboard/...")
+const ROLE_PERMISSIONS: Record<string, { allowed: string[]; blocked: string[] }> = {
+  // FUNDADOR: acceso total
+  FUNDADOR: {
+    allowed: ['*'],
+    blocked: []
+  },
+  
+  // ADMIN: todo excepto configuraciones críticas (si existen)
+  ADMIN: {
+    allowed: ['*'],
+    blocked: ['/configuracion/critica']
+  },
+  
+  // FIELD_ENGINEER: obra, calidad, personal (sin sueldos), producción, fotos, documentos, alertas
+  FIELD_ENGINEER: {
+    allowed: [
+      '/obras',
+      '/calidad',
+      '/personal',
+      '/produccion',
+      '/fotos',
+      '/documentos',
+      '/alertas',
+      '/cotizaciones',  // solo lectura (lo manejaremos en el componente)
+    ],
+    blocked: [
+      '/dashboard',
+      '/valorizaciones',
+      '/facturacion',
+      '/costos',
+      '/indicadores',
+      '/reportes',
+      '/compras',
+      '/inventario',     // solo lectura en componente
+    ]
+  },
+  
+  // PRODUCTION: producción, fotos, documentos, alertas, inventario (lectura)
+  PRODUCTION: {
+    allowed: [
+      '/produccion',
+      '/fotos',
+      '/documentos',
+      '/alertas',
+      '/inventario',
+    ],
+    blocked: [
+      '/dashboard',
+      '/obras',
+      '/valorizaciones',
+      '/facturacion',
+      '/cotizaciones',
+      '/calidad',
+      '/personal',
+      '/compras',
+      '/costos',
+      '/indicadores',
+      '/reportes',
+    ]
+  },
+  
+  // VIEWER: solo lectura de obras, cotizaciones, documentos y alertas
+  VIEWER: {
+    allowed: [
+      '/obras',
+      '/cotizaciones',
+      '/documentos',
+      '/alertas',
+    ],
+    blocked: [
+      '/dashboard',
+      '/valorizaciones',
+      '/facturacion',
+      '/calidad',
+      '/personal',
+      '/inventario',
+      '/compras',
+      '/produccion',
+      '/costos',
+      '/indicadores',
+      '/fotos',
+      '/reportes',
+    ]
+  }
+};
 
 // ============================================================
 // 🔥 MIDDLEWARE PRINCIPAL
@@ -42,19 +129,14 @@ const PUBLIC_PATH_PREFIXES = [
 export async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
 
-  // ─── 1. VERIFICAR SI ES UNA RUTA PÚBLICA ───
-  // Verificar coincidencia exacta con PUBLIC_PREFIXES
+  // ─── 1. VERIFICAR RUTAS PÚBLICAS ───
   const isExactPublic = PUBLIC_PREFIXES.some(prefix => path === prefix);
-  
-  // Verificar si empieza con algún prefijo público
   const isPathPublic = PUBLIC_PATH_PREFIXES.some(prefix => path.startsWith(prefix));
-
-  // Si es pública, permitir acceso inmediato (sin verificar token)
   if (isExactPublic || isPathPublic) {
     return NextResponse.next();
   }
 
-  // ─── 2. OBTENER TOKEN DE SESIÓN ───
+  // ─── 2. OBTENER TOKEN ───
   const token = await getToken({ 
     req, 
     secret: process.env.NEXTAUTH_SECRET 
@@ -64,32 +146,32 @@ export async function middleware(req: NextRequest) {
   if (!token) {
     const loginUrl = new URL("/login", req.url);
     loginUrl.searchParams.set("callbackUrl", path);
-    
-    // Usamos status 303 para convertir POST a GET (evita errores 405)
     return NextResponse.redirect(loginUrl, { status: 303 });
   }
 
-  // ─── 4. VERIFICACIÓN DE ROLES ───
-  const role = token.role as string;
-  
-  // Si es ingeniero de campo u operativo, bloquear módulos financieros
-  if (role === "FIELD_ENGINEER" || role === "OPERATIVO") {
-    const blockedPaths = [
-      "/costos",
-      "/finanzas", 
-      "/reportes",
-      "/indicadores",
-      "/facturacion",
-      "/dashboard",
-    ];
-    
-    if (blockedPaths.some(p => path.startsWith(p))) {
-      // Redirigir a una página de "No autorizado"
-      return NextResponse.redirect(new URL("/unauthorized", req.url));
-    }
+  // ─── 4. OBTENER ROL Y PERMISOS ───
+  const role = token.role as string || 'VIEWER';
+  const permissions = ROLE_PERMISSIONS[role] || ROLE_PERMISSIONS.VIEWER;
+
+  // Si el rol tiene acceso total ('*'), continuar
+  if (permissions.allowed.includes('*')) {
+    return NextResponse.next();
   }
 
-  // ─── 5. SI TODO ESTÁ BIEN, CONTINUAR ───
+  // ─── 5. VERIFICAR SI LA RUTA ESTÁ PERMITIDA ───
+  const isAllowed = permissions.allowed.some(route => 
+    path === route || path.startsWith(route + '/')
+  );
+  const isBlocked = permissions.blocked.some(route => 
+    path === route || path.startsWith(route + '/')
+  );
+
+  // Si no está permitida o está explícitamente bloqueada → denegar
+  if (!isAllowed || isBlocked) {
+    return NextResponse.redirect(new URL("/unauthorized", req.url));
+  }
+
+  // ─── 6. SI TODO ESTÁ BIEN, CONTINUAR ───
   return NextResponse.next();
 }
 
@@ -99,7 +181,6 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    // Aplica a todas las rutas EXCEPTO archivos estáticos
     "/((?!_next/static|_next/image|favicon.ico|img|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
