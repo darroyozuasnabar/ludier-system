@@ -224,15 +224,17 @@ export default function DashboardPage() {
       (v) => v.contrato_id === contratoSeleccionado?.id,
     );
 
+    // ✅ CORREGIDO: "COBRADO" en lugar de "COBRADA"
     totalCobradoContrato = valorizacionesDelContrato
-      .filter((v) => v.status === "COBRADA")
+      .filter((v) => v.status === "COBRADO")
       .reduce((sum, v) => sum + Number(v.netoCobrar), 0);
 
+    // ✅ CORREGIDO: Calcular avance correctamente
     avanceContrato = montoContrato > 0 ? (totalCobradoContrato / montoContrato) * 100 : 0;
 
     const ORDEN_ESTADO: Record<string, number> = { FIRMADA: 0, EMITIDA: 1, BORRADOR: 2 };
     const pendientes = valorizacionesDelContrato
-      .filter((v) => v.status !== "COBRADA")
+      .filter((v) => v.status !== "COBRADO")
       .sort((a, b) => (ORDEN_ESTADO[a.status] ?? 9) - (ORDEN_ESTADO[b.status] ?? 9));
 
     proximaVal = pendientes[0] || null;
@@ -247,7 +249,7 @@ export default function DashboardPage() {
   const ultimaValCobrada =
     valorizaciones
       .filter((v) => v.contrato_id === contratoSeleccionado?.id)
-      .find((v) => v.status === "COBRADA") || null;
+      .find((v) => v.status === "COBRADO") || null;
 
   const displayVal = proximaVal || ultimaValCobrada;
 
