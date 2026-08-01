@@ -92,54 +92,79 @@ const getIconForStep = (paso: string) => {
   return Wrench;
 };
 
-type OrdenForm = {
-  nombre: string;
-  tipo: string;
-  cantidad: string;
-  unidad: string;
-  prioridad: string;
-  estado: string;
-  fechaInicio: string;
-  fechaFin: string;
-  observaciones: string;
-};
+// ============================================================
+// 🔥 NUEVAS FUNCIONES PARA CÁLCULO DE AVANCE REAL
+// ============================================================
 
-const FORM_VACIO: OrdenForm = {
-  nombre: "",
-  tipo: "BARANDA_BALCON",
-  cantidad: "",
-  unidad: "unidades",
-  prioridad: "MEDIA",
-  estado: "PENDIENTE",
-  fechaInicio: new Date().toISOString().split("T")[0],
-  fechaFin: "",
-  observaciones: "",
-};
+// Clasifica cada paso del flujo en una fase amplia, reutilizando las mismas
+// palabras clave que ya usa getIconForStep (así no duplicas lógica de negocio).
+type Fase = "PRODUCCION" | "PINTURA" | "INSTALACION";
 
-// Barra de progreso
-const ESTADO_STEP: Record<string, number> = {
-  PENDIENTE: 0,
-  EN_PRODUCCION: 2,
-  EN_PINTURA: 6,
-  EN_INSTALACION: 8,
-  COMPLETADO: 9,
-  PAUSADO: -1,
-};
+function clasificarFase(paso: string): Fase {
+  const p = paso.toLowerCase();
+  if (
+    p.includes("masilla") ||
+    p.includes("lijado") ||
+    p.includes("thinner") ||
+    p.includes("epóx") ||
+    p.includes("gloss") ||
+    p.includes("poxi")
+  ) {
+    return "PINTURA";
+  }
+  if (p.includes("anclaje") || p.includes("instalación") || p.includes("presentación")) {
+    return "INSTALACION";
+  }
+  return "PRODUCCION"; // corte, armado, soldadura, esmeril, trazado, picado, verificación
+}
 
-function FlujoBadgeLine({ estado }: { estado: string }) {
-  const step = ESTADO_STEP[estado] ?? 0;
-  const total = 9;
-  const pct = estado === "COMPLETADO" ? 100 : Math.round((step / total) * 100);
+// Dado el estado ancho de la orden y los pasos REALES definidos para ese tipo,
+// calcula un % proporcional al número de pasos que existen.
+function calcularAvancePct(estado: string, pasosDelTipo: { paso: string }[]): number | null {
+  if (estado === "COMPLETADO") return 100;
+  if (estado === "PAUSADO") return null; // no sabemos en qué paso se quedó
+  if (estado === "PENDIENTE") return 0;
+  if (!pasosDelTipo || pasosDelTipo.length === 0) return null; // sin flujo definido
+
+  const fases = pasosDelTipo.map((p) => clasificarFase(p.paso));
+  const total = fases.length;
+
+  const faseActual: Fase =
+    estado === "EN_PRODUCCION" ? "PRODUCCION" : estado === "EN_PINTURA" ? "PINTURA" : "INSTALACION";
+
+  let ultimoIndiceFase = 0;
+  fases.forEach((f, i) => {
+    if (f === faseActual) ultimoIndiceFase = i + 1;
+  });
+
+  const pasosCompletados = ultimoIndiceFase || Math.ceil(total / 2);
+  return Math.round((pasosCompletados / total) * 100);
+}
+
+// ============================================================
+// 🔥 NUEVO FlujoBadgeLine (reemplaza el anterior)
+// ============================================================
+
+function FlujoBadgeLine({ estado, pasosDelTipo }: { estado: string; pasosDelTipo: { paso: string }[] }) {
+  const pct = calcularAvancePct(estado, pasosDelTipo);
+
+  if (pct === null) {
+    return (
+      <div className="flex items-center gap-2 mt-2">
+        <span className="text-[10px] text-zinc-400 font-mono">
+          {estado === "PAUSADO" ? "Avance no disponible (pausado)" : "Sin flujo definido para este tipo"}
+        </span>
+      </div>
+    );
+  }
+
   return (
     <div className="flex items-center gap-2 mt-2">
       <div className="flex-1 h-1 rounded-full bg-zinc-100 overflow-hidden">
         <div
-          className={`h-full rounded-full transition-all ${estado === "PAUSADO"
-            ? "bg-red-400"
-            : estado === "COMPLETADO"
-              ? "bg-emerald-500"
-              : "bg-blue-500"
-            }`}
+          className={`h-full rounded-full transition-all ${
+            estado === "COMPLETADO" ? "bg-emerald-500" : "bg-blue-500"
+          }`}
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -414,6 +439,30 @@ function NewTipoModal({
   );
 }
 
+type OrdenForm = {
+  nombre: string;
+  tipo: string;
+  cantidad: string;
+  unidad: string;
+  prioridad: string;
+  estado: string;
+  fechaInicio: string;
+  fechaFin: string;
+  observaciones: string;
+};
+
+const FORM_VACIO: OrdenForm = {
+  nombre: "",
+  tipo: "BARANDA_BALCON",
+  cantidad: "",
+  unidad: "unidades",
+  prioridad: "MEDIA",
+  estado: "PENDIENTE",
+  fechaInicio: new Date().toISOString().split("T")[0],
+  fechaFin: "",
+  observaciones: "",
+};
+
 export default function ProduccionPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -447,7 +496,6 @@ export default function ProduccionPage() {
     try {
       console.log("🔍 Cargando datos de producción...");
 
-      // Obtener órdenes ordenadas por created_at (con guión bajo)
       const { data: ordenesData, error: ordenesError } = await supabase
         .from("OrdenProduccion")
         .select("*")
@@ -500,6 +548,7 @@ export default function ProduccionPage() {
       setLoading(false);
     }
   };
+
   const showToastMsg = (type: "ok" | "err", msg: string) => {
     setToast({ type, msg });
     setTimeout(() => setToast(null), 4000);
@@ -521,8 +570,8 @@ export default function ProduccionPage() {
       unidad: form.unidad,
       prioridad: form.prioridad,
       estado: form.estado,
-      fechainicio: form.fechaInicio,      // 🔧 minúsculas
-      fechafin: form.fechaFin || null,    // 🔧 minúsculas
+      fechainicio: form.fechaInicio,
+      fechafin: form.fechaFin || null,
       observaciones: form.observaciones || null,
     };
 
@@ -559,29 +608,28 @@ export default function ProduccionPage() {
     loadData();
   };
 
-const handleEditOrden = (orden: any) => {
-  setForm({
-    nombre: orden.nombre,
-    tipo: orden.tipo,
-    cantidad: String(orden.cantidad),
-    unidad: orden.unidad || "unidades",
-    prioridad: orden.prioridad,
-    estado: orden.estado,
-    fechaInicio: orden.fechainicio?.split("T")[0] || "",    // 🔧 fechainicio (minúsculas)
-    fechaFin: orden.fechafin?.split("T")[0] || "",          // 🔧 fechafin (minúsculas)
-    observaciones: orden.observaciones || "",
-  });
-  setEditingId(orden.id);
-  setShowForm(true);
-  window.scrollTo({ top: 0, behavior: "smooth" });
-};
+  const handleEditOrden = (orden: any) => {
+    setForm({
+      nombre: orden.nombre,
+      tipo: orden.tipo,
+      cantidad: String(orden.cantidad),
+      unidad: orden.unidad || "unidades",
+      prioridad: orden.prioridad,
+      estado: orden.estado,
+      fechaInicio: orden.fechainicio?.split("T")[0] || "",
+      fechaFin: orden.fechafin?.split("T")[0] || "",
+      observaciones: orden.observaciones || "",
+    });
+    setEditingId(orden.id);
+    setShowForm(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const handleSaveFlujo = async (pasos: any[]) => {
     setSaving(true);
     try {
-      // Eliminar pasos existentes de este tipo
       await supabase.from("FlujoProduccion").delete().eq("tipo_producto", selectedTipoFlujo);
 
-      // Insertar nuevos pasos
       for (const paso of pasos) {
         await supabase.from("FlujoProduccion").insert({
           paso: paso.paso,
@@ -918,6 +966,7 @@ const handleEditOrden = (orden: any) => {
               {ordenesFiltradas.map((orden) => {
                 const isExpanded = expandedId === orden.id;
                 const pConfig = prioridadConfig[orden.prioridad] ?? prioridadConfig.BAJA;
+                const pasosDelTipo = flujosPorTipo[orden.tipo] || [];
                 return (
                   <div key={orden.id} className="bg-white rounded-2xl border border-zinc-100 shadow-sm overflow-hidden hover:border-zinc-200 transition-colors">
                     <div className="p-5">
@@ -928,7 +977,8 @@ const handleEditOrden = (orden: any) => {
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 flex-wrap"><h3 className="text-sm font-bold text-zinc-900 truncate">{orden.nombre}</h3><span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${estadoBadge[orden.estado] ?? "bg-zinc-100 text-zinc-600"}`}>{getEstadoLabel(orden.estado)}</span></div>
                               <div className="flex items-center gap-3 mt-1 flex-wrap"><span className="text-xs text-zinc-500"><span className="font-semibold text-zinc-700">{orden.cantidad}</span> {orden.unidad}</span><span className="text-[10px] text-zinc-300">·</span><span className="text-xs text-zinc-400 uppercase tracking-wide">{orden.tipo}</span><span className="text-[10px] text-zinc-300">·</span><span className={`text-xs ${pConfig.style}`}>↑ {orden.prioridad}</span><span className="text-[10px] text-zinc-300">·</span><span className="text-xs text-zinc-400 flex items-center gap-1"><Clock className="h-3 w-3" />{new Date(orden.fechaInicio).toLocaleDateString("es-PE", { day: "2-digit", month: "short" })}</span></div>
-                              <FlujoBadgeLine estado={orden.estado} />
+                              {/* 🔥 NUEVO: FlujoBadgeLine con pasos reales */}
+                              <FlujoBadgeLine estado={orden.estado} pasosDelTipo={pasosDelTipo} />
                             </div>
                             <div className="flex items-center gap-0.5 shrink-0"><button onClick={() => handleEditOrden(orden)} className="p-1.5 text-zinc-300 hover:text-zinc-700 hover:bg-zinc-100 rounded-lg transition-colors"><Pencil className="h-3.5 w-3.5" /></button><button onClick={() => handleDeleteOrden(orden.id)} className="p-1.5 text-zinc-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="h-3.5 w-3.5" /></button><button onClick={() => setExpandedId(isExpanded ? null : orden.id)} className="p-1.5 text-zinc-300 hover:text-zinc-700 hover:bg-zinc-100 rounded-lg transition-colors">{isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}</button></div>
                           </div>
