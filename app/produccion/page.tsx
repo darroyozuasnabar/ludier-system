@@ -93,11 +93,9 @@ const getIconForStep = (paso: string) => {
 };
 
 // ============================================================
-// 🔥 NUEVAS FUNCIONES PARA CÁLCULO DE AVANCE REAL
+// 🔥 CLASIFICACIÓN DE FASES (reutilizada de getIconForStep)
 // ============================================================
 
-// Clasifica cada paso del flujo en una fase amplia, reutilizando las mismas
-// palabras clave que ya usa getIconForStep (así no duplicas lógica de negocio).
 type Fase = "PRODUCCION" | "PINTURA" | "INSTALACION";
 
 function clasificarFase(paso: string): Fase {
@@ -115,16 +113,50 @@ function clasificarFase(paso: string): Fase {
   if (p.includes("anclaje") || p.includes("instalación") || p.includes("presentación")) {
     return "INSTALACION";
   }
-  return "PRODUCCION"; // corte, armado, soldadura, esmeril, trazado, picado, verificación
+  return "PRODUCCION";
 }
 
-// Dado el estado ancho de la orden y los pasos REALES definidos para ese tipo,
-// calcula un % proporcional al número de pasos que existen.
-function calcularAvancePct(estado: string, pasosDelTipo: { paso: string }[]): number | null {
+// ============================================================
+// 🔥 CÁLCULO DE AVANCE: usa base_completada y acabado_completado
+// ============================================================
+
+function calcularAvancePct(
+  estado: string,
+  pasosDelTipo: { paso: string }[],
+  baseCompletada: boolean,
+  acabadoCompletado: boolean
+): number | null {
+  // Si está completado → 100%
   if (estado === "COMPLETADO") return 100;
-  if (estado === "PAUSADO") return null; // no sabemos en qué paso se quedó
+
+  // Si está pausado → no mostrar número
+  if (estado === "PAUSADO") return null;
+
+  // Si está pendiente → 0%
   if (estado === "PENDIENTE") return 0;
-  if (!pasosDelTipo || pasosDelTipo.length === 0) return null; // sin flujo definido
+
+  // ✅ USAR BASE_COMPLETADA Y ACABADO_COMPLETADO
+  // Si base y acabado están completados → 100%
+  if (baseCompletada && acabadoCompletado) return 100;
+
+  // Si base está completada pero acabado no → 85%
+  if (baseCompletada && !acabadoCompletado) return 85;
+
+  // Si ni base ni acabado están completados → estimar según estado
+  if (!baseCompletada && !acabadoCompletado) {
+    if (estado === "EN_INSTALACION") return 60;
+    if (estado === "EN_PINTURA") return 40;
+    if (estado === "EN_PRODUCCION") return 25;
+    return 15;
+  }
+
+  // Fallback: usar el cálculo por fases (solo si no hay base/acabado)
+  if (!pasosDelTipo || pasosDelTipo.length === 0) {
+    if (estado === "EN_INSTALACION") return 60;
+    if (estado === "EN_PINTURA") return 85;
+    if (estado === "EN_PRODUCCION") return 30;
+    return 0;
+  }
 
   const fases = pasosDelTipo.map((p) => clasificarFase(p.paso));
   const total = fases.length;
@@ -142,11 +174,21 @@ function calcularAvancePct(estado: string, pasosDelTipo: { paso: string }[]): nu
 }
 
 // ============================================================
-// 🔥 NUEVO FlujoBadgeLine (reemplaza el anterior)
+// 🔥 NUEVO FlujoBadgeLine (con base y acabado)
 // ============================================================
 
-function FlujoBadgeLine({ estado, pasosDelTipo }: { estado: string; pasosDelTipo: { paso: string }[] }) {
-  const pct = calcularAvancePct(estado, pasosDelTipo);
+function FlujoBadgeLine({
+  estado,
+  pasosDelTipo,
+  baseCompletada,
+  acabadoCompletado,
+}: {
+  estado: string;
+  pasosDelTipo: { paso: string }[];
+  baseCompletada: boolean;
+  acabadoCompletado: boolean;
+}) {
+  const pct = calcularAvancePct(estado, pasosDelTipo, baseCompletada, acabadoCompletado);
 
   if (pct === null) {
     return (
@@ -960,7 +1002,15 @@ export default function ProduccionPage() {
           </div>
 
           {ordenesFiltradas.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-zinc-100 p-16 text-center"><div className="w-14 h-14 rounded-2xl bg-zinc-50 flex items-center justify-center mx-auto mb-4"><Factory className="h-7 w-7 text-zinc-200" /></div><p className="text-sm text-zinc-400">No hay órdenes en este filtro.</p><p className="text-xs text-zinc-300 mt-1">{filterEstado === "ALL" ? 'Crea la primera con "Nueva orden".' : "Prueba con otro filtro."}</p></div>
+            <div className="bg-white rounded-2xl border border-zinc-100 p-16 text-center">
+              <div className="w-14 h-14 rounded-2xl bg-zinc-50 flex items-center justify-center mx-auto mb-4">
+                <Factory className="h-7 w-7 text-zinc-200" />
+              </div>
+              <p className="text-sm text-zinc-400">No hay órdenes en este filtro.</p>
+              <p className="text-xs text-zinc-300 mt-1">
+                {filterEstado === "ALL" ? 'Crea la primera con "Nueva orden".' : "Prueba con otro filtro."}
+              </p>
+            </div>
           ) : (
             <div className="space-y-3">
               {ordenesFiltradas.map((orden) => {
@@ -971,23 +1021,87 @@ export default function ProduccionPage() {
                   <div key={orden.id} className="bg-white rounded-2xl border border-zinc-100 shadow-sm overflow-hidden hover:border-zinc-200 transition-colors">
                     <div className="p-5">
                       <div className="flex items-start gap-4">
-                        <div className="flex flex-col items-center gap-1 pt-0.5"><div className={`w-2 h-2 rounded-full ${pConfig.dot}`} /><div className="w-px flex-1 bg-zinc-100 min-h-[24px]" /></div>
+                        <div className="flex flex-col items-center gap-1 pt-0.5">
+                          <div className={`w-2 h-2 rounded-full ${pConfig.dot}`} />
+                          <div className="w-px flex-1 bg-zinc-100 min-h-[24px]" />
+                        </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 flex-wrap"><h3 className="text-sm font-bold text-zinc-900 truncate">{orden.nombre}</h3><span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${estadoBadge[orden.estado] ?? "bg-zinc-100 text-zinc-600"}`}>{getEstadoLabel(orden.estado)}</span></div>
-                              <div className="flex items-center gap-3 mt-1 flex-wrap"><span className="text-xs text-zinc-500"><span className="font-semibold text-zinc-700">{orden.cantidad}</span> {orden.unidad}</span><span className="text-[10px] text-zinc-300">·</span><span className="text-xs text-zinc-400 uppercase tracking-wide">{orden.tipo}</span><span className="text-[10px] text-zinc-300">·</span><span className={`text-xs ${pConfig.style}`}>↑ {orden.prioridad}</span><span className="text-[10px] text-zinc-300">·</span><span className="text-xs text-zinc-400 flex items-center gap-1"><Clock className="h-3 w-3" />{new Date(orden.fechaInicio).toLocaleDateString("es-PE", { day: "2-digit", month: "short" })}</span></div>
-                              {/* 🔥 NUEVO: FlujoBadgeLine con pasos reales */}
-                              <FlujoBadgeLine estado={orden.estado} pasosDelTipo={pasosDelTipo} />
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <h3 className="text-sm font-bold text-zinc-900 truncate">{orden.nombre}</h3>
+                                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${estadoBadge[orden.estado] ?? "bg-zinc-100 text-zinc-600"}`}>
+                                  {getEstadoLabel(orden.estado)}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-3 mt-1 flex-wrap">
+                                <span className="text-xs text-zinc-500">
+                                  <span className="font-semibold text-zinc-700">{orden.cantidad}</span> {orden.unidad}
+                                </span>
+                                <span className="text-[10px] text-zinc-300">·</span>
+                                <span className="text-xs text-zinc-400 uppercase tracking-wide">{orden.tipo}</span>
+                                <span className="text-[10px] text-zinc-300">·</span>
+                                <span className={`text-xs ${pConfig.style}`}>↑ {orden.prioridad}</span>
+                                <span className="text-[10px] text-zinc-300">·</span>
+                                <span className="text-xs text-zinc-400 flex items-center gap-1">
+                                  <Clock className="h-3 w-3" />
+                                  {new Date(orden.fechaInicio).toLocaleDateString("es-PE", { day: "2-digit", month: "short" })}
+                                </span>
+                              </div>
+                              {/* 🔥 NUEVO: FlujoBadgeLine con base y acabado */}
+                              <FlujoBadgeLine
+                                estado={orden.estado}
+                                pasosDelTipo={pasosDelTipo}
+                                baseCompletada={orden.base_completada}
+                                acabadoCompletado={orden.acabado_completado}
+                              />
                             </div>
-                            <div className="flex items-center gap-0.5 shrink-0"><button onClick={() => handleEditOrden(orden)} className="p-1.5 text-zinc-300 hover:text-zinc-700 hover:bg-zinc-100 rounded-lg transition-colors"><Pencil className="h-3.5 w-3.5" /></button><button onClick={() => handleDeleteOrden(orden.id)} className="p-1.5 text-zinc-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="h-3.5 w-3.5" /></button><button onClick={() => setExpandedId(isExpanded ? null : orden.id)} className="p-1.5 text-zinc-300 hover:text-zinc-700 hover:bg-zinc-100 rounded-lg transition-colors">{isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}</button></div>
+                            <div className="flex items-center gap-0.5 shrink-0">
+                              <button onClick={() => handleEditOrden(orden)} className="p-1.5 text-zinc-300 hover:text-zinc-700 hover:bg-zinc-100 rounded-lg transition-colors">
+                                <Pencil className="h-3.5 w-3.5" />
+                              </button>
+                              <button onClick={() => handleDeleteOrden(orden.id)} className="p-1.5 text-zinc-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                              <button onClick={() => setExpandedId(isExpanded ? null : orden.id)} className="p-1.5 text-zinc-300 hover:text-zinc-700 hover:bg-zinc-100 rounded-lg transition-colors">
+                                {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>
                       {isExpanded && (
                         <div className="mt-4 pt-4 border-t border-zinc-50 pl-6">
-                          <div className="grid grid-cols-2 gap-4 mb-4"><div><p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Observaciones</p><p className="text-xs text-zinc-600">{orden.observaciones || "Sin observaciones registradas."}</p></div><div><p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Fecha fin estimada</p><p className="text-xs text-zinc-600">{orden.fechaFin ? new Date(orden.fechaFin).toLocaleDateString("es-PE", { weekday: "long", day: "numeric", month: "long" }) : "No definida"}</p></div></div>
-                          <div><p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2">Cambiar estado</p><div className="flex flex-wrap gap-1.5">{ESTADOS_ORDEN.map((e) => (<button key={e.key} onClick={() => handleUpdateStatus(orden.id, e.key)} className={`text-[10px] px-3 py-1.5 rounded-full font-semibold uppercase tracking-wide transition-all ${orden.estado === e.key ? `${estadoBadge[e.key]} ring-2 ring-offset-1 ring-zinc-300` : "bg-zinc-50 text-zinc-500 border border-zinc-200 hover:border-zinc-400 hover:text-zinc-700"}`}>{e.label}</button>))}</div></div>
+                          <div className="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                              <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Observaciones</p>
+                              <p className="text-xs text-zinc-600">{orden.observaciones || "Sin observaciones registradas."}</p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Fecha fin estimada</p>
+                              <p className="text-xs text-zinc-600">
+                                {orden.fechaFin ? new Date(orden.fechaFin).toLocaleDateString("es-PE", { weekday: "long", day: "numeric", month: "long" }) : "No definida"}
+                              </p>
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2">Cambiar estado</p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {ESTADOS_ORDEN.map((e) => (
+                                <button
+                                  key={e.key}
+                                  onClick={() => handleUpdateStatus(orden.id, e.key)}
+                                  className={`text-[10px] px-3 py-1.5 rounded-full font-semibold uppercase tracking-wide transition-all ${
+                                    orden.estado === e.key
+                                      ? `${estadoBadge[e.key]} ring-2 ring-offset-1 ring-zinc-300`
+                                      : "bg-zinc-50 text-zinc-500 border border-zinc-200 hover:border-zinc-400 hover:text-zinc-700"
+                                  }`}
+                                >
+                                  {e.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
                         </div>
                       )}
                     </div>
