@@ -75,6 +75,10 @@ export function useReportData({ reportId, projectId, periodo, role }: UseReportD
       .select("id, nombre, monto, estado")
       .eq("project_id", projectId);
 
+    if (!contratos || contratos.length === 0) {
+      return [];
+    }
+
     // Obtener valorizaciones del proyecto
     const { data: valorizaciones } = await supabase
       .from("Valorizacion")
@@ -82,7 +86,21 @@ export function useReportData({ reportId, projectId, periodo, role }: UseReportD
       .eq("projectId", projectId);
 
     // Calcular avance por contrato
-    return contratos?.map((c) => {
+    return contratos.map((c) => {
+      // ✅ Si el contrato está COBRADO → 100% (no necesita valorizaciones)
+      if (c.estado === "COBRADO") {
+        const total = Number(c.monto);
+        return {
+          contrato: c.nombre,
+          total: total,
+          cobrado: total,
+          pendiente: 0,
+          avance: 100,
+          estado: c.estado,
+        };
+      }
+
+      // Si no está cobrado, calcular desde valorizaciones
       const vals = valorizaciones?.filter((v) => v.contrato_id === c.id) || [];
       const cobrado = vals
         .filter((v) => v.status === "COBRADO")
@@ -91,6 +109,7 @@ export function useReportData({ reportId, projectId, periodo, role }: UseReportD
         .filter((v) => v.status !== "COBRADO")
         .reduce((s, v) => s + Number(v.netoCobrar), 0);
       const total = Number(c.monto);
+
       return {
         contrato: c.nombre,
         total,
