@@ -1,4 +1,5 @@
 // app/reportes/components/ReportAvance.tsx
+
 "use client";
 
 import { useState } from "react";
@@ -33,7 +34,7 @@ interface ContratoAvance {
     period: string;
     fechaEmision: string;
   } | null;
-  valorizaciones?: ValorizacionResumen[]; // se cargan al expandir, si no vienen ya
+  valorizaciones?: ValorizacionResumen[];
 }
 
 interface ReportAvanceProps {
@@ -155,7 +156,8 @@ export default function ReportAvance({ data, isAdmin }: ReportAvanceProps) {
           <tbody className="divide-y divide-gray-100">
             {data.map((c) => {
               const isOpen = expandedId === c.contratoId;
-              const avance = c.ultimaValorizacion?.avancePct ?? 0;
+              // ✅ Si el contrato está COBRADO → avance 100%
+              const avance = c.estado === "COBRADO" ? 100 : (c.ultimaValorizacion?.avancePct ?? 0);
               const pendiente = c.total - c.cobrado;
 
               return (
@@ -190,7 +192,7 @@ export default function ReportAvance({ data, isAdmin }: ReportAvanceProps) {
                             style={{ width: `${Math.min(avance, 100)}%` }}
                           />
                         </div>
-                        <span className="text-xs text-gray-500 tabular-nums">
+                        <span className="text-xs font-medium text-gray-700 tabular-nums">
                           {avance.toFixed(0)}%
                         </span>
                       </div>
@@ -219,7 +221,9 @@ export default function ReportAvance({ data, isAdmin }: ReportAvanceProps) {
                       <td colSpan={isAdmin ? 8 : 5} className="bg-gray-50/40 px-4 py-3">
                         {!c.valorizaciones || c.valorizaciones.length === 0 ? (
                           <p className="text-xs text-gray-400 py-2">
-                            Este contrato aún no tiene valorizaciones registradas
+                            {c.estado === "COBRADO"
+                              ? "Contrato cobrado sin valorizaciones individuales"
+                              : "Este contrato aún no tiene valorizaciones registradas"}
                           </p>
                         ) : (
                           <table className="w-full text-xs">
