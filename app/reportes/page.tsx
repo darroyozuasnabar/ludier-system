@@ -4,11 +4,11 @@
 
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, type ComponentType, type Dispatch, type SetStateAction } from "react";
+import { useEffect, useState } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 import { REPORTS_BY_ROLE } from "./config";
-import ReportSelector from "./components/ReportFilters";
-import ReportFilters from "./components/ReportSelector";
+import ReportSelector from "./components/ReportSelector";
+import ReportFilters from "./components/ReportFilters";
 import ReportAvance from "./components/ReportAvance";
 import ReportProduccion from "./components/ReportProduccion";
 import ReportContratos from "./components/ReportContratos";
