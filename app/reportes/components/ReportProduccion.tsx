@@ -1,4 +1,5 @@
 // app/reportes/components/ReportProduccion.tsx
+
 "use client";
 
 interface OrdenProduccion {
@@ -48,7 +49,7 @@ function CheckMark({ done }: { done: boolean }) {
   );
 }
 
-export function ReportProduccion({ data }: ReportProduccionProps) {
+export default function ReportProduccion({ data }: ReportProduccionProps) {
   if (!data || data.length === 0) {
     return (
       <div className="text-center py-10 text-sm text-gray-500">

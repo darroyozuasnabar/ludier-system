@@ -1,4 +1,5 @@
 // app/reportes/components/ReportPersonal.tsx
+
 "use client";
 
 interface Trabajador {
@@ -14,7 +15,7 @@ interface ReportPersonalProps {
   isAdmin: boolean;
 }
 
-export function ReportPersonal({ data, isAdmin }: ReportPersonalProps) {
+export default function ReportPersonal({ data, isAdmin }: ReportPersonalProps) {
   if (!data || data.length === 0) {
     return (
       <div className="text-center py-10 text-sm text-gray-500">

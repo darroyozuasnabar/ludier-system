@@ -1,4 +1,5 @@
 // app/reportes/components/ReportAlertas.tsx
+
 "use client";
 
 interface Alerta {
@@ -37,7 +38,7 @@ const PRIORIDAD_TEXT: Record<string, string> = {
   BAJA: "text-gray-500",
 };
 
-export function ReportAlertas({ data }: ReportAlertasProps) {
+export default function ReportAlertas({ data }: ReportAlertasProps) {
   if (!data || data.length === 0) {
     return (
       <div className="text-center py-10 text-sm text-gray-500">

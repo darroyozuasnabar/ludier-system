@@ -1,4 +1,5 @@
 // app/reportes/components/ReportAvance.tsx
+
 "use client";
 
 interface Contrato {
@@ -15,7 +16,7 @@ interface ReportAvanceProps {
   isAdmin: boolean;
 }
 
-export function ReportAvance({ data, isAdmin }: ReportAvanceProps) {
+export default function ReportAvance({ data, isAdmin }: ReportAvanceProps) {
   if (!data || data.length === 0) {
     return (
       <div className="text-center py-10 text-sm text-gray-500">

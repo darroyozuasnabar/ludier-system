@@ -1,4 +1,5 @@
 // app/reportes/components/ReportPartes.tsx
+
 "use client";
 
 interface ParteDiario {
@@ -13,7 +14,7 @@ interface ReportPartesProps {
   data: ParteDiario[];
 }
 
-export function ReportPartes({ data }: ReportPartesProps) {
+export default function ReportPartes({ data }: ReportPartesProps) {
   if (!data || data.length === 0) {
     return (
       <div className="text-center py-10 text-sm text-gray-500">

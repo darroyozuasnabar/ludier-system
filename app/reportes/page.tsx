@@ -4,18 +4,18 @@
 
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ComponentType, type Dispatch, type SetStateAction } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 import { REPORTS_BY_ROLE } from "./config";
-import { ReportSelector } from "./components/ReportSelector";
-import { ReportFilters } from "./components/ReportFilters";
-import { ReportAvance } from "./components/ReportAvance";
-import { ReportProduccion } from "./components/ReportProduccion";
-import { ReportContratos } from "./components/ReportContratos";
-import { ReportPersonal } from "./components/ReportPersonal";
-import { ReportAlertas } from "./components/ReportAlertas";
-import { ReportPartes } from "./components/ReportPartes";
-import { ReportInventario } from "./components/ReportInventario";
+import ReportSelector from "./components/ReportFilters";
+import ReportFilters from "./components/ReportSelector";
+import ReportAvance from "./components/ReportAvance";
+import ReportProduccion from "./components/ReportProduccion";
+import ReportContratos from "./components/ReportContratos";
+import ReportPersonal from "./components/ReportPersonal";
+import ReportAlertas from "./components/ReportAlertas";
+import ReportPartes from "./components/ReportPartes";
+import ReportInventario from "./components/ReportInventario";
 import { useReportData } from "./hooks/useReportData";
 
 const supabase = createBrowserClient(
@@ -191,6 +191,7 @@ export default function ReportesPage() {
           onPeriodoChange={setPeriodo}
           loading={loading}
           onGenerate={handleGenerate}
+          lastGeneratedAt={generated ? new Date() : null}
         />
 
         {/* ─── RESULTADOS ────────────────────────────────────────────── */}

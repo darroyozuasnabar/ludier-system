@@ -1,4 +1,5 @@
 // app/reportes/components/ReportContratos.tsx
+
 "use client";
 
 interface Contrato {
@@ -31,7 +32,7 @@ const ESTADO_TEXT: Record<string, string> = {
   ACTIVO: "text-amber-700",
 };
 
-export function ReportContratos({ data }: ReportContratosProps) {
+export default function ReportContratos({ data }: ReportContratosProps) {
   if (!data || data.length === 0) {
     return (
       <div className="text-center py-10 text-sm text-gray-500">
