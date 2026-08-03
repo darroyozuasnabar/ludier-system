@@ -113,6 +113,8 @@ function Toast({ type, msg, onClose }: { type: "ok" | "err"; msg: string; onClos
 export default function CotizacionesPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const userRole = session?.user?.role || "VIEWER";
+  const isAdmin = userRole === "FUNDADOR" || userRole === "ADMIN";
 
   const [loading, setLoading] = useState(true);
   const [cotizaciones, setCotizaciones] = useState<any[]>([]);
@@ -152,6 +154,10 @@ export default function CotizacionesPage() {
   };
 
   const handleDelete = async (id: string) => {
+    if (!isAdmin) {
+      showToast("err", "No tienes permiso para eliminar cotizaciones.");
+      return;
+    }
     if (!confirm("¿Eliminar esta cotización? (Solo disponible en estado BORRADOR)")) return;
 
     try {
@@ -168,6 +174,10 @@ export default function CotizacionesPage() {
   };
 
   const handleEnviar = async (id: string) => {
+    if (!isAdmin) {
+      showToast("err", "No tienes permiso para enviar cotizaciones.");
+      return;
+    }
     try {
       const response = await fetch(`/api/cotizaciones/${id}/enviar`, { method: "POST" });
       const data = await response.json();
@@ -227,51 +237,76 @@ export default function CotizacionesPage() {
               </div>
             </div>
           </div>
-          <button
-            onClick={() => router.push("/cotizaciones/nueva")}
-            className="flex items-center gap-2 px-4 py-2 bg-zinc-900 text-white text-xs font-semibold rounded-xl hover:bg-zinc-800 transition-colors"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            Nueva cotización
-          </button>
+          {isAdmin && (
+            <button
+              onClick={() => router.push("/cotizaciones/nueva")}
+              className="flex items-center gap-2 px-4 py-2 bg-zinc-900 text-white text-xs font-semibold rounded-xl hover:bg-zinc-800 transition-colors"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              Nueva cotización
+            </button>
+          )}
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-6 py-8 space-y-8">
-        {/* KPIs */}
-        <section>
-          <SectionTitle sub="Métricas comerciales">Visión ejecutiva</SectionTitle>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <KpiCard
-              icon={FileText}
-              label="Total cotizaciones"
-              value={totalCotizaciones}
-              sub="registradas"
-              accent="bg-zinc-50"
-            />
-            <KpiCard
-              icon={CheckCircle}
-              label="Aprobadas"
-              value={aprobadas}
-              sub={`${totalCotizaciones > 0 ? Math.round((aprobadas / totalCotizaciones) * 100) : 0}% conversión`}
-              accent="bg-emerald-50"
-            />
-            <KpiCard
-              icon={Clock}
-              label="Pendientes"
-              value={pendientes}
-              sub="en espera de respuesta"
-              accent="bg-amber-50"
-            />
-            <KpiCard
-              icon={TrendingUp}
-              label="Monto total"
-              value={formatCOP(totalMonto)}
-              sub="cotizado"
-              accent="bg-blue-50"
-            />
-          </div>
-        </section>
+        {/* KPIs - SOLO ADMIN */}
+        {isAdmin ? (
+          <section>
+            <SectionTitle sub="Métricas comerciales">Visión ejecutiva</SectionTitle>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <KpiCard
+                icon={FileText}
+                label="Total cotizaciones"
+                value={totalCotizaciones}
+                sub="registradas"
+                accent="bg-zinc-50"
+              />
+              <KpiCard
+                icon={CheckCircle}
+                label="Aprobadas"
+                value={aprobadas}
+                sub={`${totalCotizaciones > 0 ? Math.round((aprobadas / totalCotizaciones) * 100) : 0}% conversión`}
+                accent="bg-emerald-50"
+              />
+              <KpiCard
+                icon={Clock}
+                label="Pendientes"
+                value={pendientes}
+                sub="en espera de respuesta"
+                accent="bg-amber-50"
+              />
+              <KpiCard
+                icon={TrendingUp}
+                label="Monto total"
+                value={formatCOP(totalMonto)}
+                sub="cotizado"
+                accent="bg-blue-50"
+              />
+            </div>
+          </section>
+        ) : (
+          // FIELD_ENGINEER: solo 2 KPIs sin montos
+          <section>
+            <SectionTitle sub="Métricas comerciales">Visión ejecutiva</SectionTitle>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <KpiCard
+                icon={FileText}
+                label="Total cotizaciones"
+                value={totalCotizaciones}
+                sub="registradas"
+                accent="bg-zinc-50"
+              />
+              <KpiCard
+                icon={Clock}
+                label="Pendientes"
+                value={pendientes}
+                sub="en espera de respuesta"
+                accent="bg-amber-50"
+              />
+            </div>
+          </section>
+        )}
 
         {/* Filtros */}
         <section className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-6">
@@ -349,10 +384,15 @@ export default function CotizacionesPage() {
                               <Calendar className="h-3 w-3" />
                               {new Date(cotizacion.fecha_emision).toLocaleDateString("es-PE")}
                             </span>
-                            <span>·</span>
-                            <span className="font-semibold text-zinc-900">{formatCOP(Number(cotizacion.total))}</span>
-                            <span>·</span>
-                            <span>{cotizacion.moneda || "PEN"}</span>
+                            {/* Monto SOLO para ADMIN */}
+                            {isAdmin && (
+                              <>
+                                <span>·</span>
+                                <span className="font-semibold text-zinc-900">{formatCOP(Number(cotizacion.total))}</span>
+                                <span>·</span>
+                                <span>{cotizacion.moneda || "PEN"}</span>
+                              </>
+                            )}
                             {cotizacion.project && (
                               <>
                                 <span>·</span>
@@ -372,7 +412,7 @@ export default function CotizacionesPage() {
                           >
                             <Eye className="h-4 w-4" />
                           </button>
-                          {(cotizacion.estado === "BORRADOR") && (
+                          {isAdmin && cotizacion.estado === "BORRADOR" && (
                             <button
                               onClick={() => router.push(`/cotizaciones/${cotizacion.id}/editar`)}
                               className="p-1.5 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 rounded-lg transition-colors"
@@ -381,7 +421,7 @@ export default function CotizacionesPage() {
                               <Pencil className="h-4 w-4" />
                             </button>
                           )}
-                          {(cotizacion.estado === "BORRADOR") && (
+                          {isAdmin && cotizacion.estado === "BORRADOR" && (
                             <button
                               onClick={() => handleDelete(cotizacion.id)}
                               className="p-1.5 text-zinc-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
@@ -390,7 +430,7 @@ export default function CotizacionesPage() {
                               <Trash2 className="h-4 w-4" />
                             </button>
                           )}
-                          {(cotizacion.estado === "BORRADOR" || cotizacion.estado === "VISTA") && (
+                          {isAdmin && (cotizacion.estado === "BORRADOR" || cotizacion.estado === "VISTA") && (
                             <button
                               onClick={() => handleEnviar(cotizacion.id)}
                               className="p-1.5 text-blue-400 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
@@ -418,7 +458,9 @@ export default function CotizacionesPage() {
                                   cotizacion.items.map((item: any, idx: number) => (
                                     <div key={idx} className="flex justify-between text-sm py-1 border-b border-zinc-50">
                                       <span className="text-zinc-700">{item.cantidad} x {item.descripcion}</span>
-                                      <span className="font-medium text-zinc-900">{formatCOP(item.total)}</span>
+                                      {isAdmin && (
+                                        <span className="font-medium text-zinc-900">{formatCOP(item.total)}</span>
+                                      )}
                                     </div>
                                   ))
                                 ) : (
@@ -428,11 +470,17 @@ export default function CotizacionesPage() {
                             </div>
                             <div>
                               <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Detalles</p>
-                              <div className="space-y-1 text-sm">
-                                <p><span className="text-zinc-500">Subtotal:</span> <span className="font-medium">{formatCOP(Number(cotizacion.subtotal || 0))}</span></p>
-                                <p><span className="text-zinc-500">IGV (18%):</span> <span className="font-medium">{formatCOP(Number(cotizacion.igv || 0))}</span></p>
-                                <p><span className="text-zinc-500">Total:</span> <span className="font-bold text-zinc-900">{formatCOP(Number(cotizacion.total || 0))}</span></p>
-                              </div>
+                              {isAdmin ? (
+                                <div className="space-y-1 text-sm">
+                                  <p><span className="text-zinc-500">Subtotal:</span> <span className="font-medium">{formatCOP(Number(cotizacion.subtotal || 0))}</span></p>
+                                  <p><span className="text-zinc-500">IGV (18%):</span> <span className="font-medium">{formatCOP(Number(cotizacion.igv || 0))}</span></p>
+                                  <p><span className="text-zinc-500">Total:</span> <span className="font-bold text-zinc-900">{formatCOP(Number(cotizacion.total || 0))}</span></p>
+                                </div>
+                              ) : (
+                                <div className="space-y-1 text-sm">
+                                  <p className="text-zinc-500">Ver detalles en la cotización completa</p>
+                                </div>
+                              )}
                               {cotizacion.notas && (
                                 <div className="mt-2 p-2 bg-zinc-50 rounded-lg">
                                   <p className="text-[10px] text-zinc-400">Notas</p>
