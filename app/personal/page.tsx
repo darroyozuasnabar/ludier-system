@@ -691,6 +691,8 @@ export default function PersonalPage() {
   };
 
   const handleSaveChecklist = async () => {
+      console.log("📊 checklistData antes de guardar:", checklistData);
+  console.log("📆 selectedWeek:", selectedWeek);
     setSaving(true);
     try {
       await Promise.all(
