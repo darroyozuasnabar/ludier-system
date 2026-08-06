@@ -33,23 +33,15 @@ const PUBLIC_PATH_PREFIXES = [
 // 🔥 MATRIZ DE PERMISOS POR ROL
 // ============================================================
 
-// Definición de qué rutas puede ver cada rol
-// - '*' significa todas las rutas
-// - Las rutas se verifican por prefijo (ej. "/dashboard" incluye "/dashboard/...")
 const ROLE_PERMISSIONS: Record<string, { allowed: string[]; blocked: string[] }> = {
-  // FUNDADOR: acceso total
   FUNDADOR: {
     allowed: ['*'],
     blocked: []
   },
-  
-  // ADMIN: todo excepto configuraciones críticas (si existen)
   ADMIN: {
     allowed: ['*'],
     blocked: ['/configuracion/critica']
   },
-  
-  // FIELD_ENGINEER: obra, calidad, personal (sin sueldos), producción, fotos, documentos, alertas
   FIELD_ENGINEER: {
     allowed: [
       '/obras',
@@ -59,7 +51,7 @@ const ROLE_PERMISSIONS: Record<string, { allowed: string[]; blocked: string[] }>
       '/fotos',
       '/documentos',
       '/alertas',
-      '/cotizaciones',  // solo lectura (lo manejaremos en el componente)
+      '/cotizaciones',
     ],
     blocked: [
       '/dashboard',
@@ -69,11 +61,9 @@ const ROLE_PERMISSIONS: Record<string, { allowed: string[]; blocked: string[] }>
       '/indicadores',
       '/reportes',
       '/compras',
-      '/inventario',     // solo lectura en componente
+      '/inventario',
     ]
   },
-  
-  // PRODUCTION: producción, fotos, documentos, alertas, inventario (lectura)
   PRODUCTION: {
     allowed: [
       '/produccion',
@@ -96,8 +86,6 @@ const ROLE_PERMISSIONS: Record<string, { allowed: string[]; blocked: string[] }>
       '/reportes',
     ]
   },
-  
-  // VIEWER: solo lectura de obras, cotizaciones, documentos y alertas
   VIEWER: {
     allowed: [
       '/obras',
@@ -123,6 +111,33 @@ const ROLE_PERMISSIONS: Record<string, { allowed: string[]; blocked: string[] }>
 };
 
 // ============================================================
+// 🔥 HEADERS DE SEGURIDAD (CSP CORREGIDA)
+// ============================================================
+
+function setSecurityHeaders(response: NextResponse): NextResponse {
+  // Content Security Policy (incluyendo wss://*.supabase.co para WebSocket)
+  const csp = [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://*.supabase.co",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: https://*.supabase.co",
+    "font-src 'self'",
+    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.resend.com",
+    "frame-src 'self'",
+    "base-uri 'self'",
+    "form-action 'self'",
+  ].join('; ');
+
+  response.headers.set('Content-Security-Policy', csp);
+  response.headers.set('X-Frame-Options', 'SAMEORIGIN');
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  response.headers.set('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+
+  return response;
+}
+
+// ============================================================
 // 🔥 MIDDLEWARE PRINCIPAL
 // ============================================================
 
@@ -133,46 +148,51 @@ export async function middleware(req: NextRequest) {
   const isExactPublic = PUBLIC_PREFIXES.some(prefix => path === prefix);
   const isPathPublic = PUBLIC_PATH_PREFIXES.some(prefix => path.startsWith(prefix));
   if (isExactPublic || isPathPublic) {
-    return NextResponse.next();
+    const response = NextResponse.next();
+    return setSecurityHeaders(response);
   }
 
   // ─── 2. OBTENER TOKEN ───
-  const token = await getToken({ 
-    req, 
-    secret: process.env.NEXTAUTH_SECRET 
+  const token = await getToken({
+    req,
+    secret: process.env.NEXTAUTH_SECRET
   });
 
   // ─── 3. SI NO HAY TOKEN, REDIRIGIR A LOGIN ───
   if (!token) {
     const loginUrl = new URL("/login", req.url);
     loginUrl.searchParams.set("callbackUrl", path);
-    return NextResponse.redirect(loginUrl, { status: 303 });
+    const response = NextResponse.redirect(loginUrl, { status: 303 });
+    return setSecurityHeaders(response);
   }
 
   // ─── 4. OBTENER ROL Y PERMISOS ───
   const role = token.role as string || 'VIEWER';
   const permissions = ROLE_PERMISSIONS[role] || ROLE_PERMISSIONS.VIEWER;
 
-  // Si el rol tiene acceso total ('*'), continuar
+  // ─── 5. VERIFICAR SI EL ROL TIENE ACCESO TOTAL ───
   if (permissions.allowed.includes('*')) {
-    return NextResponse.next();
+    const response = NextResponse.next();
+    return setSecurityHeaders(response);
   }
 
-  // ─── 5. VERIFICAR SI LA RUTA ESTÁ PERMITIDA ───
-  const isAllowed = permissions.allowed.some(route => 
+  // ─── 6. VERIFICAR SI LA RUTA ESTÁ PERMITIDA ───
+  const isAllowed = permissions.allowed.some(route =>
     path === route || path.startsWith(route + '/')
   );
-  const isBlocked = permissions.blocked.some(route => 
+  const isBlocked = permissions.blocked.some(route =>
     path === route || path.startsWith(route + '/')
   );
 
-  // Si no está permitida o está explícitamente bloqueada → denegar
+  // ─── 7. SI NO ESTÁ PERMITIDA O ESTÁ BLOQUEADA → DENEGAR ───
   if (!isAllowed || isBlocked) {
-    return NextResponse.redirect(new URL("/unauthorized", req.url));
+    const response = NextResponse.redirect(new URL("/unauthorized", req.url));
+    return setSecurityHeaders(response);
   }
 
-  // ─── 6. SI TODO ESTÁ BIEN, CONTINUAR ───
-  return NextResponse.next();
+  // ─── 8. SI TODO ESTÁ BIEN, CONTINUAR ───
+  const response = NextResponse.next();
+  return setSecurityHeaders(response);
 }
 
 // ============================================================
