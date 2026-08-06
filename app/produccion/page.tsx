@@ -92,54 +92,121 @@ const getIconForStep = (paso: string) => {
   return Wrench;
 };
 
-type OrdenForm = {
-  nombre: string;
-  tipo: string;
-  cantidad: string;
-  unidad: string;
-  prioridad: string;
+// ============================================================
+// 🔥 CLASIFICACIÓN DE FASES (reutilizada de getIconForStep)
+// ============================================================
+
+type Fase = "PRODUCCION" | "PINTURA" | "INSTALACION";
+
+function clasificarFase(paso: string): Fase {
+  const p = paso.toLowerCase();
+  if (
+    p.includes("masilla") ||
+    p.includes("lijado") ||
+    p.includes("thinner") ||
+    p.includes("epóx") ||
+    p.includes("gloss") ||
+    p.includes("poxi")
+  ) {
+    return "PINTURA";
+  }
+  if (p.includes("anclaje") || p.includes("instalación") || p.includes("presentación")) {
+    return "INSTALACION";
+  }
+  return "PRODUCCION";
+}
+
+// ============================================================
+// 🔥 CÁLCULO DE AVANCE: usa base_completada y acabado_completado
+// ============================================================
+
+function calcularAvancePct(
+  estado: string,
+  pasosDelTipo: { paso: string }[],
+  baseCompletada: boolean,
+  acabadoCompletado: boolean
+): number | null {
+  // Si está completado → 100%
+  if (estado === "COMPLETADO") return 100;
+
+  // Si está pausado → no mostrar número
+  if (estado === "PAUSADO") return null;
+
+  // Si está pendiente → 0%
+  if (estado === "PENDIENTE") return 0;
+
+  // ✅ USAR BASE_COMPLETADA Y ACABADO_COMPLETADO
+  // Si base y acabado están completados → 100%
+  if (baseCompletada && acabadoCompletado) return 100;
+
+  // Si base está completada pero acabado no → 85%
+  if (baseCompletada && !acabadoCompletado) return 85;
+
+  // Si ni base ni acabado están completados → estimar según estado
+  if (!baseCompletada && !acabadoCompletado) {
+    if (estado === "EN_INSTALACION") return 60;
+    if (estado === "EN_PINTURA") return 40;
+    if (estado === "EN_PRODUCCION") return 25;
+    return 15;
+  }
+
+  // Fallback: usar el cálculo por fases (solo si no hay base/acabado)
+  if (!pasosDelTipo || pasosDelTipo.length === 0) {
+    if (estado === "EN_INSTALACION") return 60;
+    if (estado === "EN_PINTURA") return 85;
+    if (estado === "EN_PRODUCCION") return 30;
+    return 0;
+  }
+
+  const fases = pasosDelTipo.map((p) => clasificarFase(p.paso));
+  const total = fases.length;
+
+  const faseActual: Fase =
+    estado === "EN_PRODUCCION" ? "PRODUCCION" : estado === "EN_PINTURA" ? "PINTURA" : "INSTALACION";
+
+  let ultimoIndiceFase = 0;
+  fases.forEach((f, i) => {
+    if (f === faseActual) ultimoIndiceFase = i + 1;
+  });
+
+  const pasosCompletados = ultimoIndiceFase || Math.ceil(total / 2);
+  return Math.round((pasosCompletados / total) * 100);
+}
+
+// ============================================================
+// 🔥 NUEVO FlujoBadgeLine (con base y acabado)
+// ============================================================
+
+function FlujoBadgeLine({
+  estado,
+  pasosDelTipo,
+  baseCompletada,
+  acabadoCompletado,
+}: {
   estado: string;
-  fechaInicio: string;
-  fechaFin: string;
-  observaciones: string;
-};
+  pasosDelTipo: { paso: string }[];
+  baseCompletada: boolean;
+  acabadoCompletado: boolean;
+}) {
+  const pct = calcularAvancePct(estado, pasosDelTipo, baseCompletada, acabadoCompletado);
 
-const FORM_VACIO: OrdenForm = {
-  nombre: "",
-  tipo: "BARANDA_BALCON",
-  cantidad: "",
-  unidad: "unidades",
-  prioridad: "MEDIA",
-  estado: "PENDIENTE",
-  fechaInicio: new Date().toISOString().split("T")[0],
-  fechaFin: "",
-  observaciones: "",
-};
+  if (pct === null) {
+    return (
+      <div className="flex items-center gap-2 mt-2">
+        <span className="text-[10px] text-zinc-400 font-mono">
+          {estado === "PAUSADO" ? "Avance no disponible (pausado)" : "Sin flujo definido para este tipo"}
+        </span>
+      </div>
+    );
+  }
 
-// Barra de progreso
-const ESTADO_STEP: Record<string, number> = {
-  PENDIENTE: 0,
-  EN_PRODUCCION: 2,
-  EN_PINTURA: 6,
-  EN_INSTALACION: 8,
-  COMPLETADO: 9,
-  PAUSADO: -1,
-};
-
-function FlujoBadgeLine({ estado }: { estado: string }) {
-  const step = ESTADO_STEP[estado] ?? 0;
-  const total = 9;
-  const pct = estado === "COMPLETADO" ? 100 : Math.round((step / total) * 100);
   return (
     <div className="flex items-center gap-2 mt-2">
       <div className="flex-1 h-1 rounded-full bg-zinc-100 overflow-hidden">
         <div
-          className={`h-full rounded-full transition-all ${estado === "PAUSADO"
-            ? "bg-red-400"
-            : estado === "COMPLETADO"
-              ? "bg-emerald-500"
-              : "bg-blue-500"
-            }`}
+          className={`h-full rounded-full transition-all ${
+            estado === "COMPLETADO" ? "bg-emerald-500" : "bg-blue-500"
+          }`}
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -414,6 +481,30 @@ function NewTipoModal({
   );
 }
 
+type OrdenForm = {
+  nombre: string;
+  tipo: string;
+  cantidad: string;
+  unidad: string;
+  prioridad: string;
+  estado: string;
+  fechaInicio: string;
+  fechaFin: string;
+  observaciones: string;
+};
+
+const FORM_VACIO: OrdenForm = {
+  nombre: "",
+  tipo: "BARANDA_BALCON",
+  cantidad: "",
+  unidad: "unidades",
+  prioridad: "MEDIA",
+  estado: "PENDIENTE",
+  fechaInicio: new Date().toISOString().split("T")[0],
+  fechaFin: "",
+  observaciones: "",
+};
+
 export default function ProduccionPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -447,7 +538,6 @@ export default function ProduccionPage() {
     try {
       console.log("🔍 Cargando datos de producción...");
 
-      // Obtener órdenes ordenadas por created_at (con guión bajo)
       const { data: ordenesData, error: ordenesError } = await supabase
         .from("OrdenProduccion")
         .select("*")
@@ -500,6 +590,7 @@ export default function ProduccionPage() {
       setLoading(false);
     }
   };
+
   const showToastMsg = (type: "ok" | "err", msg: string) => {
     setToast({ type, msg });
     setTimeout(() => setToast(null), 4000);
@@ -521,8 +612,8 @@ export default function ProduccionPage() {
       unidad: form.unidad,
       prioridad: form.prioridad,
       estado: form.estado,
-      fechainicio: form.fechaInicio,      // 🔧 minúsculas
-      fechafin: form.fechaFin || null,    // 🔧 minúsculas
+      fechainicio: form.fechaInicio,
+      fechafin: form.fechaFin || null,
       observaciones: form.observaciones || null,
     };
 
@@ -559,29 +650,28 @@ export default function ProduccionPage() {
     loadData();
   };
 
-const handleEditOrden = (orden: any) => {
-  setForm({
-    nombre: orden.nombre,
-    tipo: orden.tipo,
-    cantidad: String(orden.cantidad),
-    unidad: orden.unidad || "unidades",
-    prioridad: orden.prioridad,
-    estado: orden.estado,
-    fechaInicio: orden.fechainicio?.split("T")[0] || "",    // 🔧 fechainicio (minúsculas)
-    fechaFin: orden.fechafin?.split("T")[0] || "",          // 🔧 fechafin (minúsculas)
-    observaciones: orden.observaciones || "",
-  });
-  setEditingId(orden.id);
-  setShowForm(true);
-  window.scrollTo({ top: 0, behavior: "smooth" });
-};
+  const handleEditOrden = (orden: any) => {
+    setForm({
+      nombre: orden.nombre,
+      tipo: orden.tipo,
+      cantidad: String(orden.cantidad),
+      unidad: orden.unidad || "unidades",
+      prioridad: orden.prioridad,
+      estado: orden.estado,
+      fechaInicio: orden.fechainicio?.split("T")[0] || "",
+      fechaFin: orden.fechafin?.split("T")[0] || "",
+      observaciones: orden.observaciones || "",
+    });
+    setEditingId(orden.id);
+    setShowForm(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const handleSaveFlujo = async (pasos: any[]) => {
     setSaving(true);
     try {
-      // Eliminar pasos existentes de este tipo
       await supabase.from("FlujoProduccion").delete().eq("tipo_producto", selectedTipoFlujo);
 
-      // Insertar nuevos pasos
       for (const paso of pasos) {
         await supabase.from("FlujoProduccion").insert({
           paso: paso.paso,
@@ -912,32 +1002,106 @@ const handleEditOrden = (orden: any) => {
           </div>
 
           {ordenesFiltradas.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-zinc-100 p-16 text-center"><div className="w-14 h-14 rounded-2xl bg-zinc-50 flex items-center justify-center mx-auto mb-4"><Factory className="h-7 w-7 text-zinc-200" /></div><p className="text-sm text-zinc-400">No hay órdenes en este filtro.</p><p className="text-xs text-zinc-300 mt-1">{filterEstado === "ALL" ? 'Crea la primera con "Nueva orden".' : "Prueba con otro filtro."}</p></div>
+            <div className="bg-white rounded-2xl border border-zinc-100 p-16 text-center">
+              <div className="w-14 h-14 rounded-2xl bg-zinc-50 flex items-center justify-center mx-auto mb-4">
+                <Factory className="h-7 w-7 text-zinc-200" />
+              </div>
+              <p className="text-sm text-zinc-400">No hay órdenes en este filtro.</p>
+              <p className="text-xs text-zinc-300 mt-1">
+                {filterEstado === "ALL" ? 'Crea la primera con "Nueva orden".' : "Prueba con otro filtro."}
+              </p>
+            </div>
           ) : (
             <div className="space-y-3">
               {ordenesFiltradas.map((orden) => {
                 const isExpanded = expandedId === orden.id;
                 const pConfig = prioridadConfig[orden.prioridad] ?? prioridadConfig.BAJA;
+                const pasosDelTipo = flujosPorTipo[orden.tipo] || [];
                 return (
                   <div key={orden.id} className="bg-white rounded-2xl border border-zinc-100 shadow-sm overflow-hidden hover:border-zinc-200 transition-colors">
                     <div className="p-5">
                       <div className="flex items-start gap-4">
-                        <div className="flex flex-col items-center gap-1 pt-0.5"><div className={`w-2 h-2 rounded-full ${pConfig.dot}`} /><div className="w-px flex-1 bg-zinc-100 min-h-[24px]" /></div>
+                        <div className="flex flex-col items-center gap-1 pt-0.5">
+                          <div className={`w-2 h-2 rounded-full ${pConfig.dot}`} />
+                          <div className="w-px flex-1 bg-zinc-100 min-h-[24px]" />
+                        </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 flex-wrap"><h3 className="text-sm font-bold text-zinc-900 truncate">{orden.nombre}</h3><span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${estadoBadge[orden.estado] ?? "bg-zinc-100 text-zinc-600"}`}>{getEstadoLabel(orden.estado)}</span></div>
-                              <div className="flex items-center gap-3 mt-1 flex-wrap"><span className="text-xs text-zinc-500"><span className="font-semibold text-zinc-700">{orden.cantidad}</span> {orden.unidad}</span><span className="text-[10px] text-zinc-300">·</span><span className="text-xs text-zinc-400 uppercase tracking-wide">{orden.tipo}</span><span className="text-[10px] text-zinc-300">·</span><span className={`text-xs ${pConfig.style}`}>↑ {orden.prioridad}</span><span className="text-[10px] text-zinc-300">·</span><span className="text-xs text-zinc-400 flex items-center gap-1"><Clock className="h-3 w-3" />{new Date(orden.fechaInicio).toLocaleDateString("es-PE", { day: "2-digit", month: "short" })}</span></div>
-                              <FlujoBadgeLine estado={orden.estado} />
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <h3 className="text-sm font-bold text-zinc-900 truncate">{orden.nombre}</h3>
+                                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${estadoBadge[orden.estado] ?? "bg-zinc-100 text-zinc-600"}`}>
+                                  {getEstadoLabel(orden.estado)}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-3 mt-1 flex-wrap">
+                                <span className="text-xs text-zinc-500">
+                                  <span className="font-semibold text-zinc-700">{orden.cantidad}</span> {orden.unidad}
+                                </span>
+                                <span className="text-[10px] text-zinc-300">·</span>
+                                <span className="text-xs text-zinc-400 uppercase tracking-wide">{orden.tipo}</span>
+                                <span className="text-[10px] text-zinc-300">·</span>
+                                <span className={`text-xs ${pConfig.style}`}>↑ {orden.prioridad}</span>
+                                <span className="text-[10px] text-zinc-300">·</span>
+                                <span className="text-xs text-zinc-400 flex items-center gap-1">
+                                  <Clock className="h-3 w-3" />
+                                  {new Date(orden.fechaInicio).toLocaleDateString("es-PE", { day: "2-digit", month: "short" })}
+                                </span>
+                              </div>
+                              {/* 🔥 NUEVO: FlujoBadgeLine con base y acabado */}
+                              <FlujoBadgeLine
+                                estado={orden.estado}
+                                pasosDelTipo={pasosDelTipo}
+                                baseCompletada={orden.base_completada}
+                                acabadoCompletado={orden.acabado_completado}
+                              />
                             </div>
-                            <div className="flex items-center gap-0.5 shrink-0"><button onClick={() => handleEditOrden(orden)} className="p-1.5 text-zinc-300 hover:text-zinc-700 hover:bg-zinc-100 rounded-lg transition-colors"><Pencil className="h-3.5 w-3.5" /></button><button onClick={() => handleDeleteOrden(orden.id)} className="p-1.5 text-zinc-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="h-3.5 w-3.5" /></button><button onClick={() => setExpandedId(isExpanded ? null : orden.id)} className="p-1.5 text-zinc-300 hover:text-zinc-700 hover:bg-zinc-100 rounded-lg transition-colors">{isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}</button></div>
+                            <div className="flex items-center gap-0.5 shrink-0">
+                              <button onClick={() => handleEditOrden(orden)} className="p-1.5 text-zinc-300 hover:text-zinc-700 hover:bg-zinc-100 rounded-lg transition-colors">
+                                <Pencil className="h-3.5 w-3.5" />
+                              </button>
+                              <button onClick={() => handleDeleteOrden(orden.id)} className="p-1.5 text-zinc-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                              <button onClick={() => setExpandedId(isExpanded ? null : orden.id)} className="p-1.5 text-zinc-300 hover:text-zinc-700 hover:bg-zinc-100 rounded-lg transition-colors">
+                                {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>
                       {isExpanded && (
                         <div className="mt-4 pt-4 border-t border-zinc-50 pl-6">
-                          <div className="grid grid-cols-2 gap-4 mb-4"><div><p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Observaciones</p><p className="text-xs text-zinc-600">{orden.observaciones || "Sin observaciones registradas."}</p></div><div><p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Fecha fin estimada</p><p className="text-xs text-zinc-600">{orden.fechaFin ? new Date(orden.fechaFin).toLocaleDateString("es-PE", { weekday: "long", day: "numeric", month: "long" }) : "No definida"}</p></div></div>
-                          <div><p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2">Cambiar estado</p><div className="flex flex-wrap gap-1.5">{ESTADOS_ORDEN.map((e) => (<button key={e.key} onClick={() => handleUpdateStatus(orden.id, e.key)} className={`text-[10px] px-3 py-1.5 rounded-full font-semibold uppercase tracking-wide transition-all ${orden.estado === e.key ? `${estadoBadge[e.key]} ring-2 ring-offset-1 ring-zinc-300` : "bg-zinc-50 text-zinc-500 border border-zinc-200 hover:border-zinc-400 hover:text-zinc-700"}`}>{e.label}</button>))}</div></div>
+                          <div className="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                              <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Observaciones</p>
+                              <p className="text-xs text-zinc-600">{orden.observaciones || "Sin observaciones registradas."}</p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Fecha fin estimada</p>
+                              <p className="text-xs text-zinc-600">
+                                {orden.fechaFin ? new Date(orden.fechaFin).toLocaleDateString("es-PE", { weekday: "long", day: "numeric", month: "long" }) : "No definida"}
+                              </p>
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2">Cambiar estado</p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {ESTADOS_ORDEN.map((e) => (
+                                <button
+                                  key={e.key}
+                                  onClick={() => handleUpdateStatus(orden.id, e.key)}
+                                  className={`text-[10px] px-3 py-1.5 rounded-full font-semibold uppercase tracking-wide transition-all ${
+                                    orden.estado === e.key
+                                      ? `${estadoBadge[e.key]} ring-2 ring-offset-1 ring-zinc-300`
+                                      : "bg-zinc-50 text-zinc-500 border border-zinc-200 hover:border-zinc-400 hover:text-zinc-700"
+                                  }`}
+                                >
+                                  {e.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
                         </div>
                       )}
                     </div>

@@ -83,6 +83,9 @@ const FORM_VACIO: ObraForm = {
 export default function ObrasPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const userRole = session?.user?.role || "VIEWER";
+  const isAdmin = userRole === "FUNDADOR" || userRole === "ADMIN";
+  const isFieldEngineer = userRole === "FIELD_ENGINEER";
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -103,17 +106,14 @@ export default function ObrasPage() {
   const loadData = async () => {
     setLoading(true);
     try {
-      // 1. Obtener todos los contratos de la BD
       const { data: contratosData } = await supabase
         .from("Contrato")
         .select("*")
         .order("fecha", { ascending: false });
       setContratos(contratosData || []);
 
-      // 2. Obtener los IDs de proyectos únicos de los contratos
       const projectIds = [...new Set(contratosData?.map(c => c.project_id).filter(Boolean) || [])];
       
-      // 3. Obtener los proyectos (obras) desde la tabla Project
       const { data: projectsData } = await supabase
         .from("Project")
         .select("*")
@@ -123,7 +123,6 @@ export default function ObrasPage() {
       projectsData?.forEach(p => { projectsMap[p.id] = p; });
       setProyectosMap(projectsMap);
 
-      // 4. Construir la lista de obras (proyectos + contratos agrupados)
       const obrasList = (projectsData || []).map(project => ({
         ...project,
         contratos: contratosData?.filter(c => c.project_id === project.id) || [],
@@ -205,6 +204,11 @@ export default function ObrasPage() {
   };
 
   const handleDelete = async (id: string, name: string) => {
+    if (!isAdmin) {
+      showToastMsg("err", "No tienes permiso para eliminar obras.");
+      return;
+    }
+
     const result = await Swal.fire({
       title: '¿Eliminar obra?',
       html: `Estás por eliminar <strong>${name}</strong>.<br>Se perderán los datos asociados (contratos, trabajos, costos).`,
@@ -265,9 +269,13 @@ export default function ObrasPage() {
     loadData();
   };
 
-  // ─── NUEVA FUNCIÓN: Marcar contrato como pagado ───
+  // ─── MARCAR PAGADO (solo ADMIN) ───
   const handleMarcarPagado = async (contratoId: string, projectId: string, projectName: string) => {
-    // Verificar si el contrato ya está cobrado
+    if (!isAdmin) {
+      showToastMsg("err", "No tienes permiso para marcar pagos.");
+      return;
+    }
+
     const contrato = contratos.find(c => c.id === contratoId);
     if (contrato?.estado === "COBRADO") {
       await Swal.fire({
@@ -299,7 +307,6 @@ export default function ObrasPage() {
 
     setSaving(true);
     try {
-      // 1. Marcar el contrato como COBRADO
       const { error: contratoError } = await supabase
         .from("Contrato")
         .update({ estado: 'COBRADO' })
@@ -307,7 +314,6 @@ export default function ObrasPage() {
       
       if (contratoError) throw contratoError;
 
-      // 2. Verificar si todos los contratos del proyecto están cobrados
       const { data: contratosProyecto } = await supabase
         .from("Contrato")
         .select("estado")
@@ -316,7 +322,6 @@ export default function ObrasPage() {
       const todosCobrados = contratosProyecto?.every(c => c.estado === 'COBRADO');
       
       if (todosCobrados && contratosProyecto && contratosProyecto.length > 0) {
-        // Si todos están cobrados, marcar proyecto como COMPLETADO
         await supabase
           .from("Project")
           .update({ 
@@ -404,24 +409,26 @@ export default function ObrasPage() {
               <p className="text-xs text-gray-500">Proyectos activos y su seguimiento</p>
             </div>
           </div>
-          <button
-            onClick={() => {
-              setForm(FORM_VACIO);
-              setEditingId(null);
-              setShowForm(!showForm);
-            }}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors"
-          >
-            <Plus className="h-4 w-4" />
-            Nueva obra
-          </button>
+          {isAdmin && (
+            <button
+              onClick={() => {
+                setForm(FORM_VACIO);
+                setEditingId(null);
+                setShowForm(!showForm);
+              }}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors"
+            >
+              <Plus className="h-4 w-4" />
+              Nueva obra
+            </button>
+          )}
         </div>
       </header>
 
       <main className="max-w-6xl mx-auto px-6 py-8 space-y-8">
 
-        {/* Formulario nueva / editar obra */}
-        {showForm && (
+        {/* Formulario nueva / editar obra (SOLO ADMIN) */}
+        {isAdmin && showForm && (
           <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
             <h2 className="text-sm font-semibold text-gray-900 mb-5">
               {editingId ? "Editar obra" : "Nueva obra"}
@@ -562,43 +569,67 @@ export default function ObrasPage() {
           </div>
         )}
 
-        {/* Tarjetas de resumen */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
-            <div className="flex items-center gap-2 mb-1">
-              <Building2 className="h-4 w-4 text-gray-400" />
-              <p className="text-xs text-gray-400 uppercase tracking-wider">Obras activas</p>
+        {/* Tarjetas de resumen - SOLO ADMIN */}
+        {isAdmin && (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+              <div className="flex items-center gap-2 mb-1">
+                <Building2 className="h-4 w-4 text-gray-400" />
+                <p className="text-xs text-gray-400 uppercase tracking-wider">Obras activas</p>
+              </div>
+              <p className="text-2xl font-bold text-gray-900">{obrasActivas}</p>
+              <p className="text-xs text-gray-400 mt-1">de {obras.length} totales</p>
             </div>
-            <p className="text-2xl font-bold text-gray-900">{obrasActivas}</p>
-            <p className="text-xs text-gray-400 mt-1">de {obras.length} totales</p>
-          </div>
-          <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
-            <div className="flex items-center gap-2 mb-1">
-              <Receipt className="h-4 w-4 text-gray-400" />
-              <p className="text-xs text-gray-400 uppercase tracking-wider">Contratos</p>
+            <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+              <div className="flex items-center gap-2 mb-1">
+                <Receipt className="h-4 w-4 text-gray-400" />
+                <p className="text-xs text-gray-400 uppercase tracking-wider">Contratos</p>
+              </div>
+              <p className="text-2xl font-bold text-gray-900">{contratos.length}</p>
+              <p className="text-xs text-gray-400 mt-1">{contratos.filter(c => c.estado === "COBRADO").length} cobrados</p>
             </div>
-            <p className="text-2xl font-bold text-gray-900">{contratos.length}</p>
-            <p className="text-xs text-gray-400 mt-1">{contratos.filter(c => c.estado === "COBRADO").length} cobrados</p>
-          </div>
-          <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
-            <div className="flex items-center gap-2 mb-1">
-              <TrendingUp className="h-4 w-4 text-gray-400" />
-              <p className="text-xs text-gray-400 uppercase tracking-wider">Facturación total</p>
+            <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+              <div className="flex items-center gap-2 mb-1">
+                <TrendingUp className="h-4 w-4 text-gray-400" />
+                <p className="text-xs text-gray-400 uppercase tracking-wider">Facturación total</p>
+              </div>
+              <p className="text-2xl font-bold text-emerald-700">{formatCOP(totalCobradoGeneral)}</p>
+              <p className="text-xs text-gray-400 mt-1">cobrado de {formatCOP(totalContratosGeneral)}</p>
             </div>
-            <p className="text-2xl font-bold text-emerald-700">{formatCOP(totalCobradoGeneral)}</p>
-            <p className="text-xs text-gray-400 mt-1">cobrado de {formatCOP(totalContratosGeneral)}</p>
-          </div>
-          <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
-            <div className="flex items-center gap-2 mb-1">
-              <Users className="h-4 w-4 text-gray-400" />
-              <p className="text-xs text-gray-400 uppercase tracking-wider">Clientes</p>
+            <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+              <div className="flex items-center gap-2 mb-1">
+                <Users className="h-4 w-4 text-gray-400" />
+                <p className="text-xs text-gray-400 uppercase tracking-wider">Clientes</p>
+              </div>
+              <p className="text-2xl font-bold text-gray-900">
+                {new Set(obras.map(o => o.client).filter(Boolean)).size}
+              </p>
+              <p className="text-xs text-gray-400 mt-1">corporativos</p>
             </div>
-            <p className="text-2xl font-bold text-gray-900">
-              {new Set(obras.map(o => o.client).filter(Boolean)).size}
-            </p>
-            <p className="text-xs text-gray-400 mt-1">corporativos</p>
           </div>
-        </div>
+        )}
+
+        {/* Para FIELD_ENGINEER: solo mostrar número de obras */}
+        {isFieldEngineer && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+              <div className="flex items-center gap-2 mb-1">
+                <Building2 className="h-4 w-4 text-gray-400" />
+                <p className="text-xs text-gray-400 uppercase tracking-wider">Obras activas</p>
+              </div>
+              <p className="text-2xl font-bold text-gray-900">{obrasActivas}</p>
+              <p className="text-xs text-gray-400 mt-1">de {obras.length} totales</p>
+            </div>
+            <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+              <div className="flex items-center gap-2 mb-1">
+                <Receipt className="h-4 w-4 text-gray-400" />
+                <p className="text-xs text-gray-400 uppercase tracking-wider">Contratos</p>
+              </div>
+              <p className="text-2xl font-bold text-gray-900">{contratos.length}</p>
+              <p className="text-xs text-gray-400 mt-1">asociados</p>
+            </div>
+          </div>
+        )}
 
         {/* Lista de obras */}
         <div className="space-y-4">
@@ -644,25 +675,37 @@ export default function ObrasPage() {
                       </div>
 
                       <div className="flex items-center gap-3">
-                        <div className="text-right">
-                          <p className="text-base font-bold text-gray-900">{formatCOP(valorization)}</p>
-                          {obra.contratos?.length > 0 && (
-                            <p className="text-xs text-gray-400">{obra.contratos.length} contratos asociados</p>
-                          )}
-                        </div>
+                        {/* Monto SOLO para ADMIN */}
+                        {isAdmin && (
+                          <div className="text-right">
+                            <p className="text-base font-bold text-gray-900">{formatCOP(valorization)}</p>
+                            {obra.contratos?.length > 0 && (
+                              <p className="text-xs text-gray-400">{obra.contratos.length} contratos asociados</p>
+                            )}
+                          </div>
+                        )}
+                        {isFieldEngineer && obra.contratos?.length > 0 && (
+                          <div className="text-right">
+                            <p className="text-sm font-medium text-gray-700">{obra.contratos.length} contratos asociados</p>
+                          </div>
+                        )}
                         <div className="flex items-center gap-1">
-                          <button
-                            onClick={() => handleEdit(obra)}
-                            className="p-1.5 text-gray-400 hover:text-gray-700 transition-colors"
-                          >
-                            <Pencil className="h-3.5 w-3.5" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(obra.id, obra.name)}
-                            className="p-1.5 text-gray-400 hover:text-red-500 transition-colors"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
+                          {isAdmin && (
+                            <>
+                              <button
+                                onClick={() => handleEdit(obra)}
+                                className="p-1.5 text-gray-400 hover:text-gray-700 transition-colors"
+                              >
+                                <Pencil className="h-3.5 w-3.5" />
+                              </button>
+                              <button
+                                onClick={() => handleDelete(obra.id, obra.name)}
+                                className="p-1.5 text-gray-400 hover:text-red-500 transition-colors"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </>
+                          )}
                           <button
                             onClick={() => setExpandedId(isExpanded ? null : obra.id)}
                             className="p-1.5 text-gray-400 hover:text-gray-700 transition-colors"
@@ -700,7 +743,11 @@ export default function ObrasPage() {
                               <Receipt className="h-3 w-3" /> Contratos
                             </p>
                             <p className="text-sm font-medium">
-                              {obra.contratosCobrados || 0} cobrados · {obra.contratosPendientes || 0} pendientes
+                              {isAdmin ? (
+                                `${obra.contratosCobrados || 0} cobrados · ${obra.contratosPendientes || 0} pendientes`
+                              ) : (
+                                `${obra.contratos?.length || 0} total`
+                              )}
                             </p>
                           </div>
                         </div>
@@ -711,7 +758,7 @@ export default function ObrasPage() {
                           </div>
                         )}
 
-                        {/* ── CONTRATOS ASOCIADOS CON BOTÓN "MARCAR PAGADO" ── */}
+                        {/* ── CONTRATOS ASOCIADOS ── */}
                         {obra.contratos && obra.contratos.length > 0 && (
                           <div className="mt-3">
                             <p className="text-xs font-semibold text-gray-700 mb-2">Contratos de este proyecto:</p>
@@ -723,7 +770,10 @@ export default function ObrasPage() {
                                     <span className="text-gray-700 truncate">{c.nombre}</span>
                                   </div>
                                   <div className="flex items-center gap-3 flex-shrink-0">
-                                    <span className="font-medium text-gray-900">{formatCOP(Number(c.monto))}</span>
+                                    {/* Monto SOLO para ADMIN */}
+                                    {isAdmin && (
+                                      <span className="font-medium text-gray-900">{formatCOP(Number(c.monto))}</span>
+                                    )}
                                     <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
                                       c.estado === "COBRADO" 
                                         ? "bg-emerald-100 text-emerald-700" 
@@ -732,8 +782,8 @@ export default function ObrasPage() {
                                       {c.estado === "COBRADO" ? "Cobrado" : "Pendiente"}
                                     </span>
                                     
-                                    {/* ── BOTÓN "MARCAR PAGADO" ── */}
-                                    {c.estado === "PENDIENTE" && (
+                                    {/* ── BOTÓN "MARCAR PAGADO" (SOLO ADMIN) ── */}
+                                    {isAdmin && c.estado === "PENDIENTE" && (
                                       <button
                                         onClick={() => handleMarcarPagado(c.id, c.project_id, obra.name)}
                                         disabled={saving}
@@ -743,42 +793,50 @@ export default function ObrasPage() {
                                         Pagado
                                       </button>
                                     )}
-                                    {c.estado === "COBRADO" && (
+                                    {isAdmin && c.estado === "COBRADO" && (
                                       <span className="text-xs text-emerald-600 font-medium flex items-center gap-1">
                                         <CheckCircle2 className="h-3 w-3" />
                                         ✓ Pagado
                                       </span>
                                     )}
+                                    {/* Para FIELD_ENGINEER: solo mostrar estado sin botones */}
+                                    {isFieldEngineer && c.estado === "COBRADO" && (
+                                      <span className="text-xs text-emerald-600 font-medium">✓ Pagado</span>
+                                    )}
                                   </div>
                                 </div>
                               ))}
                             </div>
-                            <div className="mt-2 pt-2 border-t border-gray-100 flex justify-between text-sm font-semibold">
-                              <span className="text-gray-600">Total contratos</span>
-                              <span className="text-gray-900">{formatCOP(obra.totalContratos || 0)}</span>
-                            </div>
+                            {isAdmin && (
+                              <div className="mt-2 pt-2 border-t border-gray-100 flex justify-between text-sm font-semibold">
+                                <span className="text-gray-600">Total contratos</span>
+                                <span className="text-gray-900">{formatCOP(obra.totalContratos || 0)}</span>
+                              </div>
+                            )}
                           </div>
                         )}
 
-                        {/* Cambiar estado */}
-                        <div className="mt-4">
-                          <p className="text-xs font-medium text-gray-500 mb-2">Cambiar estado:</p>
-                          <div className="flex flex-wrap gap-2">
-                            {ESTADOS_OBRA.map((e) => (
-                              <button
-                                key={e.key}
-                                onClick={() => handleUpdateStatus(obra.id, e.key)}
-                                className={`text-xs px-3 py-1.5 rounded-full transition-colors ${
-                                  obra.status === e.key
-                                    ? `${badgeColors[e.color]} ring-2 ring-offset-1 ring-gray-300`
-                                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                                }`}
-                              >
-                                {e.label}
-                              </button>
-                            ))}
+                        {/* Cambiar estado (SOLO ADMIN) */}
+                        {isAdmin && (
+                          <div className="mt-4">
+                            <p className="text-xs font-medium text-gray-500 mb-2">Cambiar estado:</p>
+                            <div className="flex flex-wrap gap-2">
+                              {ESTADOS_OBRA.map((e) => (
+                                <button
+                                  key={e.key}
+                                  onClick={() => handleUpdateStatus(obra.id, e.key)}
+                                  className={`text-xs px-3 py-1.5 rounded-full transition-colors ${
+                                    obra.status === e.key
+                                      ? `${badgeColors[e.color]} ring-2 ring-offset-1 ring-gray-300`
+                                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                  }`}
+                                >
+                                  {e.label}
+                                </button>
+                              ))}
+                            </div>
                           </div>
-                        </div>
+                        )}
                       </div>
                     )}
                   </div>
