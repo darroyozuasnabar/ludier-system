@@ -8,48 +8,45 @@ on:
     branches: [main]
 
 jobs:
-  # ─── JOB 1: VALIDACIÓN ──────────────────────────────────────────────
   validate:
     runs-on: ubuntu-latest
     steps:
-      - name: 📥 Checkout código
+      - name: Checkout codigo
         uses: actions/checkout@v4
 
-      - name: 🔧 Configurar Node.js
+      - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
 
-      - name: 📦 Instalar dependencias
+      - name: Instalar dependencias
         run: npm ci
 
-      - name: 🔍 Verificar TypeScript
+      - name: Verificar TypeScript
         run: npx tsc --noEmit
 
-      - name: 🧹 Ejecutar ESLint
-        run: npm run lint || echo "⚠️ ESLint encontró problemas (no bloqueante)"
+      - name: Ejecutar ESLint
+        run: npm run lint || echo "ESLint encontro problemas (no bloqueante)"
 
-      - name: 🔒 Auditoría de seguridad
-        run: npm audit --audit-level=moderate || echo "⚠️ Vulnerabilidades encontradas (revisar)"
+      - name: Auditoria de seguridad
+        run: npm audit --audit-level=moderate || echo "Vulnerabilidades encontradas (revisar)"
 
-  # ─── JOB 2: CONSTRUCCIÓN ────────────────────────────────────────────
   build:
     needs: validate
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
-      - name: 📥 Checkout código
+      - name: Checkout codigo
         uses: actions/checkout@v4
 
-      - name: 🔧 Configurar Node.js
+      - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
 
-      # 👇 CREAR EL ARCHIVO .env CON LAS VARIABLES
-      - name: 📝 Crear archivo .env
+      - name: Crear archivo .env
         run: |
           cat << EOF > .env
           NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
@@ -63,33 +60,32 @@ jobs:
           NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}
           EOF
 
-      - name: 📦 Instalar dependencias
+      - name: Instalar dependencias
         run: npm ci
 
-      - name: 🏗️ Construir aplicación
+      - name: Construir aplicacion
         run: npm run build
 
-      - name: 💾 Guardar build como artifact
+      - name: Guardar build como artifact
         uses: actions/upload-artifact@v4
         with:
           name: build-output
           path: .next
           retention-days: 7
 
-  # ─── JOB 3: DESPLIEGUE EN VERCEL ────────────────────────────────────
   deploy:
     needs: build
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment: production
     steps:
-      - name: 📥 Checkout código
+      - name: Checkout codigo
         uses: actions/checkout@v4
 
-      - name: 📦 Instalar Vercel CLI
+      - name: Instalar Vercel CLI
         run: npm install -g vercel
 
-      - name: 🚀 Desplegar en Vercel
+      - name: Desplegar en Vercel
         run: vercel --prod --yes --token ${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
