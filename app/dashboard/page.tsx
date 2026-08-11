@@ -207,12 +207,16 @@ export default function DashboardPage() {
   const garantiaContrato = montoContrato * 0.05;
   const costoDirectoContrato = montoContrato / 1.18;
 
-  // ── Próxima cobranza: leer desde valorizaciones ligadas al contrato ─────────
+   // ── CÁLCULO DE AVANCE REAL (basado en costoDirecto) ──────────────────
   let totalCobradoContrato = 0;
+  let totalEjecutadoContrato = 0;
   let avanceContrato = 0;
   let proximaVal: any = null;
   let proximoMonto = 0;
   let ultimaValPeriodo = "Sin valorizaciones";
+
+  // Costo directo total del contrato (monto / 1.18)
+  const costoDirectoTotal = montoContrato / 1.18;
 
   if (contratoSeleccionado?.estado === "COBRADO") {
     totalCobradoContrato = montoContrato;
@@ -220,18 +224,24 @@ export default function DashboardPage() {
     proximoMonto = 0;
     ultimaValPeriodo = "Contrato cobrado";
   } else {
+    // Filtrar valorizaciones del contrato
     const valorizacionesDelContrato = valorizaciones.filter(
       (v) => v.contrato_id === contratoSeleccionado?.id,
     );
 
-    // ✅ CORREGIDO: "COBRADO" en lugar de "COBRADA"
+    // ✅ AVANCE REAL: Sumar costoDirecto de TODAS las valorizaciones (cobradas + pendientes)
+    totalEjecutadoContrato = valorizacionesDelContrato
+      .reduce((sum, v) => sum + Number(v.costoDirecto || 0), 0);
+
+    // Calcular avance basado en costo directo ejecutado vs total
+    avanceContrato = costoDirectoTotal > 0 ? (totalEjecutadoContrato / costoDirectoTotal) * 100 : 0;
+
+    // Calcular lo cobrado (para mostrar en el KPIs)
     totalCobradoContrato = valorizacionesDelContrato
       .filter((v) => v.status === "COBRADO")
-      .reduce((sum, v) => sum + Number(v.netoCobrar), 0);
+      .reduce((sum, v) => sum + Number(v.netoCobrar || 0), 0);
 
-    // ✅ CORREGIDO: Calcular avance correctamente
-    avanceContrato = montoContrato > 0 ? (totalCobradoContrato / montoContrato) * 100 : 0;
-
+    // Próxima cobranza
     const ORDEN_ESTADO: Record<string, number> = { FIRMADA: 0, EMITIDA: 1, BORRADOR: 2 };
     const pendientes = valorizacionesDelContrato
       .filter((v) => v.status !== "COBRADO")
