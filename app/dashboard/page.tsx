@@ -236,15 +236,15 @@ export default function DashboardPage() {
     // Calcular avance basado en costo directo ejecutado vs total
     avanceContrato = costoDirectoTotal > 0 ? (totalEjecutadoContrato / costoDirectoTotal) * 100 : 0;
 
-    // Calcular lo cobrado (para mostrar en el KPIs)
+    // ✅ COBRADO: Sumar netoCobrar de valorizaciones con status "COBRADA" (con "A")
     totalCobradoContrato = valorizacionesDelContrato
-      .filter((v) => v.status === "COBRADO")
+      .filter((v) => v.status === "COBRADA") // 👈 CORREGIDO: "COBRADA" en lugar de "COBRADO"
       .reduce((sum, v) => sum + Number(v.netoCobrar || 0), 0);
 
     // Próxima cobranza
     const ORDEN_ESTADO: Record<string, number> = { FIRMADA: 0, EMITIDA: 1, BORRADOR: 2 };
     const pendientes = valorizacionesDelContrato
-      .filter((v) => v.status !== "COBRADO")
+      .filter((v) => v.status !== "COBRADA") // 👈 CORREGIDO: "COBRADA"
       .sort((a, b) => (ORDEN_ESTADO[a.status] ?? 9) - (ORDEN_ESTADO[b.status] ?? 9));
 
     proximaVal = pendientes[0] || null;
