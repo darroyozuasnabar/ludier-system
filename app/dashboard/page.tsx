@@ -242,10 +242,10 @@ export default function DashboardPage() {
       .reduce((sum, v) => sum + Number(v.netoCobrar || 0), 0);
 
     // Próxima cobranza
-    const ORDEN_ESTADO: Record<string, number> = { FIRMADA: 0, EMITIDA: 1, BORRADOR: 2 };
-    const pendientes = valorizacionesDelContrato
-      .filter((v) => v.status !== "COBRADA") // 👈 CORREGIDO: "COBRADA"
-      .sort((a, b) => (ORDEN_ESTADO[a.status] ?? 9) - (ORDEN_ESTADO[b.status] ?? 9));
+const ORDEN_ESTADO: Record<string, number> = { FIRMADA: 0, EMITIDA: 1, BORRADOR: 2 };
+const pendientes = valorizacionesDelContrato
+  .filter((v) => v.status !== "COBRADA") // ✅ CORREGIDO (con "A")
+  .sort((a, b) => (ORDEN_ESTADO[a.status] ?? 9) - (ORDEN_ESTADO[b.status] ?? 9));
 
     proximaVal = pendientes[0] || null;
     proximoMonto = proximaVal ? Number(proximaVal.netoCobrar) : 0;
