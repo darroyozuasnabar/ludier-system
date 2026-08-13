@@ -48,7 +48,7 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      # 👇 PASO CRÍTICO: Crear el archivo .env
+      # 👇 CREAR EL ARCHIVO .env CON TODAS LAS VARIABLES
       - name: 📝 Crear archivo .env
         run: |
           cat << EOF > .env
@@ -61,6 +61,7 @@ jobs:
           UPSTASH_REDIS_REST_TOKEN=${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
           NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
           NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}
+          RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}
           EOF
 
       - name: 📦 Instalar dependencias
