@@ -34,6 +34,7 @@ import {
   AlertTriangle,
   ClipboardList,
   RefreshCw,
+  User,
 } from "lucide-react";
 import { createBrowserClient } from "@supabase/ssr";
 import Swal from "sweetalert2";
@@ -124,6 +125,7 @@ export default function PersonalPage() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [isSavingField, setIsSavingField] = useState(false);
   const [workers, setWorkers] = useState<Worker[]>([]);
   const [asistencias, setAsistencias] = useState<Asistencia[]>([]);
   const [historialPagos, setHistorialPagos] = useState<any[]>([]);
@@ -142,6 +144,11 @@ export default function PersonalPage() {
   const [filterRole, setFilterRole] = useState<string>("all");
   const [filterLocation, setFilterLocation] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
+  
+  // 👇 NUEVOS FILTROS PARA INGENIERO
+  const [filterWorker, setFilterWorker] = useState<string>("all");
+  const [editingWorker, setEditingWorker] = useState<string | null>(null);
+  const [editingField, setEditingField] = useState<{ workerId: string; dia: string } | null>(null);
 
   // ── Partes diarios ──────────────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState<"planilla" | "checklist" | "partes">(
@@ -645,6 +652,91 @@ export default function PersonalPage() {
     setShowChecklist(true);
   };
 
+  // ── NUEVA FUNCIÓN: Guardar un campo individual (para edición en línea) ──
+  const handleSaveField = async (workerId: string, dia: string, value: boolean) => {
+    if (!editingField) return;
+    
+    setIsSavingField(true);
+    try {
+      // Actualizar el estado local inmediatamente (feedback visual)
+      setChecklistData((prev) => ({
+        ...prev,
+        [workerId]: {
+          ...prev[workerId],
+          [dia]: value,
+        },
+      }));
+
+      // Calcular total de días para este trabajador
+      const totalDias = calcularTotalDias(workerId);
+      const horasExtras = horasExtrasData[workerId] || 0;
+      const pagoHorasExtras = calcularPagoHorasExtras(workerId);
+      const totalPagar = calcularTotalPagar(workerId);
+
+      // Guardar en Supabase
+      const { error } = await supabase
+        .from("AsistenciaSemanal")
+        .update({
+          [dia]: value,
+          total_dias: totalDias,
+          horas_extras: horasExtras,
+          pago_horas_extras: pagoHorasExtras,
+          total_pagar: totalPagar,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("worker_id", workerId)
+        .eq("semana_inicio", selectedWeek);
+
+      if (error) throw error;
+
+      showToastMsg("ok", "✅ Cambio guardado correctamente");
+    } catch (error) {
+      console.error("Error guardando campo:", error);
+      showToastMsg("err", "Error al guardar el cambio");
+    } finally {
+      setIsSavingField(false);
+      setEditingField(null);
+    }
+  };
+
+  // ── NUEVA FUNCIÓN: Guardar horas extras en línea ──
+  const handleSaveHorasExtras = async (workerId: string, horas: number) => {
+    setIsSavingField(true);
+    try {
+      // Actualizar estado local
+      setHorasExtrasData((prev) => ({
+        ...prev,
+        [workerId]: horas,
+      }));
+
+      // Calcular totales
+      const totalDias = calcularTotalDias(workerId);
+      const pagoHorasExtras = calcularPagoHorasExtras(workerId);
+      const totalPagar = calcularTotalPagar(workerId);
+
+      // Guardar en Supabase
+      const { error } = await supabase
+        .from("AsistenciaSemanal")
+        .update({
+          horas_extras: horas,
+          pago_horas_extras: pagoHorasExtras,
+          total_pagar: totalPagar,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("worker_id", workerId)
+        .eq("semana_inicio", selectedWeek);
+
+      if (error) throw error;
+
+      showToastMsg("ok", "✅ Horas extras guardadas correctamente");
+    } catch (error) {
+      console.error("Error guardando horas extras:", error);
+      showToastMsg("err", "Error al guardar horas extras");
+    } finally {
+      setIsSavingField(false);
+    }
+  };
+
   const handleToggleDia = (workerId: string, dia: string) => {
     setChecklistData((prev) => ({
       ...prev,
@@ -691,8 +783,8 @@ export default function PersonalPage() {
   };
 
   const handleSaveChecklist = async () => {
-      console.log("📊 checklistData antes de guardar:", checklistData);
-  console.log("📆 selectedWeek:", selectedWeek);
+    console.log("📊 checklistData antes de guardar:", checklistData);
+    console.log("📆 selectedWeek:", selectedWeek);
     setSaving(true);
     try {
       await Promise.all(
@@ -1175,6 +1267,40 @@ export default function PersonalPage() {
               </div>
             </div>
 
+            {/* ── FILTRO POR TRABAJADOR (solo para ingeniero) ── */}
+            {isFieldEngineer && (
+              <div className="mb-4 flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <User className="h-4 w-4 text-zinc-400" />
+                  <span className="text-xs font-medium text-zinc-600">Filtrar por:</span>
+                </div>
+                <select
+                  value={filterWorker}
+                  onChange={(e) => setFilterWorker(e.target.value)}
+                  className="px-3 py-1.5 text-xs border border-zinc-300 rounded-lg bg-white text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                >
+                  <option value="all">Todos los trabajadores</option>
+                  {workers.filter(w => w.active).map((w) => (
+                    <option key={w.id} value={w.id}>{w.name}</option>
+                  ))}
+                </select>
+                {filterWorker !== "all" && (
+                  <button
+                    onClick={() => setFilterWorker("all")}
+                    className="text-xs text-zinc-400 hover:text-zinc-600"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                )}
+                <span className="text-[10px] text-zinc-400 ml-2">
+                  {filterWorker !== "all" 
+                    ? `Mostrando: ${workers.find(w => w.id === filterWorker)?.name || ''}`
+                    : `Mostrando ${workers.filter(w => w.active).length} trabajadores`
+                  }
+                </span>
+              </div>
+            )}
+
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-zinc-50 rounded-lg">
@@ -1198,6 +1324,12 @@ export default function PersonalPage() {
                 <tbody className="divide-y divide-zinc-50">
                   {workers
                     .filter((w) => w.active)
+                    .filter((w) => {
+                      if (filterWorker !== "all" && isFieldEngineer) {
+                        return w.id === filterWorker;
+                      }
+                      return true;
+                    })
                     .map((worker) => {
                       const totalDias = calcularTotalDias(worker.id);
                       const totalPagar = calcularTotalPagar(worker.id);
@@ -1223,16 +1355,36 @@ export default function PersonalPage() {
                           </td>
                           {DIAS_SEMANA.map((dia) => (
                             <td key={dia.key} className="text-center px-3 py-3">
-                              <button
-                                onClick={() => handleToggleDia(worker.id, dia.key)}
-                                className="focus:outline-none"
-                              >
-                                {checklistData[worker.id]?.[dia.key] ? (
-                                  <CheckSquare className="h-5 w-5 text-emerald-600" />
-                                ) : (
-                                  <Square className="h-5 w-5 text-zinc-300 hover:text-zinc-400" />
-                                )}
-                              </button>
+                              {isFieldEngineer ? (
+                                // Edición en línea para ingeniero - guardado automático
+                                <button
+                                  onClick={() => {
+                                    const newValue = !checklistData[worker.id]?.[dia.key];
+                                    setEditingField({ workerId: worker.id, dia: dia.key });
+                                    handleSaveField(worker.id, dia.key, newValue);
+                                  }}
+                                  className="focus:outline-none"
+                                  disabled={isSavingField}
+                                >
+                                  {checklistData[worker.id]?.[dia.key] ? (
+                                    <CheckSquare className="h-5 w-5 text-emerald-600 hover:text-emerald-700" />
+                                  ) : (
+                                    <Square className="h-5 w-5 text-zinc-300 hover:text-zinc-500" />
+                                  )}
+                                </button>
+                              ) : (
+                                // Comportamiento normal para admin
+                                <button
+                                  onClick={() => handleToggleDia(worker.id, dia.key)}
+                                  className="focus:outline-none"
+                                >
+                                  {checklistData[worker.id]?.[dia.key] ? (
+                                    <CheckSquare className="h-5 w-5 text-emerald-600" />
+                                  ) : (
+                                    <Square className="h-5 w-5 text-zinc-300 hover:text-zinc-400" />
+                                  )}
+                                </button>
+                              )}
                             </td>
                           ))}
                           <td className="text-center px-4 py-3">
@@ -1240,19 +1392,39 @@ export default function PersonalPage() {
                             <span className="text-[10px] text-zinc-400 ml-1">días</span>
                           </td>
                           <td className="text-center px-4 py-3">
-                            <div className="flex items-center justify-center gap-1">
-                              <input
-                                type="number"
-                                min="0"
-                                step="0.5"
-                                value={horasExtrasData[worker.id] || 0}
-                                onChange={(e) =>
-                                  handleHorasExtrasChange(worker.id, parseFloat(e.target.value) || 0)
-                                }
-                                className="w-20 px-2 py-1 text-center text-xs border border-zinc-300 rounded-lg bg-white text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900"
-                              />
-                              <span className="text-[10px] text-zinc-400">horas</span>
-                            </div>
+                            {isFieldEngineer ? (
+                              // Edición en línea para ingeniero - guardado automático
+                              <div className="flex items-center justify-center gap-1">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="0.5"
+                                  value={horasExtrasData[worker.id] || 0}
+                                  onChange={(e) => {
+                                    const val = parseFloat(e.target.value) || 0;
+                                    handleSaveHorasExtras(worker.id, val);
+                                  }}
+                                  className="w-20 px-2 py-1 text-center text-xs border border-zinc-300 rounded-lg bg-white text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                                  disabled={isSavingField}
+                                />
+                                <span className="text-[10px] text-zinc-400">horas</span>
+                              </div>
+                            ) : (
+                              // Comportamiento normal para admin
+                              <div className="flex items-center justify-center gap-1">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="0.5"
+                                  value={horasExtrasData[worker.id] || 0}
+                                  onChange={(e) =>
+                                    handleHorasExtrasChange(worker.id, parseFloat(e.target.value) || 0)
+                                  }
+                                  className="w-20 px-2 py-1 text-center text-xs border border-zinc-300 rounded-lg bg-white text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                                />
+                                <span className="text-[10px] text-zinc-400">horas</span>
+                              </div>
+                            )}
                           </td>
                           {isAdmin && (
                             <td className="text-right px-4 py-3">
@@ -1750,6 +1922,12 @@ export default function PersonalPage() {
                   <tbody className="divide-y divide-zinc-50">
                     {workers
                       .filter((w) => w.active)
+                      .filter((w) => {
+                        if (filterWorker !== "all" && isFieldEngineer) {
+                          return w.id === filterWorker;
+                        }
+                        return true;
+                      })
                       .map((worker) => {
                         const totalDias = calcularTotalDias(worker.id);
                         const totalPagar = calcularTotalPagar(worker.id);
@@ -1774,16 +1952,34 @@ export default function PersonalPage() {
                             </td>
                             {DIAS_SEMANA.map((dia) => (
                               <td key={dia.key} className="text-center px-3 py-3">
-                                <button
-                                  onClick={() => handleToggleDia(worker.id, dia.key)}
-                                  className="focus:outline-none"
-                                >
-                                  {checklistData[worker.id]?.[dia.key] ? (
-                                    <CheckSquare className="h-5 w-5 text-emerald-600" />
-                                  ) : (
-                                    <Square className="h-5 w-5 text-zinc-300 hover:text-zinc-400" />
-                                  )}
-                                </button>
+                                {isFieldEngineer ? (
+                                  <button
+                                    onClick={() => {
+                                      const newValue = !checklistData[worker.id]?.[dia.key];
+                                      setEditingField({ workerId: worker.id, dia: dia.key });
+                                      handleSaveField(worker.id, dia.key, newValue);
+                                    }}
+                                    className="focus:outline-none"
+                                    disabled={isSavingField}
+                                  >
+                                    {checklistData[worker.id]?.[dia.key] ? (
+                                      <CheckSquare className="h-5 w-5 text-emerald-600 hover:text-emerald-700" />
+                                    ) : (
+                                      <Square className="h-5 w-5 text-zinc-300 hover:text-zinc-500" />
+                                    )}
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => handleToggleDia(worker.id, dia.key)}
+                                    className="focus:outline-none"
+                                  >
+                                    {checklistData[worker.id]?.[dia.key] ? (
+                                      <CheckSquare className="h-5 w-5 text-emerald-600" />
+                                    ) : (
+                                      <Square className="h-5 w-5 text-zinc-300 hover:text-zinc-400" />
+                                    )}
+                                  </button>
+                                )}
                               </td>
                             ))}
                             <td className="text-center px-4 py-3">
@@ -1791,19 +1987,37 @@ export default function PersonalPage() {
                               <span className="text-[10px] text-zinc-400 ml-1">días</span>
                             </td>
                             <td className="text-center px-4 py-3">
-                              <div className="flex items-center justify-center gap-1">
-                                <input
-                                  type="number"
-                                  min="0"
-                                  step="0.5"
-                                  value={horasExtrasData[worker.id] || 0}
-                                  onChange={(e) =>
-                                    handleHorasExtrasChange(worker.id, parseFloat(e.target.value) || 0)
-                                  }
-                                  className="w-20 px-2 py-1 text-center text-xs border border-zinc-300 rounded-lg bg-white text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900"
-                                />
-                                <span className="text-[10px] text-zinc-400">horas</span>
-                              </div>
+                              {isFieldEngineer ? (
+                                <div className="flex items-center justify-center gap-1">
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    step="0.5"
+                                    value={horasExtrasData[worker.id] || 0}
+                                    onChange={(e) => {
+                                      const val = parseFloat(e.target.value) || 0;
+                                      handleSaveHorasExtras(worker.id, val);
+                                    }}
+                                    className="w-20 px-2 py-1 text-center text-xs border border-zinc-300 rounded-lg bg-white text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                                    disabled={isSavingField}
+                                  />
+                                  <span className="text-[10px] text-zinc-400">horas</span>
+                                </div>
+                              ) : (
+                                <div className="flex items-center justify-center gap-1">
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    step="0.5"
+                                    value={horasExtrasData[worker.id] || 0}
+                                    onChange={(e) =>
+                                      handleHorasExtrasChange(worker.id, parseFloat(e.target.value) || 0)
+                                    }
+                                    className="w-20 px-2 py-1 text-center text-xs border border-zinc-300 rounded-lg bg-white text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                                  />
+                                  <span className="text-[10px] text-zinc-400">horas</span>
+                                </div>
+                              )}
                             </td>
                             {isAdmin && (
                               <td className="text-right px-4 py-3">
