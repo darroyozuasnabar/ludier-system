@@ -1,15 +1,22 @@
 "use client";
 
-import { signIn } from "next-auth/react";
+import { signIn, useSession, getSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function ClienteLoginPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (status === "authenticated" && session?.user?.role === "CLIENTE") {
+      router.push("/cliente/dashboard");
+    }
+  }, [status, session]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,9 +35,16 @@ export default function ClienteLoginPage() {
       return;
     }
 
-    // Redirigir siempre al dashboard de cliente; el middleware validará el rol
-    router.push("/cliente/dashboard");
-    setLoading(false);
+    // 👇 Antes: setTimeout(500ms) leyendo `session` del closure viejo (race condition).
+    // Ahora: pedimos la sesión real y actualizada directamente.
+    const freshSession = await getSession();
+
+    if (freshSession?.user?.role === "CLIENTE") {
+      router.push("/cliente/dashboard");
+    } else {
+      setError("Este acceso es solo para clientes.");
+      setLoading(false);
+    }
   };
 
   return (

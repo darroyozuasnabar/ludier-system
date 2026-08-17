@@ -22,7 +22,8 @@ const PUBLIC_ROUTES = [
   "/testimonios",
 ];
 
-const AUTH_ROUTES = ["/login", "/register"];
+// 👇 "/cliente/login" se trata como página de auth (sin layout), igual que "/login"
+const AUTH_ROUTES = ["/login", "/register", "/cliente/login"];
 
 export default function RootLayout({
   children,
@@ -33,11 +34,16 @@ export default function RootLayout({
 
   // Determinar qué layout usar
   const isAuthPage = AUTH_ROUTES.includes(pathname);
-  
-  // 🔥 CORRECCIÓN: Reconocer subrutas de rutas públicas (ej: /servicios/estructuras-metalicas)
-  const isPublicPage = 
+
+  // 🔥 Reconocer subrutas de rutas públicas (ej: /servicios/estructuras-metalicas)
+  const isPublicPage =
     PUBLIC_ROUTES.some(route => pathname === route || pathname.startsWith(route + "/")) ||
     pathname === "/";
+
+  // 👇 Rutas del panel de cliente ya autenticado (/cliente/dashboard, /cliente/fotos, /cliente/hitos).
+  // Antes caían en el "else" y se envolvían con DashboardLayout (el layout interno del ERP,
+  // pensado para FUNDADOR/ADMIN/FIELD_ENGINEER), que no reconoce el rol CLIENTE y redirige a "/".
+  const isClienteAppRoute = pathname.startsWith("/cliente") && !isAuthPage;
 
   return (
     <html lang="es" suppressHydrationWarning>
@@ -50,8 +56,12 @@ export default function RootLayout({
             ) : isPublicPage ? (
               // ✅ Páginas públicas (con Navbar + Footer)
               <PublicLayout>{children}</PublicLayout>
+            ) : isClienteAppRoute ? (
+              // ✅ Panel de cliente (sin el DashboardLayout interno del ERP)
+              // TODO: reemplazar por un <ClienteLayout> propio (header simple / tabs)
+              children
             ) : (
-              // ✅ Páginas protegidas (con Sidebar + Dashboard)
+              // ✅ Páginas protegidas del ERP interno (con Sidebar + Dashboard)
               <DashboardLayout>{children}</DashboardLayout>
             )}
           </Providers>
