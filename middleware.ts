@@ -65,13 +65,11 @@ const ROLE_PERMISSIONS: Record<string, { allowed: string[]; blocked: string[] }>
       '/inventario',
     ]
   },
-  // 👇 NUEVO ROL CLIENTE
+  // 👇 NUEVO ROL CLIENTE (CORREGIDO)
   CLIENTE: {
     allowed: [
-      '/cliente/dashboard',
-      '/cliente/fotos',
-      '/cliente/hitos',
-      '/api/cliente/*',
+      '/cliente',      // Permite /cliente y /cliente/*
+      '/api/cliente',  // Permite /api/cliente y /api/cliente/*
     ],
     blocked: [
       '/dashboard',
@@ -186,6 +184,11 @@ export async function middleware(req: NextRequest) {
     secret: process.env.NEXTAUTH_SECRET
   });
 
+  // ─── LOGS DE DEPURACIÓN ───
+  console.log('🔍 [Middleware] path:', path);
+  console.log('🔍 [Middleware] token:', token);
+  console.log('🔍 [Middleware] role:', token?.role);
+
   // ─── 3. SI NO HAY TOKEN, REDIRIGIR A LOGIN ───
   if (!token) {
     // Si la ruta es de cliente, redirigir a login de cliente
@@ -217,6 +220,7 @@ export async function middleware(req: NextRequest) {
 
   // ─── 7. SI NO ESTÁ PERMITIDA O ESTÁ BLOQUEADA → DENEGAR ───
   if (!isAllowed || isBlocked) {
+    console.log('⛔ [Middleware] Acceso denegado para', path, 'con rol', role);
     const response = NextResponse.redirect(new URL('/unauthorized', req.url));
     return setSecurityHeaders(response);
   }

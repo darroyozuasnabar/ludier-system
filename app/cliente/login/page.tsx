@@ -1,22 +1,15 @@
 "use client";
 
-import { signIn, useSession } from "next-auth/react";
+import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function ClienteLoginPage() {
   const router = useRouter();
-  const { data: session, status } = useSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (status === "authenticated" && session?.user?.role === "CLIENTE") {
-      router.push("/cliente/dashboard");
-    }
-  }, [status, session]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,15 +28,9 @@ export default function ClienteLoginPage() {
       return;
     }
 
-    // Esperar a que la sesión se actualice
-    setTimeout(() => {
-      if (session?.user?.role === "CLIENTE") {
-        router.push("/cliente/dashboard");
-      } else {
-        setError("Este acceso es solo para clientes.");
-        setLoading(false);
-      }
-    }, 500);
+    // Redirigir siempre al dashboard de cliente; el middleware validará el rol
+    router.push("/cliente/dashboard");
+    setLoading(false);
   };
 
   return (
