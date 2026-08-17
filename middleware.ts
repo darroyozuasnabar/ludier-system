@@ -20,6 +20,7 @@ const PUBLIC_PREFIXES = [
   "/api/auth",
   "/api/contacto",
   "/api/cotizaciones",
+  "/cliente/login",   // 👈 Página de login para clientes
 ];
 
 const PUBLIC_PATH_PREFIXES = [
@@ -62,6 +63,33 @@ const ROLE_PERMISSIONS: Record<string, { allowed: string[]; blocked: string[] }>
       '/reportes',
       '/compras',
       '/inventario',
+    ]
+  },
+  // 👇 NUEVO ROL CLIENTE
+  CLIENTE: {
+    allowed: [
+      '/cliente/dashboard',
+      '/cliente/fotos',
+      '/cliente/hitos',
+      '/api/cliente/*',
+    ],
+    blocked: [
+      '/dashboard',
+      '/personal',
+      '/produccion',
+      '/costos',
+      '/reportes',
+      '/obras',
+      '/calidad',
+      '/documentos',
+      '/fotos',
+      '/alertas',
+      '/cotizaciones',
+      '/valorizaciones',
+      '/facturacion',
+      '/compras',
+      '/inventario',
+      '/indicadores',
     ]
   },
   PRODUCTION: {
@@ -111,17 +139,17 @@ const ROLE_PERMISSIONS: Record<string, { allowed: string[]; blocked: string[] }>
 };
 
 // ============================================================
-// 🔥 HEADERS DE SEGURIDAD (CSP CORREGIDA)
+// 🔥 HEADERS DE SEGURIDAD (CSP CORREGIDA + GOOGLE FONTS)
 // ============================================================
 
 function setSecurityHeaders(response: NextResponse): NextResponse {
-  // Content Security Policy (incluyendo wss://*.supabase.co para WebSocket)
+  // Content Security Policy con soporte para Google Fonts
   const csp = [
     "default-src 'self'",
     "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://*.supabase.co",
-    "style-src 'self' 'unsafe-inline'",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com", // 👈 Permite Google Fonts
     "img-src 'self' data: https://*.supabase.co",
-    "font-src 'self'",
+    "font-src 'self' https://fonts.gstatic.com", // 👈 Permite Google Fonts
     "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.resend.com",
     "frame-src 'self'",
     "base-uri 'self'",
@@ -160,8 +188,11 @@ export async function middleware(req: NextRequest) {
 
   // ─── 3. SI NO HAY TOKEN, REDIRIGIR A LOGIN ───
   if (!token) {
-    const loginUrl = new URL("/login", req.url);
-    loginUrl.searchParams.set("callbackUrl", path);
+    // Si la ruta es de cliente, redirigir a login de cliente
+    const isClienteRoute = path.startsWith('/cliente/');
+    const loginPath = isClienteRoute ? '/cliente/login' : '/login';
+    const loginUrl = new URL(loginPath, req.url);
+    loginUrl.searchParams.set('callbackUrl', path);
     const response = NextResponse.redirect(loginUrl, { status: 303 });
     return setSecurityHeaders(response);
   }
@@ -186,7 +217,7 @@ export async function middleware(req: NextRequest) {
 
   // ─── 7. SI NO ESTÁ PERMITIDA O ESTÁ BLOQUEADA → DENEGAR ───
   if (!isAllowed || isBlocked) {
-    const response = NextResponse.redirect(new URL("/unauthorized", req.url));
+    const response = NextResponse.redirect(new URL('/unauthorized', req.url));
     return setSecurityHeaders(response);
   }
 
