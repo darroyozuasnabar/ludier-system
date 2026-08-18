@@ -22,6 +22,12 @@ export default function LoginPage() {
       FIELD_ENGINEER: "/personal",
       PRODUCTION: "/produccion",
       VIEWER: "/obras",
+      // 👇 FIX: faltaba CLIENTE, caía en el fallback "/" (landing).
+      // Esto también explicaba el "loop" hacia la landing: con una sesión
+      // CLIENTE ya activa, cualquier visita a esta página (aunque fuera
+      // sin querer, dado que hay 2 logins distintos) disparaba el
+      // useEffect de abajo y rebotaba a "/" instantáneamente.
+      CLIENTE: "/cliente/dashboard",
     };
     router.push(routes[role] || "/");
   };
