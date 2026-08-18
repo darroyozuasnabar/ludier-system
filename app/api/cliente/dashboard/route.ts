@@ -1,71 +1,91 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getToken } from "next-auth/jwt";
+import { NextRequest } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-const supabase = createClient(
+const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-export async function GET() {
-  // 👇 FIX: antes era getServerSession() sin argumentos, lo que usaba una
-  // config por defecto que no conoce tus callbacks (jwt/session) que
-  // agregan `role` e `id`. Por eso session.user?.role siempre venía
-  // undefined y el endpoint devolvía 401 aunque la sesión fuera válida.
-  const session = await getServerSession(authOptions);
+export async function GET(req: NextRequest) {
+  try {
+    // 1. Validar token y rol CLIENTE
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+    if (!token || token.role !== "CLIENTE") {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
 
-  if (!session || session.user?.role !== "CLIENTE") {
-    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    const userId = token.id as string;
+
+    // 2. Obtener el proyecto asociado al cliente
+    const { data: project, error: projectError } = await supabaseAdmin
+      .from("Project")
+      .select("id, name, client, location, startDate, expectedEndDate, status")
+      .eq("cliente_user_id", userId)
+      .maybeSingle();
+
+    if (projectError || !project) {
+      console.error("Error al obtener proyecto:", projectError);
+      return NextResponse.json({ error: "Proyecto no encontrado" }, { status: 404 });
+    }
+
+    // 3. Obtener la última valorización para el avance
+    const { data: valorizaciones, error: valError } = await supabaseAdmin
+      .from("Valorizacion")
+      .select("avancePct, fechaEmision, status, period, totalFactura, netoCobrar")
+      .eq("projectId", project.id)
+      .order("fechaEmision", { ascending: false })
+      .limit(1);
+
+    const ultimaValorizacion = valorizaciones?.[0] || null;
+    const avance = ultimaValorizacion?.avancePct || 0;
+
+    // 4. Obtener hitos del proyecto
+    const { data: hitos, error: hitosError } = await supabaseAdmin
+      .from("Hito")
+      .select("id, title, description, fecha, badge, badge_color, acento, orden")
+      .eq("project_id", project.id)
+      .order("orden", { ascending: true });
+
+    // 5. Obtener fotos recientes (últimas 6)
+    const { data: fotos, error: fotosError } = await supabaseAdmin
+      .from("Foto")
+      .select("id, nombre, url, categoria, fecha_subida")
+      .eq("proyecto_id", project.id)
+      .order("fecha_subida", { ascending: false })
+      .limit(6);
+
+    // 6. Obtener todas las valorizaciones para el resumen
+    const { data: todasValorizaciones, error: todasValError } = await supabaseAdmin
+      .from("Valorizacion")
+      .select("id, period, status, fechaEmision, fechaCobro, avancePct, totalFactura")
+      .eq("projectId", project.id)
+      .order("fechaEmision", { ascending: true });
+
+    // 7. Obtener hitos con fechas planificadas (de la tabla Hito ya tiene fecha)
+    // Podemos usarlos directamente como cronograma, añadiendo un porcentaje de avance hipotético
+    // o podemos usar las valorizaciones para calcular un avance por período.
+
+    // Construir respuesta
+    return NextResponse.json({
+      project: {
+        ...project,
+        avance,
+        ultimaValorizacion,
+      },
+      hitos: hitos || [],
+      fotos: fotos || [],
+      valorizaciones: todasValorizaciones || [],
+      // Para el cronograma, podemos usar los hitos y agregar un porcentaje simulado
+      // o mejor, crear una tabla "Cronograma" pero por ahora usamos hitos con fechas
+      cronograma: hitos?.map(h => ({
+        ...h,
+        porcentaje: 0, // Lo puedes calcular según la lógica de negocio
+      })) || [],
+    });
+  } catch (error) {
+    console.error("Error en /api/cliente/dashboard:", error);
+    return NextResponse.json({ error: "Error interno" }, { status: 500 });
   }
-
-  const userId = session.user.id;
-
-  // Obtener proyecto asociado al cliente
-  const { data: project, error: projectError } = await supabase
-    .from("Project")
-    .select(`
-      id,
-      name,
-      client,
-      status,
-      valorization,
-      startDate,
-      expectedEndDate,
-      actualEndDate,
-      location,
-      description
-    `)
-    .eq("cliente_user_id", userId)
-    .single();
-
-  if (projectError || !project) {
-    return NextResponse.json({ error: "Proyecto no encontrado" }, { status: 404 });
-  }
-
-  // Obtener fotos recientes
-  const { data: fotos } = await supabase
-    .from("Foto")
-    .select("id, nombre, url, categoria, fecha_subida")
-    .eq("proyecto_id", project.id)
-    .order("fecha_subida", { ascending: false })
-    .limit(6);
-
-  // Calcular avance (basado en valorizaciones)
-  const { data: valorizaciones } = await supabase
-    .from("Valorizacion")
-    .select("netoCobrar, status")
-    .eq("projectId", project.id);
-
-  const costoDirectoTotal = project.valorization / 1.18;
-  const totalEjecutado = valorizaciones?.reduce((sum, v) => sum + Number(v.netoCobrar || 0), 0) || 0;
-  const avance = costoDirectoTotal > 0 ? (totalEjecutado / costoDirectoTotal) * 100 : 0;
-
-  return NextResponse.json({
-    project: {
-      ...project,
-      avance: Math.min(avance, 100),
-    },
-    fotos: fotos || [],
-  });
 }
