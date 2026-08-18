@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
@@ -8,7 +9,12 @@ const supabase = createClient(
 );
 
 export async function GET() {
-  const session = await getServerSession();
+  // 👇 FIX: antes era getServerSession() sin argumentos, lo que usaba una
+  // config por defecto que no conoce tus callbacks (jwt/session) que
+  // agregan `role` e `id`. Por eso session.user?.role siempre venía
+  // undefined y el endpoint devolvía 401 aunque la sesión fuera válida.
+  const session = await getServerSession(authOptions);
+
   if (!session || session.user?.role !== "CLIENTE") {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
