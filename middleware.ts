@@ -20,7 +20,7 @@ const PUBLIC_PREFIXES = [
   "/api/auth",
   "/api/contacto",
   "/api/cotizaciones",
-  "/cliente/login",   // 👈 Página de login para clientes
+  // 👇 "/cliente/login" eliminado: el login se unificó en "/login" con toggle Equipo/Cliente
 ];
 
 const PUBLIC_PATH_PREFIXES = [
@@ -65,7 +65,6 @@ const ROLE_PERMISSIONS: Record<string, { allowed: string[]; blocked: string[] }>
       '/inventario',
     ]
   },
-  // 👇 ROL CLIENTE
   CLIENTE: {
     allowed: [
       '/cliente/dashboard',
@@ -141,14 +140,10 @@ const ROLE_PERMISSIONS: Record<string, { allowed: string[]; blocked: string[] }>
 // ============================================================
 // 🔥 HELPER: matching de rutas con soporte para wildcard '/*'
 // ============================================================
-// Antes, '/api/cliente/*' se comparaba de forma literal contra el path
-// (path === '/api/cliente/*' || path.startsWith('/api/cliente/*/')),
-// lo cual NUNCA coincidía con rutas reales como /api/cliente/dashboard.
-// Esta función interpreta correctamente el sufijo '/*' como wildcard.
 
 function matchesRoute(path: string, route: string): boolean {
   if (route.endsWith('/*')) {
-    const base = route.slice(0, -2); // quita "/*"
+    const base = route.slice(0, -2);
     return path === base || path.startsWith(base + '/');
   }
   return path === route || path.startsWith(route + '/');
@@ -203,9 +198,11 @@ export async function middleware(req: NextRequest) {
 
   // ─── 3. SI NO HAY TOKEN, REDIRIGIR A LOGIN ───
   if (!token) {
+    // 👇 Un solo login para todos ahora. Si venía de /cliente/*, le
+    // agregamos ?tipo=cliente para que el toggle abra en esa posición.
     const isClienteRoute = path.startsWith('/cliente/');
-    const loginPath = isClienteRoute ? '/cliente/login' : '/login';
-    const loginUrl = new URL(loginPath, req.url);
+    const loginUrl = new URL('/login', req.url);
+    if (isClienteRoute) loginUrl.searchParams.set('tipo', 'cliente');
     loginUrl.searchParams.set('callbackUrl', path);
     const response = NextResponse.redirect(loginUrl, { status: 303 });
     return setSecurityHeaders(response);

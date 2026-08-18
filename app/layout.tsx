@@ -22,8 +22,7 @@ const PUBLIC_ROUTES = [
   "/testimonios",
 ];
 
-// 👇 "/cliente/login" se trata como página de auth (sin layout), igual que "/login"
-const AUTH_ROUTES = ["/login", "/register", "/cliente/login"];
+const AUTH_ROUTES = ["/login", "/register"];
 
 export default function RootLayout({
   children,

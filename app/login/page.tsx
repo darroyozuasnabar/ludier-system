@@ -1,18 +1,28 @@
 "use client";
 
 import { signIn, useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
 import Image from "next/image";
 
-export default function LoginPage() {
+type TipoAcceso = "equipo" | "cliente";
+
+function LoginPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: session, status } = useSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
+
+  // 👇 Toggle Equipo / Cliente. Soporta ?tipo=cliente para links directos
+  // (ej. footer de la landing), pero es puramente cosmético/orientativo —
+  // el rol real siempre lo determina el backend contra public.User.
+  const [tipo, setTipo] = useState<TipoAcceso>(
+    searchParams.get("tipo") === "cliente" ? "cliente" : "equipo"
+  );
 
   // ─── Redirigir según el rol ──────────────────────────────────────
   const redirectByRole = (role: string) => {
@@ -22,11 +32,6 @@ export default function LoginPage() {
       FIELD_ENGINEER: "/personal",
       PRODUCTION: "/produccion",
       VIEWER: "/obras",
-      // 👇 FIX: faltaba CLIENTE, caía en el fallback "/" (landing).
-      // Esto también explicaba el "loop" hacia la landing: con una sesión
-      // CLIENTE ya activa, cualquier visita a esta página (aunque fuera
-      // sin querer, dado que hay 2 logins distintos) disparaba el
-      // useEffect de abajo y rebotaba a "/" instantáneamente.
       CLIENTE: "/cliente/dashboard",
     };
     router.push(routes[role] || "/");
@@ -34,7 +39,6 @@ export default function LoginPage() {
 
   useEffect(() => {
     setMounted(true);
-    // Si ya hay sesión (ej. recarga de página), redirigir directamente
     if (status === "authenticated" && session?.user?.role) {
       redirectByRole(session.user.role);
     }
@@ -58,7 +62,6 @@ export default function LoginPage() {
       return;
     }
 
-    // Pequeña pausa para que la sesión se actualice en el servidor
     setTimeout(async () => {
       try {
         const res = await fetch("/api/auth/session");
@@ -73,6 +76,8 @@ export default function LoginPage() {
       }
     }, 300);
   };
+
+  const esCliente = tipo === "cliente";
 
   return (
     <>
@@ -278,6 +283,42 @@ export default function LoginPage() {
           .l-right { width: 500px; padding: 4rem 4.5rem; }
         }
 
+        .l-toggle {
+          display: flex;
+          background: #141414;
+          border: 1px solid #222;
+          border-radius: 10px;
+          padding: 4px;
+          margin-bottom: 2rem;
+          opacity: 0;
+          transform: translateY(18px);
+          transition: opacity 0.6s ease 0.1s, transform 0.6s ease 0.1s;
+        }
+        .l-toggle.vis { opacity: 1; transform: translateY(0); }
+
+        .l-toggle-btn {
+          flex: 1;
+          border: none;
+          background: transparent;
+          color: #666;
+          font-family: 'Barlow', sans-serif;
+          font-size: 13px;
+          font-weight: 600;
+          letter-spacing: 0.5px;
+          text-transform: uppercase;
+          padding: 10px 12px;
+          border-radius: 7px;
+          cursor: pointer;
+          transition: background 0.2s, color 0.2s;
+        }
+        .l-toggle-btn.active {
+          background: #E07B20;
+          color: #fff;
+        }
+        .l-toggle-btn:not(.active):hover {
+          color: #999;
+        }
+
         .l-form-header {
           margin-bottom: 2.5rem;
           opacity: 0;
@@ -414,15 +455,6 @@ export default function LoginPage() {
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        .l-sep {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          margin: 1.75rem 0 0.75rem;
-        }
-        .l-sep-line { flex: 1; height: 1px; background: #181818; }
-        .l-sep-txt { font-size: 11px; color: #333; letter-spacing: 1px; text-transform: uppercase; white-space: nowrap; }
-
         /* FOOTER */
         .l-footer {
           padding: 14px 2rem;
@@ -473,39 +505,75 @@ export default function LoginPage() {
                 />
               </div>
 
-              <div className={`l-tagline ${mounted ? "vis" : ""}`}>
-                Control<br />
-                <span>total</span><br />
-                de obra
-              </div>
-
-              <p className={`l-desc ${mounted ? "vis" : ""}`}>
-                Plataforma interna de gestión operativa — producción,
-                costos, inventario y obra en un solo lugar.
-              </p>
-
-              <div className={`l-roles ${mounted ? "vis" : ""}`}>
-                {[
-                  { icon: "👑", name: "Gerencia", sub: "Visión global" },
-                  { icon: "🏗️", name: "Ingeniería", sub: "Obra y calidad" },
-                  { icon: "🔧", name: "Operativo", sub: "Producción" },
-                ].map((r) => (
-                  <div className="l-role" key={r.name}>
-                    <div className="l-role-icon">{r.icon}</div>
-                    <div>
-                      <span className="l-role-name">{r.name}</span>
-                      <span className="l-role-sub">{r.sub}</span>
-                    </div>
+              {esCliente ? (
+                <>
+                  <div className={`l-tagline ${mounted ? "vis" : ""}`}>
+                    Sigue tu<br />
+                    <span>obra</span><br />
+                    en tiempo real
                   </div>
-                ))}
-              </div>
+                  <p className={`l-desc ${mounted ? "vis" : ""}`}>
+                    Avance, fotos y valorizaciones de tu proyecto, siempre
+                    a un clic de distancia.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div className={`l-tagline ${mounted ? "vis" : ""}`}>
+                    Control<br />
+                    <span>total</span><br />
+                    de obra
+                  </div>
+                  <p className={`l-desc ${mounted ? "vis" : ""}`}>
+                    Plataforma interna de gestión operativa — producción,
+                    costos, inventario y obra en un solo lugar.
+                  </p>
+                </>
+              )}
+
+              {!esCliente && (
+                <div className={`l-roles ${mounted ? "vis" : ""}`}>
+                  {[
+                    { icon: "👑", name: "Gerencia", sub: "Visión global" },
+                    { icon: "🏗️", name: "Ingeniería", sub: "Obra y calidad" },
+                    { icon: "🔧", name: "Operativo", sub: "Producción" },
+                  ].map((r) => (
+                    <div className="l-role" key={r.name}>
+                      <div className="l-role-icon">{r.icon}</div>
+                      <div>
+                        <span className="l-role-name">{r.name}</span>
+                        <span className="l-role-sub">{r.sub}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
           {/* RIGHT */}
           <div className="l-right">
+            <div className={`l-toggle ${mounted ? "vis" : ""}`}>
+              <button
+                type="button"
+                className={`l-toggle-btn ${!esCliente ? "active" : ""}`}
+                onClick={() => setTipo("equipo")}
+              >
+                Equipo LUDIER
+              </button>
+              <button
+                type="button"
+                className={`l-toggle-btn ${esCliente ? "active" : ""}`}
+                onClick={() => setTipo("cliente")}
+              >
+                Cliente
+              </button>
+            </div>
+
             <div className={`l-form-header ${mounted ? "vis" : ""}`}>
-              <div className="l-eyebrow">Acceso al sistema</div>
+              <div className="l-eyebrow">
+                {esCliente ? "Panel de seguimiento" : "Acceso al sistema"}
+              </div>
               <div className="l-form-title">
                 Ingresa tus<br />credenciales
               </div>
@@ -575,5 +643,13 @@ export default function LoginPage() {
         </div>
       </div>
     </>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginPageInner />
+    </Suspense>
   );
 }
