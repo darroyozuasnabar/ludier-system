@@ -7,6 +7,31 @@ import { loginSchema } from "@/lib/validations";
 import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
 
+declare module "next-auth" {
+  interface User {
+    role?: string;
+    projectId?: string | null;
+    projectName?: string | null;
+  }
+  interface Session {
+    user: User & {
+      role?: string;
+      id?: string;
+      projectId?: string | null;
+      projectName?: string | null;
+    };
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    role?: string;
+    id?: string;
+    projectId?: string | null;
+    projectName?: string | null;
+  }
+}
+
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -98,6 +123,28 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.role = user.role;
         token.id = user.id;
+
+        // Si el usuario es CLIENTE, obtener su proyecto asociado
+        if (user.role === "CLIENTE") {
+          try {
+            const { data: project, error } = await supabaseAdmin
+              .from("Project")
+              .select("id, name")
+              .eq("cliente_user_id", user.id)
+              .maybeSingle();
+
+            if (error) {
+              console.error("Error al obtener proyecto para cliente:", error);
+            }
+
+            token.projectId = project?.id || null;
+            token.projectName = project?.name || null;
+          } catch (err) {
+            console.error("Error en callback jwt al obtener proyecto:", err);
+            token.projectId = null;
+            token.projectName = null;
+          }
+        }
       }
       return token;
     },
@@ -105,6 +152,9 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.role = token.role as string;
         session.user.id = token.id as string;
+        // Pasar proyecto a la sesión
+        session.user.projectId = token.projectId as string | null;
+        session.user.projectName = token.projectName as string | null;
       }
       return session;
     },
