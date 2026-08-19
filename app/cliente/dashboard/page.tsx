@@ -27,9 +27,14 @@ const formatPEN = (value: number) =>
     minimumFractionDigits: 2,
   }).format(value);
 
-const formatDate = (date: string) => {
-  if (!date) return "—";
-  return new Date(date).toLocaleDateString("es-PE", {
+// Función para mostrar la fecha: si es una fecha válida, formatear; si no, mostrar el texto original.
+const formatDateDisplay = (dateStr: string) => {
+  if (!dateStr) return "—";
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) {
+    return dateStr; // devuelve el texto original ("Viernes", "Próximo", etc.)
+  }
+  return date.toLocaleDateString("es-PE", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -98,8 +103,10 @@ export default function ClienteDashboard() {
   const { project, hitos, fotos, valorizaciones, cronograma } = data;
   const avance = project?.avance || 0;
 
-  // Próximo hito: el primero con fecha futura o el más cercano
-  const proximoHito = hitos?.find((h: any) => new Date(h.fecha) > new Date()) || hitos?.[0];
+  // Filtrar hitos no completados para el próximo hito
+  const hitosNoCompletados = hitos?.filter((h: any) => h.badge !== "Completado") || [];
+  // El próximo hito es el primero de la lista (ordenado por orden)
+  const proximoHito = hitosNoCompletados?.[0] || null;
 
   // Última valorización
   const ultimaVal = project?.ultimaValorizacion || null;
@@ -130,11 +137,11 @@ export default function ClienteDashboard() {
               </span>
               <span className="flex items-center gap-1">
                 <Calendar className="h-3 w-3" />
-                Inicio: {formatDate(project?.startDate)}
+                Inicio: {formatDateDisplay(project?.startDate)}
               </span>
               <span className="flex items-center gap-1">
                 <CalendarDays className="h-3 w-3" />
-                Fin estimado: {formatDate(project?.expectedEndDate)}
+                Fin estimado: {formatDateDisplay(project?.expectedEndDate)}
               </span>
             </div>
           </div>
@@ -164,11 +171,11 @@ export default function ClienteDashboard() {
           {proximoHito ? (
             <>
               <p className="text-base font-semibold text-gray-900">{proximoHito.title}</p>
-              <p className="text-sm text-gray-500">{formatDate(proximoHito.fecha)}</p>
+              <p className="text-sm text-gray-500">{formatDateDisplay(proximoHito.fecha)}</p>
               <p className="text-xs text-gray-400 mt-1">{proximoHito.description}</p>
             </>
           ) : (
-            <p className="text-sm text-gray-400">No hay hitos definidos</p>
+            <p className="text-sm text-gray-400">No hay hitos pendientes</p>
           )}
         </div>
 
@@ -188,7 +195,7 @@ export default function ClienteDashboard() {
               </p>
               {ultimaVal.fechaCobro && (
                 <p className="text-xs text-gray-400">
-                  Cobro: {formatDate(ultimaVal.fechaCobro)}
+                  Cobro: {formatDateDisplay(ultimaVal.fechaCobro)}
                 </p>
               )}
               <p className="text-xs text-gray-400 mt-1">
@@ -257,7 +264,7 @@ export default function ClienteDashboard() {
                 />
                 <div className="absolute bottom-0 left-0 right-0 bg-black/60 p-2 transform translate-y-full group-hover:translate-y-0 transition-transform duration-200">
                   <p className="text-xs text-white truncate">{foto.categoria}</p>
-                  <p className="text-[10px] text-gray-300">{formatDate(foto.fecha_subida)}</p>
+                  <p className="text-[10px] text-gray-300">{formatDateDisplay(foto.fecha_subida)}</p>
                 </div>
               </div>
             ))}
@@ -288,7 +295,7 @@ export default function ClienteDashboard() {
               <tbody className="divide-y divide-gray-100">
                 {valorizaciones.map((v: any) => (
                   <tr key={v.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-2 font-medium text-gray-900">{v.period || "—"}</td>
+                    <td className="px-4 py-2 font-medium text-gray-900">{v.numero ?? "—"}</td>
                     <td className="px-4 py-2 text-gray-600">{v.period || "—"}</td>
                     <td className="px-4 py-2">
                       <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
@@ -300,7 +307,7 @@ export default function ClienteDashboard() {
                         {v.status || "PENDIENTE"}
                       </span>
                     </td>
-                    <td className="px-4 py-2 text-gray-600">{v.fechaCobro ? formatDate(v.fechaCobro) : "—"}</td>
+                    <td className="px-4 py-2 text-gray-600">{v.fechaCobro ? formatDateDisplay(v.fechaCobro) : "—"}</td>
                     <td className="px-4 py-2 text-right font-medium text-gray-900">{formatPEN(v.totalFactura || 0)}</td>
                   </tr>
                 ))}
@@ -327,7 +334,7 @@ export default function ClienteDashboard() {
                   <p className="font-medium text-gray-900">{hito.title}</p>
                   <p className="text-sm text-gray-500">{hito.description}</p>
                   <div className="flex items-center gap-4 mt-1 text-xs text-gray-400">
-                    <span>Fecha planificada: {formatDate(hito.fecha)}</span>
+                    <span>Fecha planificada: {formatDateDisplay(hito.fecha)}</span>
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
                       {hito.badge}
                     </span>
