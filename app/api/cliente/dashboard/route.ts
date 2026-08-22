@@ -62,26 +62,33 @@ export async function GET(req: NextRequest) {
     const ultimaVal = todasVal?.[todasVal.length - 1] || null;
 
     // ============================================================
-    // 🎯 4. OBTENER HITOS DESDE LA TABLA (CON FILTRO POR TIPO)
+    // 4. OBTENER HITOS PRINCIPALES
     // ============================================================
     const { data: hitos, error: hitosError } = await supabaseAdmin
       .from("Hito")
       .select("id, title, description, fecha, badge, badge_color, acento, orden, porcentaje, tipo")
       .eq("project_id", project.id)
-      .eq("tipo", "principal")  // 🔥 SOLO LOS PRINCIPALES
+      .eq("tipo", "principal")
       .order("orden", { ascending: true });
 
     if (hitosError) {
       console.error("Error al obtener hitos:", hitosError);
     }
 
-    // 5. Fotos
-    const { data: fotos } = await supabaseAdmin
+    // ============================================================
+    // 5. FOTOS - SOLO ACTIVAS (🔥 CORREGIDO)
+    // ============================================================
+    const { data: fotos, error: fotosError } = await supabaseAdmin
       .from("Foto")
       .select("id, nombre, url, categoria, fecha_subida")
       .eq("proyecto_id", project.id)
+      .eq("activo", true)  // ← 🔥 FILTRO CLAVE PARA FOTOS ACTIVAS
       .order("fecha_subida", { ascending: false })
       .limit(8);
+
+    if (fotosError) {
+      console.error("Error al obtener fotos:", fotosError);
+    }
 
     // 6. Valorizaciones con número correlativo
     const valorizaciones = todasVal?.map((v, index) => ({
@@ -101,10 +108,10 @@ export async function GET(req: NextRequest) {
         avance,
         ultimaValorizacion: ultimaVal,
       },
-      hitos: hitos || [],          // ← Solo principales de la BD
+      hitos: hitos || [],
       fotos: fotos || [],
-      valorizaciones,              // ← Todas las valorizaciones
-      cronograma: cronograma,      // ← Solo principales de la BD
+      valorizaciones,
+      cronograma,
     });
   } catch (error) {
     console.error("Error en /api/cliente/dashboard:", error);

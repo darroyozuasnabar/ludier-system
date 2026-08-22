@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
       .from("Foto")
       .select("id, nombre, descripcion, categoria, url, tamanio, extension, fecha_subida, fecha_tomada, ubicacion", { count: "exact" })
       .eq("proyecto_id", project.id)
-      .eq("activo", true)
+      .eq("activo", true)  // ← 🔥 FILTRO CLAVE
       .order("fecha_subida", { ascending: false });
 
     // Filtrar por categoría si se especifica
@@ -82,4 +82,4 @@ export async function GET(req: NextRequest) {
       { status: 500 }
     );
   }
-}   
+}
