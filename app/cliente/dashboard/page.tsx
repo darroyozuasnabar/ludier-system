@@ -17,6 +17,7 @@ import {
   Flag,
   BarChart3,
   CheckCircle2,
+  X,
 } from "lucide-react";
 
 // ─── Paleta / tokens ─────────────────────────────────────────────
@@ -122,6 +123,53 @@ function ProgressRing({ value }: { value: number }) {
   );
 }
 
+// ─── Lightbox de foto, con animación de entrada ──────────────────
+function PhotoLightbox({ foto, onClose }: { foto: any; onClose: () => void }) {
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = "";
+    };
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4 md:p-10 bg-[#14213D]/70 backdrop-blur-sm motion-safe:animate-[lightboxFade_0.25s_ease-out]"
+      onClick={onClose}
+    >
+      <button
+        onClick={onClose}
+        className="absolute top-5 right-5 md:top-8 md:right-8 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
+        aria-label="Cerrar"
+      >
+        <X className="h-5 w-5" />
+      </button>
+
+      <div
+        className="relative max-w-4xl w-full max-h-[85vh] motion-safe:animate-[lightboxZoom_0.3s_cubic-bezier(0.16,1,0.3,1)]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <img
+          src={foto.url}
+          alt={foto.nombre}
+          className="w-full h-full max-h-[85vh] object-contain rounded-2xl shadow-[0_30px_80px_-20px_rgba(0,0,0,0.5)]"
+        />
+        <div className="absolute left-0 right-0 bottom-0 rounded-b-2xl bg-gradient-to-t from-black/70 via-black/20 to-transparent p-5 flex items-center justify-between">
+          <div>
+            <p className="text-white font-medium">{foto.categoria}</p>
+            <p className="text-white/60 text-xs mt-0.5">{formatDateDisplay(foto.fecha_subida)}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Componente principal ──────────────────────────────────────
 export default function ClienteDashboard() {
   const { data: session, status } = useSession();
@@ -129,6 +177,7 @@ export default function ClienteDashboard() {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [selectedFoto, setSelectedFoto] = useState<any>(null);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -357,6 +406,7 @@ export default function ClienteDashboard() {
             {fotos.slice(0, 8).map((foto: any) => (
               <div
                 key={foto.id}
+                onClick={() => setSelectedFoto(foto)}
                 className="relative aspect-square rounded-2xl overflow-hidden bg-[#FAF8F4] group cursor-pointer ring-1 ring-black/5"
               >
                 <img
@@ -523,10 +573,22 @@ export default function ClienteDashboard() {
         Este panel es de uso exclusivo del cliente. Los datos son sensibles y confidenciales.
       </div>
 
+      {selectedFoto && (
+        <PhotoLightbox foto={selectedFoto} onClose={() => setSelectedFoto(null)} />
+      )}
+
       <style jsx global>{`
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(8px); }
           to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes lightboxFade {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes lightboxZoom {
+          from { opacity: 0; transform: scale(0.92) translateY(8px); }
+          to { opacity: 1; transform: scale(1) translateY(0); }
         }
       `}</style>
     </div>
