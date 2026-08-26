@@ -10,19 +10,20 @@ import { usePathname } from "next/navigation";
 
 const inter = Inter({ subsets: ["latin"] });
 
-// 🔥 Lista de rutas públicas (NO requieren login)
+// 🔥 Rutas públicas (NO requieren login) - CON EL PREFIJO /public/
 const PUBLIC_ROUTES = [
   "/",
-  "/servicios",
-  "/proyectos",
-  "/nosotros",
-  "/contacto",
-  "/faq",
-  "/blog",
-  "/testimonios",
+  "/public",
+  "/public/servicios",
+  "/public/proyectos",
+  "/public/nosotros",
+  "/public/contacto",
+  "/public/faq",
+  "/public/blog",
+  "/public/testimonios",
 ];
 
-const AUTH_ROUTES = ["/login", "/register"];
+const AUTH_ROUTES = ["/login", "/register", "/public/login"];
 
 export default function RootLayout({
   children,
@@ -34,14 +35,13 @@ export default function RootLayout({
   // Determinar qué layout usar
   const isAuthPage = AUTH_ROUTES.includes(pathname);
 
-  // 🔥 Reconocer subrutas de rutas públicas (ej: /servicios/estructuras-metalicas)
+  // 🔥 Reconocer subrutas de rutas públicas (ej: /public/servicios/estructuras-metalicas)
   const isPublicPage =
     PUBLIC_ROUTES.some(route => pathname === route || pathname.startsWith(route + "/")) ||
-    pathname === "/";
+    pathname === "/" ||
+    pathname.startsWith("/public/");
 
-  // 👇 Rutas del panel de cliente ya autenticado (/cliente/dashboard, /cliente/fotos, /cliente/hitos).
-  // Antes caían en el "else" y se envolvían con DashboardLayout (el layout interno del ERP,
-  // pensado para FUNDADOR/ADMIN/FIELD_ENGINEER), que no reconoce el rol CLIENTE y redirige a "/".
+  // 👇 Rutas del panel de cliente ya autenticado (/cliente/dashboard, /cliente/fotos, /cliente/hitos)
   const isClienteAppRoute = pathname.startsWith("/cliente") && !isAuthPage;
 
   return (
@@ -57,7 +57,6 @@ export default function RootLayout({
               <PublicLayout>{children}</PublicLayout>
             ) : isClienteAppRoute ? (
               // ✅ Panel de cliente (sin el DashboardLayout interno del ERP)
-              // TODO: reemplazar por un <ClienteLayout> propio (header simple / tabs)
               children
             ) : (
               // ✅ Páginas protegidas del ERP interno (con Sidebar + Dashboard)
