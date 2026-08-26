@@ -1,8 +1,9 @@
 "use client";
 
-import { signIn, useSession } from "next-auth/react";
+import { signIn,signOut, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, useRef, Suspense } from "react";
+
 import Image from "next/image";
 
 type TipoAcceso = "equipo" | "cliente";
@@ -103,38 +104,57 @@ function LoginPageInner() {
   }, [status, session]);
 
   // ─── Enviar formulario ───────────────────────────────────────────
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
+  // ─── Enviar formulario ───────────────────────────────────────────
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setLoading(true);
+  setError("");
 
-    const result = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    });
+  const result = await signIn("credentials", {
+    email,
+    password,
+    redirect: false,
+  });
 
-    if (result?.error) {
-      setError("Correo o contraseña incorrectos.");
-      setLoading(false);
-      return;
-    }
+  if (result?.error) {
+    setError("Correo o contraseña incorrectos.");
+    setLoading(false);
+    return;
+  }
 
-    setTimeout(async () => {
-      try {
-        const res = await fetch("/api/auth/session");
-        const sessionData = await res.json();
-        if (sessionData?.user?.role) {
-          redirectByRole(sessionData.user.role);
-        } else {
-          router.push("/dashboard");
-        }
-      } catch {
+  // ✅ Verificar el rol después del login
+  setTimeout(async () => {
+    try {
+      const res = await fetch("/api/auth/session");
+      const sessionData = await res.json();
+      const role = sessionData?.user?.role;
+
+      // 🔥 VALIDAR ROL CONTRA EL TOGGLE
+      if (tipo === "cliente" && role !== "CLIENTE") {
+        setError("⚠️ Esta cuenta no tiene acceso al panel de cliente. Usa la pestaña 'Equipo LUDIER'.");
+        setLoading(false);
+        await signOut({ redirect: false });
+        return;
+      }
+
+      if (tipo === "equipo" && role === "CLIENTE") {
+        setError("⚠️ Los clientes deben ingresar desde la pestaña 'Cliente'.");
+        setLoading(false);
+        await signOut({ redirect: false });
+        return;
+      }
+
+      // ✅ Redirigir según el rol
+      if (role) {
+        redirectByRole(role);
+      } else {
         router.push("/dashboard");
       }
-    }, 300);
-  };
-
+    } catch {
+      router.push("/dashboard");
+    }
+  }, 300);
+};
   return (
     <>
       <style>{`
