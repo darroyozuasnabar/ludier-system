@@ -2,7 +2,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { proyectosData } from "../../../components/public/Proyectos";
+import { proyectosData } from "@/components/public/Proyectos"; // ✅ Ruta corregida
 import Link from "next/link";
 import {
   ArrowLeft,
