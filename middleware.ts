@@ -31,7 +31,7 @@ const PUBLIC_PATH_PREFIXES = [
 ];
 
 // ============================================================
-// 🔥 MATRIZ DE PERMISOS POR ROL
+// 🔥 MATRIZ DE PERMISOS POR ROL (CORREGIDA CON /erp/ y /cliente/)
 // ============================================================
 
 const ROLE_PERMISSIONS: Record<string, { allowed: string[]; blocked: string[] }> = {
@@ -45,24 +45,24 @@ const ROLE_PERMISSIONS: Record<string, { allowed: string[]; blocked: string[] }>
   },
   FIELD_ENGINEER: {
     allowed: [
-      '/obras',
-      '/calidad',
-      '/personal',
-      '/produccion',
-      '/fotos',
-      '/documentos',
-      '/alertas',
-      '/cotizaciones',
+      '/erp/obras',
+      '/erp/calidad',
+      '/erp/personal',
+      '/erp/produccion',
+      '/erp/fotos',
+      '/erp/documentos',
+      '/erp/alertas',
+      '/crm/cotizaciones',
     ],
     blocked: [
-      '/dashboard',
-      '/valorizaciones',
-      '/facturacion',
-      '/costos',
-      '/indicadores',
-      '/reportes',
-      '/compras',
-      '/inventario',
+      '/erp/dashboard',
+      '/erp/valorizaciones',
+      '/erp/facturacion',
+      '/erp/costos',
+      '/erp/indicadores',
+      '/erp/reportes',
+      '/erp/compras',
+      '/erp/inventario',
     ]
   },
   CLIENTE: {
@@ -70,9 +70,12 @@ const ROLE_PERMISSIONS: Record<string, { allowed: string[]; blocked: string[] }>
       '/cliente/dashboard',
       '/cliente/fotos',
       '/cliente/hitos',
+      '/cliente/valorizaciones',
       '/api/cliente/*',
     ],
     blocked: [
+      '/erp',
+      '/crm',
       '/dashboard',
       '/personal',
       '/produccion',
@@ -93,46 +96,46 @@ const ROLE_PERMISSIONS: Record<string, { allowed: string[]; blocked: string[] }>
   },
   PRODUCTION: {
     allowed: [
-      '/produccion',
-      '/fotos',
-      '/documentos',
-      '/alertas',
-      '/inventario',
+      '/erp/produccion',
+      '/erp/fotos',
+      '/erp/documentos',
+      '/erp/alertas',
+      '/erp/inventario',
     ],
     blocked: [
-      '/dashboard',
-      '/obras',
-      '/valorizaciones',
-      '/facturacion',
-      '/cotizaciones',
-      '/calidad',
-      '/personal',
-      '/compras',
-      '/costos',
-      '/indicadores',
-      '/reportes',
+      '/erp/dashboard',
+      '/erp/obras',
+      '/erp/valorizaciones',
+      '/erp/facturacion',
+      '/crm/cotizaciones',
+      '/erp/calidad',
+      '/erp/personal',
+      '/erp/compras',
+      '/erp/costos',
+      '/erp/indicadores',
+      '/erp/reportes',
     ]
   },
   VIEWER: {
     allowed: [
-      '/obras',
-      '/cotizaciones',
-      '/documentos',
-      '/alertas',
+      '/erp/obras',
+      '/crm/cotizaciones',
+      '/erp/documentos',
+      '/erp/alertas',
     ],
     blocked: [
-      '/dashboard',
-      '/valorizaciones',
-      '/facturacion',
-      '/calidad',
-      '/personal',
-      '/inventario',
-      '/compras',
-      '/produccion',
-      '/costos',
-      '/indicadores',
-      '/fotos',
-      '/reportes',
+      '/erp/dashboard',
+      '/erp/valorizaciones',
+      '/erp/facturacion',
+      '/erp/calidad',
+      '/erp/personal',
+      '/erp/inventario',
+      '/erp/compras',
+      '/erp/produccion',
+      '/erp/costos',
+      '/erp/indicadores',
+      '/erp/fotos',
+      '/erp/reportes',
     ]
   }
 };
@@ -198,8 +201,6 @@ export async function middleware(req: NextRequest) {
 
   // ─── 3. SI NO HAY TOKEN, REDIRIGIR A LOGIN ───
   if (!token) {
-    // 👇 Un solo login para todos ahora. Si venía de /cliente/*, le
-    // agregamos ?tipo=cliente para que el toggle abra en esa posición.
     const isClienteRoute = path.startsWith('/cliente/');
     const loginUrl = new URL('/login', req.url);
     if (isClienteRoute) loginUrl.searchParams.set('tipo', 'cliente');
