@@ -10,7 +10,7 @@ import { usePathname } from "next/navigation";
 
 const inter = Inter({ subsets: ["latin"] });
 
-// 🔥 Rutas públicas (NO requieren login) - CON EL PREFIJO /public/
+// 🔥 Rutas públicas (NO requieren login)
 const PUBLIC_ROUTES = [
   "/",
   "/public",
@@ -23,7 +23,8 @@ const PUBLIC_ROUTES = [
   "/public/testimonios",
 ];
 
-const AUTH_ROUTES = ["/login", "/register", "/public/login"];
+// 🔥 Rutas de autenticación (sin layout)
+const AUTH_ROUTES = ["/login", "/register"];
 
 export default function RootLayout({
   children,
@@ -32,16 +33,13 @@ export default function RootLayout({
 }) {
   const pathname = usePathname();
 
-  // Determinar qué layout usar
   const isAuthPage = AUTH_ROUTES.includes(pathname);
 
-  // 🔥 Reconocer subrutas de rutas públicas (ej: /public/servicios/estructuras-metalicas)
   const isPublicPage =
     PUBLIC_ROUTES.some(route => pathname === route || pathname.startsWith(route + "/")) ||
     pathname === "/" ||
     pathname.startsWith("/public/");
 
-  // 👇 Rutas del panel de cliente ya autenticado (/cliente/dashboard, /cliente/fotos, /cliente/hitos)
   const isClienteAppRoute = pathname.startsWith("/cliente") && !isAuthPage;
 
   return (
@@ -56,10 +54,10 @@ export default function RootLayout({
               // ✅ Páginas públicas (con Navbar + Footer)
               <PublicLayout>{children}</PublicLayout>
             ) : isClienteAppRoute ? (
-              // ✅ Panel de cliente (sin el DashboardLayout interno del ERP)
+              // ✅ Panel de cliente
               children
             ) : (
-              // ✅ Páginas protegidas del ERP interno (con Sidebar + Dashboard)
+              // ✅ Páginas protegidas del ERP (con Sidebar + Dashboard)
               <DashboardLayout>{children}</DashboardLayout>
             )}
           </Providers>

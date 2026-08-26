@@ -10,28 +10,27 @@ import { getToken } from "next-auth/jwt";
 const PUBLIC_PREFIXES = [
   "/",
   "/login",
-  "/servicios",
-  "/proyectos",
-  "/nosotros",
-  "/contacto",
-  "/faq",
-  "/blog",
-  "/testimonios",
+  "/public/servicios",
+  "/public/proyectos",
+  "/public/nosotros",
+  "/public/contacto",
+  "/public/faq",
+  "/public/blog",
+  "/public/testimonios",
   "/api/auth",
   "/api/contacto",
   "/api/cotizaciones",
-  // 👇 "/cliente/login" eliminado: el login se unificó en "/login" con toggle Equipo/Cliente
 ];
 
 const PUBLIC_PATH_PREFIXES = [
-  "/servicios/",
-  "/proyectos/",
-  "/blog/",
+  "/public/servicios/",
+  "/public/proyectos/",
+  "/public/blog/",
   "/api/auth/",
 ];
 
 // ============================================================
-// 🔥 MATRIZ DE PERMISOS POR ROL (CORREGIDA CON /erp/ y /cliente/)
+// 🔥 MATRIZ DE PERMISOS POR ROL
 // ============================================================
 
 const ROLE_PERMISSIONS: Record<string, { allowed: string[]; blocked: string[] }> = {
@@ -153,7 +152,7 @@ function matchesRoute(path: string, route: string): boolean {
 }
 
 // ============================================================
-// 🔥 HEADERS DE SEGURIDAD (CSP CORREGIDA + GOOGLE FONTS)
+// 🔥 HEADERS DE SEGURIDAD
 // ============================================================
 
 function setSecurityHeaders(response: NextResponse): NextResponse {
@@ -219,7 +218,7 @@ export async function middleware(req: NextRequest) {
     return setSecurityHeaders(response);
   }
 
-  // ─── 6. VERIFICAR SI LA RUTA ESTÁ PERMITIDA (con soporte wildcard) ───
+  // ─── 6. VERIFICAR SI LA RUTA ESTÁ PERMITIDA ───
   const isAllowed = permissions.allowed.some(route => matchesRoute(path, route));
   const isBlocked = permissions.blocked.some(route => matchesRoute(path, route));
 

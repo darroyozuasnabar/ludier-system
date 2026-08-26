@@ -17,7 +17,7 @@ const nextConfig: NextConfig = {
   transpilePackages: ["pdfjs-dist"],
 
   // ============================================================
-  // 🔥 REDIRECCIONES (AGREGAR ESTO)
+  // 🔥 REDIRECCIONES (SIN /login → /public/login)
   // ============================================================
   async redirects() {
     return [
@@ -52,11 +52,12 @@ const nextConfig: NextConfig = {
         destination: "/public/nosotros",
         permanent: true,
       },
-      {
-        source: "/login",
-        destination: "/public/login",
-        permanent: true,
-      },
+      // ❌ ELIMINADA: /login → /public/login (causa bucle)
+      // {
+      //   source: "/login",
+      //   destination: "/public/login",
+      //   permanent: true,
+      // },
       {
         source: "/blog",
         destination: "/public/blog",
@@ -171,10 +172,6 @@ const nextConfig: NextConfig = {
         destination: "/crm/clientes",
         permanent: true,
       },
-
-      // === PÁGINAS DEL CLIENTE (/cliente) ===
-      // Estas ya están bien, no necesitan redirección
-      // /cliente/dashboard, /cliente/fotos, etc.
     ];
   },
 
