@@ -1,15 +1,14 @@
 "use client";
 
-import { signIn,signOut, useSession } from "next-auth/react";
+import { signIn, signOut, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, useRef, Suspense } from "react";
-
 import Image from "next/image";
 
 type TipoAcceso = "equipo" | "cliente";
 
 // ============================================================
-// 🔢 Contador animado (respeta prefers-reduced-motion)
+// 🔢 Contador animado
 // ============================================================
 function useAnimatedNumber(target: number, active: boolean, motionOk: boolean, duration = 1400) {
   const [value, setValue] = useState(motionOk && active ? 0 : target);
@@ -24,7 +23,7 @@ function useAnimatedNumber(target: number, active: boolean, motionOk: boolean, d
     const start = performance.now();
     const tick = (now: number) => {
       const p = Math.min(1, (now - start) / duration);
-      const eased = 1 - Math.pow(1 - p, 3); // ease-out cubic
+      const eased = 1 - Math.pow(1 - p, 3);
       setValue(Math.round(target * eased));
       if (p < 1) raf.current = requestAnimationFrame(tick);
     };
@@ -64,7 +63,7 @@ function LoginPageInner() {
     return () => mq.removeEventListener?.("change", handler);
   }, []);
 
-  // ─── Spotlight sutil que sigue el mouse (solo desktop, respeta reduced motion) ──
+  // ─── Spotlight sutil ──
   useEffect(() => {
     if (!motionOk) return;
     const el = leftPanelRef.current;
@@ -86,11 +85,11 @@ function LoginPageInner() {
   // ─── Redirigir según el rol ──────────────────────────────────────
   const redirectByRole = (role: string) => {
     const routes: Record<string, string> = {
-      FUNDADOR: "/dashboard",
-      ADMIN: "/dashboard",
-      FIELD_ENGINEER: "/personal",
-      PRODUCTION: "/produccion",
-      VIEWER: "/obras",
+      FUNDADOR: "/erp/dashboard",
+      ADMIN: "/erp/dashboard",
+      FIELD_ENGINEER: "/erp/personal",
+      PRODUCTION: "/erp/produccion",
+      VIEWER: "/erp/obras",
       CLIENTE: "/cliente/dashboard",
     };
     router.push(routes[role] || "/");
@@ -103,58 +102,72 @@ function LoginPageInner() {
     }
   }, [status, session]);
 
-  // ─── Enviar formulario ───────────────────────────────────────────
-  // ─── Enviar formulario ───────────────────────────────────────────
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setLoading(true);
-  setError("");
-
-  const result = await signIn("credentials", {
-    email,
-    password,
-    redirect: false,
-  });
-
-  if (result?.error) {
-    setError("Correo o contraseña incorrectos.");
-    setLoading(false);
-    return;
-  }
-
-  // ✅ Verificar el rol después del login
-  setTimeout(async () => {
+  // ─── Verificar rol del usuario ANTES de hacer login ──────────────
+  const verificarRolAntesDeLogin = async (email: string) => {
     try {
-      const res = await fetch("/api/auth/session");
-      const sessionData = await res.json();
-      const role = sessionData?.user?.role;
-
-      // 🔥 VALIDAR ROL CONTRA EL TOGGLE
-      if (tipo === "cliente" && role !== "CLIENTE") {
-        setError("⚠️ Esta cuenta no tiene acceso al panel de cliente. Usa la pestaña 'Equipo LUDIER'.");
-        setLoading(false);
-        await signOut({ redirect: false });
-        return;
-      }
-
-      if (tipo === "equipo" && role === "CLIENTE") {
-        setError("⚠️ Los clientes deben ingresar desde la pestaña 'Cliente'.");
-        setLoading(false);
-        await signOut({ redirect: false });
-        return;
-      }
-
-      // ✅ Redirigir según el rol
-      if (role) {
-        redirectByRole(role);
-      } else {
-        router.push("/dashboard");
-      }
+      const res = await fetch("/api/auth/verificar-rol", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      return data.role || null;
     } catch {
-      router.push("/dashboard");
+      return null;
     }
-  }, 300);
-};
+  };
+
+  // ─── Enviar formulario ───────────────────────────────────────────
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    // ✅ 1. PRIMERO: Verificar el rol del usuario (sin hacer login)
+    const rolUsuario = await verificarRolAntesDeLogin(email);
+
+    if (!rolUsuario) {
+      setError("⚠️ Usuario no encontrado. Verifica tus credenciales.");
+      setLoading(false);
+      return;
+    }
+
+    // ✅ 2. VALIDAR ROL CONTRA EL TOGGLE
+    if (tipo === "cliente" && rolUsuario !== "CLIENTE") {
+      setError("⚠️ Esta cuenta no tiene acceso al panel de cliente.\nUsa la pestaña 'Equipo LUDIER'.");
+      setLoading(false);
+      return;
+    }
+
+    if (tipo === "equipo" && rolUsuario === "CLIENTE") {
+      setError("⚠️ Esta cuenta es de cliente.\nUsa la pestaña 'Cliente' para ingresar.");
+      setLoading(false);
+      return;
+    }
+
+    // ✅ 3. Si el rol es correcto, proceder con el login
+    const result = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+    });
+
+    if (result?.error) {
+      setError("⚠️ Correo o contraseña incorrectos.");
+      setLoading(false);
+      return;
+    }
+
+    // ✅ 4. Redirigir según el rol
+    setTimeout(() => {
+      if (rolUsuario) {
+        redirectByRole(rolUsuario);
+      } else {
+        router.push("/");
+      }
+    }, 300);
+  };
+
   return (
     <>
       <style>{`
@@ -308,7 +321,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         .l-role-name { font-size: 13px; font-weight: 600; color: #bbb; display: block; line-height: 1.2; }
         .l-role-sub { font-size: 11px; color: #444; display: block; }
 
-        /* ── SIGNATURE: plano técnico animado (modo cliente) ── */
+        /* ── SIGNATURE ── */
         .cl-wrap {
           opacity: 0; transform: translateY(20px);
           transition: opacity 0.7s ease 0.15s, transform 0.7s ease 0.15s;
@@ -528,13 +541,26 @@ const handleSubmit = async (e: React.FormEvent) => {
         .l-input-wrap:focus-within .l-input-icon { color: #E07B20; }
 
         .l-error {
-          display: flex; align-items: center; gap: 10px;
-          background: rgba(220,38,38,0.07); border: 1px solid rgba(220,38,38,0.2);
-          border-radius: 10px; padding: 12px 16px; margin-bottom: 1.25rem;
-          font-size: 14px; color: #f87171; animation: shake 0.35s ease;
+          display: flex;
+          align-items: flex-start;
+          gap: 10px;
+          background: rgba(220,38,38,0.07);
+          border: 1px solid rgba(220,38,38,0.2);
+          border-radius: 10px;
+          padding: 14px 16px;
+          margin-bottom: 1.25rem;
+          font-size: 14px;
+          color: #f87171;
+          animation: shake 0.35s ease;
+          white-space: pre-line;
         }
+        .l-error span:first-child { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+        .l-error span:last-child { line-height: 1.5; }
+
         @keyframes shake {
-          0%,100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); }
+          0%,100% { transform: translateX(0); }
+          25% { transform: translateX(-5px); }
+          75% { transform: translateX(5px); }
         }
 
         .l-btn {
@@ -757,7 +783,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               <form onSubmit={handleSubmit}>
                 {error && (
                   <div className="l-error">
-                    <span>⚠</span>
+                    <span>⚠️</span>
                     <span>{error}</span>
                   </div>
                 )}
