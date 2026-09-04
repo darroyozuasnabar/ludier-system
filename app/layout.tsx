@@ -26,28 +26,6 @@ const PUBLIC_ROUTES = [
 // 🔥 Rutas de autenticación (sin layout)
 const AUTH_ROUTES = ["/login", "/register"];
 
-// 🔥 Rutas que usan DashboardLayout (ERP + CRM)
-const DASHBOARD_ROUTES = [
-  "/erp",
-  "/crm",
-  "/dashboard",
-  "/personal",
-  "/produccion",
-  "/obras",
-  "/valorizaciones",
-  "/costos",
-  "/compras",
-  "/inventario",
-  "/documentos",
-  "/fotos",
-  "/calidad",
-  "/alertas",
-  "/reportes",
-  "/facturacion",
-  "/indicadores",
-  "/cotizaciones",
-];
-
 export default function RootLayout({
   children,
 }: {
@@ -55,7 +33,7 @@ export default function RootLayout({
 }) {
   const pathname = usePathname();
 
-  const isAuthPage = AUTH_ROUTES.some(route => pathname === route);
+  const isAuthPage = AUTH_ROUTES.includes(pathname);
 
   const isPublicPage =
     PUBLIC_ROUTES.some(route => pathname === route || pathname.startsWith(route + "/")) ||
@@ -63,11 +41,6 @@ export default function RootLayout({
     pathname.startsWith("/public/");
 
   const isClienteAppRoute = pathname.startsWith("/cliente") && !isAuthPage;
-
-  // ✅ Detectar si es una ruta que usa DashboardLayout
-  const usesDashboardLayout = DASHBOARD_ROUTES.some(route => 
-    pathname === route || pathname.startsWith(route + "/")
-  );
 
   return (
     <html lang="es" suppressHydrationWarning>
@@ -81,13 +54,10 @@ export default function RootLayout({
               // ✅ Páginas públicas (con Navbar + Footer)
               <PublicLayout>{children}</PublicLayout>
             ) : isClienteAppRoute ? (
-              // ✅ Panel de cliente (sin layout adicional)
+              // ✅ Panel de cliente
               children
-            ) : usesDashboardLayout ? (
-              // ✅ Páginas del ERP y CRM (con Sidebar + Dashboard)
-              <DashboardLayout>{children}</DashboardLayout>
             ) : (
-              // ✅ Fallback: cualquier otra ruta usa DashboardLayout
+              // ✅ Páginas protegidas del ERP (con Sidebar + Dashboard)
               <DashboardLayout>{children}</DashboardLayout>
             )}
           </Providers>
