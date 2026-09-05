@@ -946,7 +946,7 @@ export default function PersonalPage() {
     if (isFieldEngineer) {
       router.push("/personal");
     } else {
-      router.push("/dashboard");
+      router.push("/erp/dashboard");
     }
   };
 
