@@ -91,52 +91,52 @@ export default function DashboardLayout({
 
   const menuItems = useMemo(() => [
     // Dashboard - Solo FUNDADOR y ADMIN
-    { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard", roles: ["FUNDADOR", "ADMIN"] },
+    { href: "/erp/dashboard", icon: LayoutDashboard, label: "Dashboard", roles: ["FUNDADOR", "ADMIN"] },
     
     // Obras - Todos los roles autenticados
-    { href: "/obras", icon: HardHat, label: "Gestión de Obras", roles: ["FUNDADOR", "ADMIN", "FIELD_ENGINEER"] },
+    { href: "/erp/obras", icon: HardHat, label: "Gestión de Obras", roles: ["FUNDADOR", "ADMIN", "FIELD_ENGINEER"] },
     
     // Valorizaciones - Solo FUNDADOR y ADMIN
-    { href: "/valorizaciones", icon: FileText, label: "Valorizaciones", roles: ["FUNDADOR", "ADMIN"] },
+    { href: "/erp/valorizaciones", icon: FileText, label: "Valorizaciones", roles: ["FUNDADOR", "ADMIN"] },
     
     // Facturación - Solo FUNDADOR y ADMIN
-    { href: "/facturacion", icon: Receipt, label: "Facturación", roles: ["FUNDADOR", "ADMIN"] },
+    { href: "/erp/facturacion", icon: Receipt, label: "Facturación", roles: ["FUNDADOR", "ADMIN"] },
     
     // Cotizaciones - FUNDADOR, ADMIN, FIELD_ENGINEER (solo lectura)
-    { href: "/cotizaciones", icon: FileCheck, label: "Cotizaciones", roles: ["FUNDADOR", "ADMIN", "FIELD_ENGINEER"] },
+    { href: "/erp/cotizaciones", icon: FileCheck, label: "Cotizaciones", roles: ["FUNDADOR", "ADMIN", "FIELD_ENGINEER"] },
     
     // Documentos - Todos los roles autenticados
-    { href: "/documentos", icon: FolderTree, label: "Documentos", roles: ["FUNDADOR", "ADMIN", "FIELD_ENGINEER"] },
+    { href: "/erp/documentos", icon: FolderTree, label: "Documentos", roles: ["FUNDADOR", "ADMIN", "FIELD_ENGINEER"] },
     
     // Control de Calidad - FUNDADOR, ADMIN, FIELD_ENGINEER
-    { href: "/calidad", icon: ClipboardCheck, label: "Control de Calidad", roles: ["FUNDADOR", "ADMIN", "FIELD_ENGINEER"] },
+    { href: "/erp/calidad", icon: ClipboardCheck, label: "Control de Calidad", roles: ["FUNDADOR", "ADMIN", "FIELD_ENGINEER"] },
     
     // Personal - FUNDADOR, ADMIN, FIELD_ENGINEER
-    { href: "/personal", icon: Users, label: "Personal", roles: ["FUNDADOR", "ADMIN", "FIELD_ENGINEER"] },
+    { href: "/erp/personal", icon: Users, label: "Personal", roles: ["FUNDADOR", "ADMIN", "FIELD_ENGINEER"] },
     
     // Inventario - FUNDADOR, ADMIN
-    { href: "/inventario", icon: Package, label: "Inventario", roles: ["FUNDADOR", "ADMIN"] },
+    { href: "/erp/inventario", icon: Package, label: "Inventario", roles: ["FUNDADOR", "ADMIN"] },
     
     // Compras - Solo FUNDADOR y ADMIN
-    { href: "/compras", icon: ShoppingCart, label: "Compras", roles: ["FUNDADOR", "ADMIN"] },
+    { href: "/erp/compras", icon: ShoppingCart, label: "Compras", roles: ["FUNDADOR", "ADMIN"] },
     
     // Producción - FUNDADOR, ADMIN, FIELD_ENGINEER
-    { href: "/produccion", icon: Factory, label: "Producción", roles: ["FUNDADOR", "ADMIN", "FIELD_ENGINEER"] },
+    { href: "/erp/produccion", icon: Factory, label: "Producción", roles: ["FUNDADOR", "ADMIN", "FIELD_ENGINEER"] },
     
     // Costos - Solo FUNDADOR y ADMIN
-    { href: "/costos", icon: Calculator, label: "Costos", roles: ["FUNDADOR", "ADMIN"] },
+    { href: "/erp/costos", icon: Calculator, label: "Costos", roles: ["FUNDADOR", "ADMIN"] },
     
     // Indicadores - Solo FUNDADOR y ADMIN
-    { href: "/indicadores", icon: BarChart3, label: "Indicadores", roles: ["FUNDADOR", "ADMIN"] },
+    { href: "/erp/indicadores", icon: BarChart3, label: "Indicadores", roles: ["FUNDADOR", "ADMIN"] },
     
     // Fotos - FUNDADOR, ADMIN, FIELD_ENGINEER
-    { href: "/fotos", icon: Camera, label: "Fotos", roles: ["FUNDADOR", "ADMIN", "FIELD_ENGINEER"] },
+    { href: "/erp/fotos", icon: Camera, label: "Fotos", roles: ["FUNDADOR", "ADMIN", "FIELD_ENGINEER"] },
     
     // Alertas - Todos los roles autenticados
-    { href: "/alertas", icon: Bell, label: "Alertas", roles: ["FUNDADOR", "ADMIN", "FIELD_ENGINEER"] },
+    { href: "/erp/alertas", icon: Bell, label: "Alertas", roles: ["FUNDADOR", "ADMIN", "FIELD_ENGINEER"] },
     
     // Reportes - Solo FUNDADOR y ADMIN
-    { href: "/reportes", icon: FileBarChart, label: "Reportes", roles: ["FUNDADOR", "ADMIN"] },
+    { href: "/erp/reportes", icon: FileBarChart, label: "Reportes", roles: ["FUNDADOR", "ADMIN"] },
   ], []);
 
   // Filtrar menú según el rol del usuario

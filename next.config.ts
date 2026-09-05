@@ -1,3 +1,4 @@
+// next.config.ts
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
@@ -17,7 +18,7 @@ const nextConfig: NextConfig = {
   transpilePackages: ["pdfjs-dist"],
 
   // ============================================================
-  // 🔥 REDIRECCIONES (SIN /login → /public/login)
+  // 🔥 REDIRECCIONES
   // ============================================================
   async redirects() {
     return [
@@ -52,12 +53,6 @@ const nextConfig: NextConfig = {
         destination: "/public/nosotros",
         permanent: true,
       },
-      // ❌ ELIMINADA: /login → /public/login (causa bucle)
-      // {
-      //   source: "/login",
-      //   destination: "/public/login",
-      //   permanent: true,
-      // },
       {
         source: "/blog",
         destination: "/public/blog",
@@ -156,17 +151,19 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
 
-      // === PÁGINAS DEL CRM (/crm) ===
+      // ✅ COTIZACIONES - AHORA VA A /erp/cotizaciones
       {
         source: "/cotizaciones",
-        destination: "/crm/cotizaciones",
+        destination: "/erp/cotizaciones",
         permanent: true,
       },
       {
         source: "/cotizaciones/:slug",
-        destination: "/crm/cotizaciones/:slug",
+        destination: "/erp/cotizaciones/:slug",
         permanent: true,
       },
+
+      // === PÁGINAS DEL CRM (/crm) ===
       {
         source: "/clientes",
         destination: "/crm/clientes",
