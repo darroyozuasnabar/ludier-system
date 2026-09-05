@@ -140,7 +140,7 @@ export default function CotizacionesPage() {
       if (filterEstado !== "ALL") params.append("estado", filterEstado);
       if (filterCliente) params.append("cliente", filterCliente);
 
-      const response = await fetch(`/api/cotizaciones?${params.toString()}`);
+      const response = await fetch(`/api/erp/cotizaciones?${params.toString()}`);
       const data = await response.json();
 
       if (!data.success) throw new Error(data.error);
@@ -161,7 +161,7 @@ export default function CotizacionesPage() {
     if (!confirm("¿Eliminar esta cotización? (Solo disponible en estado BORRADOR)")) return;
 
     try {
-      const response = await fetch(`/api/cotizaciones/${id}`, { method: "DELETE" });
+      const response = await fetch(`/api/erp/cotizaciones/${id}`, { method: "DELETE" });
       const data = await response.json();
 
       if (!data.success) throw new Error(data.error);
@@ -179,7 +179,7 @@ export default function CotizacionesPage() {
       return;
     }
     try {
-      const response = await fetch(`/api/cotizaciones/${id}/enviar`, { method: "POST" });
+      const response = await fetch(`/api/erp/cotizaciones/${id}/enviar`, { method: "POST" });
       const data = await response.json();
 
       if (!data.success) throw new Error(data.error);
@@ -218,7 +218,7 @@ export default function CotizacionesPage() {
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
-              onClick={() => router.push("/dashboard")}
+              onClick={() => router.push("/erp/dashboard")}
               className="flex items-center gap-1.5 text-zinc-400 hover:text-zinc-700 text-sm transition-colors"
             >
               <ChevronLeft className="h-4 w-4" />
@@ -239,7 +239,7 @@ export default function CotizacionesPage() {
           </div>
           {isAdmin && (
             <button
-              onClick={() => router.push("/cotizaciones/nueva")}
+              onClick={() => router.push("/erp/cotizaciones/nueva")}
               className="flex items-center gap-2 px-4 py-2 bg-zinc-900 text-white text-xs font-semibold rounded-xl hover:bg-zinc-800 transition-colors"
             >
               <Plus className="h-3.5 w-3.5" />
@@ -406,7 +406,7 @@ export default function CotizacionesPage() {
                         </div>
                         <div className="flex items-center gap-1 shrink-0">
                           <button
-                            onClick={() => router.push(`/cotizaciones/${cotizacion.id}`)}
+                            onClick={() => router.push(`/erp/cotizaciones/${cotizacion.id}`)}
                             className="p-1.5 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 rounded-lg transition-colors"
                             title="Ver detalle"
                           >
@@ -414,7 +414,7 @@ export default function CotizacionesPage() {
                           </button>
                           {isAdmin && cotizacion.estado === "BORRADOR" && (
                             <button
-                              onClick={() => router.push(`/cotizaciones/${cotizacion.id}/editar`)}
+                              onClick={() => router.push(`/erp/cotizaciones/${cotizacion.id}/editar`)}
                               className="p-1.5 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 rounded-lg transition-colors"
                               title="Editar"
                             >
