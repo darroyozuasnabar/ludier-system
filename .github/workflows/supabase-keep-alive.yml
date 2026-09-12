@@ -4,7 +4,7 @@ on:
   schedule:
     # Se ejecuta todos los días a las 06:00 UTC (01:00 AM Perú)
     - cron: '0 6 * * *'
-  workflow_dispatch: # Permite ejecutarlo manualmente desde GitHub
+  workflow_dispatch:
 
 jobs:
   ping-supabase:
@@ -13,12 +13,11 @@ jobs:
       - name: Ping Supabase REST API
         run: |
           echo "🔄 Enviando ping a Supabase..."
-          echo "URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}"
           
           HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
             -H "apikey: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" \
             -H "Authorization: Bearer ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" \
-            "${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}/rest/v1/")
+            "${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}/rest/v1/User?select=id&limit=1")
           
           echo "✅ Respuesta HTTP: $HTTP_CODE"
           
