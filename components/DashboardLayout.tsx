@@ -1,6 +1,6 @@
 "use client";
 
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState, useCallback, useMemo, memo } from "react";
 import Link from "next/link";
@@ -20,12 +20,12 @@ import {
   Camera, 
   Bell, 
   FileBarChart, 
-  LogOut,
   Menu,
   X,
   FileCheck,
 } from "lucide-react";
 import NotificacionesTiempoReal from "@/components/NotificacionesTiempoReal";
+import LogoutButton from "@/components/LogoutButton";
 
 // Componente memoizado para cada item del menú
 const MenuItem = memo(({ item, onClick }: { item: any; onClick?: () => void }) => {
@@ -79,11 +79,6 @@ export default function DashboardLayout({
       router.push("/login");
     }
   }, [status, router, pathname]);
-
-  // Logout handler memoizado
-  const handleLogout = useCallback(async () => {
-    await signOut({ redirect: true, callbackUrl: "/login" });
-  }, []);
 
   // ============================================================
   // 🔥 DEFINICIÓN DE PERMISOS POR ROL (CORREGIDO)
@@ -182,13 +177,11 @@ export default function DashboardLayout({
               {filteredMenu.map((item) => (
                 <MenuItem key={item.href} item={item} onClick={closeSidebar} />
               ))}
-              <button
-                onClick={handleLogout}
-                className="w-full flex items-center gap-3 px-3 py-2 text-red-600 rounded-lg hover:bg-red-50 transition-colors mt-4"
-              >
-                <LogOut className="h-5 w-5" />
-                <span className="text-sm">Cerrar sesión</span>
-              </button>
+              <LogoutButton
+                variant="text"
+                label="Cerrar sesión"
+                className="w-full flex items-center gap-3 px-3 py-2 !text-red-600 hover:!bg-red-50 rounded-lg mt-4"
+              />
             </nav>
           </div>
         </div>
@@ -208,13 +201,11 @@ export default function DashboardLayout({
           </nav>
         </div>
         <div className="p-4 border-t">
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2 text-red-600 rounded-lg hover:bg-red-50 transition-colors"
-          >
-            <LogOut className="h-5 w-5" />
-            <span className="text-sm">Cerrar sesión</span>
-          </button>
+          <LogoutButton
+            variant="text"
+            label="Cerrar sesión"
+            className="w-full flex items-center gap-3 px-3 py-2 !text-red-600 hover:!bg-red-50 rounded-lg"
+          />
         </div>
       </aside>
 

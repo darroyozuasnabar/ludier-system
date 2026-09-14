@@ -1,10 +1,11 @@
 "use client";
 
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Home, Image, Flag, DollarSign, LogOut, Menu, X, Loader2 } from "lucide-react";
+import { Home, Image, Flag, DollarSign, Menu, X, Loader2 } from "lucide-react";
+import LogoutButton from "@/components/LogoutButton";
 
 export default function ClienteLayout({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
@@ -100,13 +101,11 @@ export default function ClienteLayout({ children }: { children: React.ReactNode 
               </Link>
             );
           })}
-          <button
-            onClick={() => signOut({ callbackUrl: "/" })}
-            className="flex items-center gap-3 w-full px-4 py-3 rounded-2xl text-rose-500 hover:bg-rose-50 transition-colors mt-4 text-sm"
-          >
-            <LogOut className="w-4.5 h-4.5" />
-            <span>Cerrar sesión</span>
-          </button>
+          <LogoutButton
+            variant="text"
+            label="Cerrar sesión"
+            className="flex items-center gap-3 w-full px-4 py-3 rounded-2xl !text-rose-500 hover:!bg-rose-50 mt-4 text-sm"
+          />
         </nav>
 
         <div className="p-5 mx-4 mb-4 rounded-2xl bg-[#FAF8F4] border border-[#F0EDE7]">
