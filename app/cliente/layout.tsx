@@ -80,7 +80,7 @@ export default function ClienteLayout({ children }: { children: React.ReactNode 
 
         <nav className="flex-1 p-4 space-y-1 pt-6">
           {navItems.map((item) => {
-            const isActive = pathname === item.href;
+            const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
             return (
               <Link
                 key={item.href}
