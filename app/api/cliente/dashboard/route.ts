@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
     // 2. Valorizaciones (para la tabla y cálculos)
     const { data: todasVal, error: valError } = await supabaseAdmin
       .from("Valorizacion")
-      .select("id, period, status, fechaEmision, fechaCobro, totalFactura, avancePct")
+      .select("id, period, status, fechaEmision, fechaCobro, totalFactura, avancePct, createdAt")
       .eq("projectId", project.id)
       .order("fechaEmision", { ascending: true });
 
@@ -59,10 +59,10 @@ export async function GET(req: NextRequest) {
     const montoTotal = totalContratos > 0 ? totalContratos : project.valorization;
     const avance = montoTotal > 0 ? (totalCobrado / montoTotal) * 100 : 0;
 
-    // ✅ Última valorización (la más RECIENTE por fecha de emisión)
+    // ✅ Última valorización (la más RECIENTE por fecha de creación en BD)
     const ultimaVal = todasVal && todasVal.length > 0
       ? [...todasVal].sort((a, b) =>
-          new Date(b.fechaEmision).getTime() - new Date(a.fechaEmision).getTime()
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         )[0]
       : null;
 
