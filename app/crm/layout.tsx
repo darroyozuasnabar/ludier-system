@@ -1,11 +1,11 @@
-// app/(crm)/layout.tsx
 "use client";
 
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Users, FileText, Menu, X, LogOut, Loader2 } from "lucide-react";
+import { Users, FileText, Menu, X, Loader2 } from "lucide-react";
+import LogoutButton from "@/components/LogoutButton";
 
 const navItems = [
   { label: "Clientes", icon: Users, href: "/crm/clientes" },
@@ -50,13 +50,11 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
               <span>{item.label}</span>
             </Link>
           ))}
-          <button
-            onClick={() => router.push("/api/auth/signout")}
-            className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-rose-500 hover:bg-rose-50 transition-colors mt-4"
-          >
-            <LogOut className="h-4 w-4" />
-            <span>Cerrar sesión</span>
-          </button>
+          <LogoutButton
+            variant="text"
+            label="Cerrar sesión"
+            className="flex items-center gap-3 w-full px-3 py-2 rounded-lg !text-rose-500 hover:!bg-rose-50 mt-4"
+          />
         </nav>
       </aside>
 
