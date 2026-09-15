@@ -81,6 +81,37 @@ export async function GET(req: NextRequest) {
     }
 
     // ============================================================
+    // 4.5. ÓRDENES DE PRODUCCIÓN
+    // ============================================================
+    const { data: ordenesProduccion, error: ordenesError } = await supabaseAdmin
+      .from("OrdenProduccion")
+      .select("id, nombre, tipo, cantidad, unidad, estado, fechainicio, fechafin, base_completada, acabado_completado")
+      .eq("project_id", project.id)
+      .order("created_at", { ascending: false });
+
+    if (ordenesError) {
+      console.error("Error al obtener órdenes de producción:", ordenesError);
+    }
+
+    // Calcular avance de cada orden
+    const ordenesConAvance = (ordenesProduccion || []).map((o: any) => {
+      let avance = 0;
+      if (o.estado === "COMPLETADO") avance = 100;
+      else if (o.estado === "EN_INSTALACION") avance = 85;
+      else if (o.estado === "EN_PROCESO") {
+        if (o.base_completada && o.acabado_completado) avance = 100;
+        else if (o.base_completada) avance = 70;
+        else avance = 40;
+      } else if (o.estado === "PENDIENTE") avance = 0;
+      return { ...o, avance };
+    });
+
+    // Avance general de producción
+    const avanceProduccion = ordenesConAvance.length > 0
+      ? ordenesConAvance.reduce((sum: number, o: any) => sum + o.avance, 0) / ordenesConAvance.length
+      : 0;
+
+    // ============================================================
     // 5. FOTOS - SOLO ACTIVAS
     // ============================================================
     const { data: fotos, error: fotosError } = await supabaseAdmin
@@ -117,6 +148,8 @@ export async function GET(req: NextRequest) {
       fotos: fotos || [],
       valorizaciones,
       cronograma,
+      ordenesProduccion: ordenesConAvance,
+      avanceProduccion,
     });
   } catch (error) {
     console.error("Error en /api/cliente/dashboard:", error);

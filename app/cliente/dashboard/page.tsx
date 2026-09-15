@@ -234,8 +234,9 @@ export default function ClienteDashboard() {
     );
   }
 
-  const { project, hitos, fotos, valorizaciones, cronograma } = data;
+  const { project, hitos, fotos, valorizaciones, cronograma, ordenesProduccion } = data;
   const avance = project?.avance || 0;
+  const avanceProduccion = data?.avanceProduccion || 0;
 
   // Próximo hito (no completado)
   const hitosNoCompletados = hitos?.filter((h: any) => h.badge !== "Completado") || [];
@@ -395,6 +396,123 @@ export default function ClienteDashboard() {
           </p>
         </div>
       </div>
+
+      {/* ============================================================
+          AVANCE DE PRODUCCIÓN
+          ============================================================ */}
+      {ordenesProduccion && ordenesProduccion.length > 0 && (
+        <div className="bg-white rounded-[28px] shadow-[0_2px_20px_-8px_rgba(20,33,61,0.1)] p-7">
+          <SectionLabel
+            icon={TrendingUp}
+            label="Avance de producción"
+            meta={`${ordenesProduccion.length} órdenes`}
+          />
+
+          {/* Barra general */}
+          <div className="mb-6 pb-6 border-b border-[#F0EDE7]">
+            <div className="flex justify-between text-sm mb-2">
+              <span className="text-[#22262B] font-medium">Avance general de producción</span>
+              <span className="text-[#22262B] font-bold tabular-nums">
+                {avanceProduccion.toFixed(0)}%
+              </span>
+            </div>
+            <div className="w-full h-3 bg-[#F0EDE7] rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-[#C8A46B] to-[#4C7A5E] rounded-full transition-all duration-1000"
+                style={{ width: `${Math.min(avanceProduccion, 100)}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Lista de órdenes */}
+          <div className="space-y-4">
+            {ordenesProduccion.map((orden: any) => {
+              const isCompleted = orden.estado === "COMPLETADO";
+              const isInInstallation = orden.estado === "EN_INSTALACION";
+              const isInProgress = orden.estado === "EN_PROCESO";
+
+              return (
+                <div key={orden.id} className="border border-[#F0EDE7] rounded-2xl p-4">
+                  <div className="flex items-start justify-between gap-3 flex-wrap mb-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-[#22262B] truncate">{orden.nombre}</p>
+                      <p className="text-xs text-[#8B8680] mt-0.5">
+                        {orden.tipo.replace(/_/g, " ")} · {Number(orden.cantidad).toLocaleString("es-PE")} {orden.unidad}
+                      </p>
+                    </div>
+                    <span
+                      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        isCompleted
+                          ? "bg-[#E8F1EB] text-[#4C7A5E]"
+                          : isInInstallation
+                            ? "bg-[#F1E7D3] text-[#B08D4F]"
+                            : isInProgress
+                              ? "bg-[#F1E7D3] text-[#B08D4F]"
+                              : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      {isCompleted ? (
+                        <>
+                          <CheckCircle2 className="h-3 w-3" />
+                          Completado
+                        </>
+                      ) : isInInstallation ? (
+                        <>
+                          <TrendingUp className="h-3 w-3" />
+                          En instalación
+                        </>
+                      ) : isInProgress ? (
+                        <>
+                          <TrendingUp className="h-3 w-3" />
+                          En proceso
+                        </>
+                      ) : (
+                        "Pendiente"
+                      )}
+                    </span>
+                  </div>
+
+                  {/* Barra de progreso de la orden */}
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 h-2 bg-[#F0EDE7] rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all duration-1000 ${
+                          orden.avance >= 100
+                            ? "bg-[#4C7A5E]"
+                            : orden.avance >= 50
+                              ? "bg-[#14213D]"
+                              : "bg-[#C8A46B]"
+                        }`}
+                        style={{ width: `${Math.min(orden.avance, 100)}%` }}
+                      />
+                    </div>
+                    <span className="text-xs font-medium text-[#22262B] tabular-nums w-10 text-right">
+                      {orden.avance}%
+                    </span>
+                  </div>
+
+                  {/* Etapas */}
+                  <div className="flex items-center gap-4 mt-3 text-xs">
+                    <span className={`flex items-center gap-1 ${orden.base_completada ? "text-[#4C7A5E]" : "text-[#B0ABA3]"}`}>
+                      <CheckCircle2 className="h-3 w-3" />
+                      Base
+                    </span>
+                    <span className={`flex items-center gap-1 ${orden.acabado_completado ? "text-[#4C7A5E]" : "text-[#B0ABA3]"}`}>
+                      <CheckCircle2 className="h-3 w-3" />
+                      Acabado
+                    </span>
+                    {orden.fechainicio && (
+                      <span className="text-[#B0ABA3] ml-auto">
+                        {formatDateDisplay(orden.fechainicio)} → {orden.fechafin ? formatDateDisplay(orden.fechafin) : "—"}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* ============================================================
           GALERÍA DE FOTOS
