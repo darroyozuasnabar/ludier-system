@@ -59,7 +59,12 @@ export async function GET(req: NextRequest) {
     const montoTotal = totalContratos > 0 ? totalContratos : project.valorization;
     const avance = montoTotal > 0 ? (totalCobrado / montoTotal) * 100 : 0;
 
-    const ultimaVal = todasVal?.[todasVal.length - 1] || null;
+    // ✅ Última valorización (la más RECIENTE por fecha de emisión)
+    const ultimaVal = todasVal && todasVal.length > 0
+      ? [...todasVal].sort((a, b) =>
+          new Date(b.fechaEmision).getTime() - new Date(a.fechaEmision).getTime()
+        )[0]
+      : null;
 
     // ============================================================
     // 4. OBTENER HITOS PRINCIPALES
@@ -76,13 +81,13 @@ export async function GET(req: NextRequest) {
     }
 
     // ============================================================
-    // 5. FOTOS - SOLO ACTIVAS (🔥 CORREGIDO)
+    // 5. FOTOS - SOLO ACTIVAS
     // ============================================================
     const { data: fotos, error: fotosError } = await supabaseAdmin
       .from("Foto")
       .select("id, nombre, url, categoria, fecha_subida")
       .eq("proyecto_id", project.id)
-      .eq("activo", true)  // ← 🔥 FILTRO CLAVE PARA FOTOS ACTIVAS
+      .eq("activo", true)
       .order("fecha_subida", { ascending: false })
       .limit(8);
 
