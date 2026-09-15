@@ -207,54 +207,52 @@ export default function DashboardPage() {
   const garantiaContrato = montoContrato * 0.05;
   const costoDirectoContrato = montoContrato / 1.18;
 
-   // ── CÁLCULO DE AVANCE REAL (basado en costoDirecto) ──────────────────
-  let totalCobradoContrato = 0;
-  let totalEjecutadoContrato = 0;
-  let avanceContrato = 0;
-  let proximaVal: any = null;
-  let proximoMonto = 0;
-  let ultimaValPeriodo = "Sin valorizaciones";
+ // ── CÁLCULO DE AVANCE FINANCIERO (basado en totalFactura bruto) ────
+let totalCobradoContrato = 0;
+let totalEjecutadoContrato = 0;
+let avanceContrato = 0;
+let proximaVal: any = null;
+let proximoMonto = 0;
+let ultimaValPeriodo = "Sin valorizaciones";
 
-  // Costo directo total del contrato (monto / 1.18)
-  const costoDirectoTotal = montoContrato / 1.18;
+const costoDirectoTotal = montoContrato / 1.18;
 
-  if (contratoSeleccionado?.estado === "COBRADO") {
-    totalCobradoContrato = montoContrato;
-    avanceContrato = 100;
-    proximoMonto = 0;
-    ultimaValPeriodo = "Contrato cobrado";
-  } else {
-    // Filtrar valorizaciones del contrato
-    const valorizacionesDelContrato = valorizaciones.filter(
-      (v) => v.contrato_id === contratoSeleccionado?.id,
-    );
+if (contratoSeleccionado?.estado === "COBRADO") {
+  totalCobradoContrato = montoContrato;
+  avanceContrato = 100;
+  proximoMonto = 0;
+  ultimaValPeriodo = "Contrato cobrado";
+} else {
+  const valorizacionesDelContrato = valorizaciones.filter(
+    (v) => v.contrato_id === contratoSeleccionado?.id,
+  );
 
-    // ✅ AVANCE REAL: Sumar costoDirecto de TODAS las valorizaciones (cobradas + pendientes)
-    totalEjecutadoContrato = valorizacionesDelContrato
-      .reduce((sum, v) => sum + Number(v.costoDirecto || 0), 0);
+  totalEjecutadoContrato = valorizacionesDelContrato
+    .reduce((sum, v) => sum + Number(v.costoDirecto || 0), 0);
 
-    // Calcular avance basado en costo directo ejecutado vs total
-    avanceContrato = costoDirectoTotal > 0 ? (totalEjecutadoContrato / costoDirectoTotal) * 100 : 0;
+  // ✅ AVANCE FINANCIERO: Basado en totalFactura (bruto) vs monto del contrato
+  totalCobradoContrato = valorizacionesDelContrato
+    .filter((v) => v.status === "COBRADA")
+    .reduce((sum, v) => sum + Number(v.totalFactura || 0), 0);
 
-    // ✅ COBRADO: Sumar netoCobrar de valorizaciones con status "COBRADA" (con "A")
-    totalCobradoContrato = valorizacionesDelContrato
-      .filter((v) => v.status === "COBRADA") // 👈 CORREGIDO: "COBRADA" en lugar de "COBRADO"
-      .reduce((sum, v) => sum + Number(v.netoCobrar || 0), 0);
+  avanceContrato = montoContrato > 0
+    ? Math.min((totalCobradoContrato / montoContrato) * 100, 100)
+    : 0;
 
-    // Próxima cobranza
-const ORDEN_ESTADO: Record<string, number> = { FIRMADA: 0, EMITIDA: 1, BORRADOR: 2 };
-const pendientes = valorizacionesDelContrato
-  .filter((v) => v.status !== "COBRADA") // ✅ CORREGIDO (con "A")
-  .sort((a, b) => (ORDEN_ESTADO[a.status] ?? 9) - (ORDEN_ESTADO[b.status] ?? 9));
+  // Próxima cobranza
+  const ORDEN_ESTADO: Record<string, number> = { FIRMADA: 0, EMITIDA: 1, BORRADOR: 2 };
+  const pendientes = valorizacionesDelContrato
+    .filter((v) => v.status !== "COBRADA")
+    .sort((a, b) => (ORDEN_ESTADO[a.status] ?? 9) - (ORDEN_ESTADO[b.status] ?? 9));
 
-    proximaVal = pendientes[0] || null;
-    proximoMonto = proximaVal ? Number(proximaVal.netoCobrar) : 0;
-    ultimaValPeriodo = proximaVal
-      ? proximaVal.period || "Valorización pendiente"
-      : valorizacionesDelContrato.length > 0
-        ? "Todas cobradas"
-        : "Sin valorizaciones";
-  }
+  proximaVal = pendientes[0] || null;
+  proximoMonto = proximaVal ? Number(proximaVal.netoCobrar) : 0;
+  ultimaValPeriodo = proximaVal
+    ? proximaVal.period || "Valorización pendiente"
+    : valorizacionesDelContrato.length > 0
+      ? "Todas cobradas"
+      : "Sin valorizaciones";
+}
 
   const ultimaValCobrada =
     valorizaciones
