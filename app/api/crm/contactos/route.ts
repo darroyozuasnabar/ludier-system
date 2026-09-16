@@ -57,7 +57,7 @@ export async function GET(req: NextRequest) {
 
     // 3. Construir query
     let query = supabase
-      .from("CrmContacto")
+      .from("Contacto")
       .select("*", { count: "exact" })
       .order("created_at", { ascending: false })
       .range(filtros.offset, filtros.offset + filtros.limit - 1);
@@ -129,7 +129,7 @@ export async function POST(req: NextRequest) {
 
     // 4. Insertar en Supabase
     const { data, error } = await supabase
-      .from("CrmContacto")
+      .from("Contacto")
       .insert({
         nombre:       datos.nombre,
         apellido:     datos.apellido,

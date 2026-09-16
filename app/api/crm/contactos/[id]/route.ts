@@ -26,6 +26,9 @@ const createSupabaseClient = async () => {
   );
 };
 
+// Nombre de tabla — consistente con la convención del esquema real (PascalCase)
+const TABLA = "Contacto" as const;
+
 const CRM_ROLES = ["FUNDADOR", "ADMIN"] as const;
 
 // ============================================================
@@ -45,7 +48,7 @@ export async function GET(
     const supabase = await createSupabaseClient();
 
     const { data, error } = await supabase
-      .from("CrmContacto")
+      .from(TABLA)
       .select("*")
       .eq("id", id)
       .single();
@@ -87,7 +90,7 @@ export async function PUT(
 
     // Verificar que el contacto exista antes de actualizar
     const { data: existente, error: errExiste } = await supabase
-      .from("CrmContacto")
+      .from(TABLA)
       .select("id")
       .eq("id", id)
       .single();
@@ -110,7 +113,7 @@ export async function PUT(
     if (datos.notas        !== undefined) actualizacion.notas        = datos.notas ?? null;
 
     const { data, error } = await supabase
-      .from("CrmContacto")
+      .from(TABLA)
       .update(actualizacion)
       .eq("id", id)
       .select()
@@ -151,9 +154,9 @@ export async function DELETE(
     const { id } = await params;
     const supabase = await createSupabaseClient();
 
-    // Verificar existencia
+    // Verificar existencia antes de eliminar
     const { data: existente, error: errExiste } = await supabase
-      .from("CrmContacto")
+      .from(TABLA)
       .select("id, nombre, apellido")
       .eq("id", id)
       .single();
@@ -162,7 +165,7 @@ export async function DELETE(
       return NextResponse.json({ success: false, error: "Contacto no encontrado" }, { status: 404 });
     }
 
-    const { error } = await supabase.from("CrmContacto").delete().eq("id", id);
+    const { error } = await supabase.from(TABLA).delete().eq("id", id);
 
     if (error) throw error;
 
