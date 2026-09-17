@@ -128,3 +128,24 @@
     @apply font-sans;
   }
 }
+
+/* ============================================================ */
+/* Forzar inputs con fondo claro y texto oscuro (evita problema de modo oscuro) */
+/* ============================================================ */
+input,
+textarea,
+select {
+  color: #18181b !important;
+  background-color: #ffffff !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #a1a1aa !important;
+}
+
+/* Excepción: inputs con fondo oscuro intencional (si los hay) */
+input[type="checkbox"],
+input[type="radio"] {
+  background-color: revert !important;
+}

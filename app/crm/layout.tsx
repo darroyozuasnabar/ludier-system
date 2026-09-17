@@ -39,45 +39,41 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
       {/* Overlay móvil */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 bg-black/40 z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-[#F0EDE7] transform transition-transform duration-200 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0`}
+        className={`
+          fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-[#F0EDE7]
+          transform transition-transform duration-200
+          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+          lg:translate-x-0
+        `}
       >
-        <div className="p-4 border-b border-[#F0EDE7] flex items-center justify-between">
+        <div className="flex items-center justify-between p-4 border-b border-[#F0EDE7]">
           <h1 className="text-xl font-serif text-[#14213D]">CRM LUDIER</h1>
           <button
-            className="lg:hidden text-[#9B9488] hover:text-[#14213D]"
             onClick={() => setSidebarOpen(false)}
+            className="lg:hidden text-[#8B8680] hover:text-[#14213D]"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
         <nav className="p-4 space-y-1">
-          {navItems.map((item) => {
-            const isActive = pathname.startsWith(item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
-                  isActive
-                    ? "bg-[#14213D] text-white"
-                    : "text-[#5B5750] hover:bg-[#FAF8F4] hover:text-[#14213D]"
-                }`}
-              >
-                <item.icon className="h-4 w-4 shrink-0" />
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
+          {navItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={() => setSidebarOpen(false)}
+              className="flex items-center gap-3 px-3 py-2 rounded-lg text-[#5B5750] hover:bg-[#FAF8F4] hover:text-[#14213D] transition-colors"
+            >
+              <item.icon className="h-4 w-4" />
+              <span>{item.label}</span>
+            </Link>
+          ))}
           <LogoutButton
             variant="text"
             label="Cerrar sesión"
@@ -94,12 +90,11 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
         )}
       </aside>
 
-      <div className="flex-1 lg:ml-64 flex flex-col min-h-screen">
-        {/* Header móvil */}
-        <header className="lg:hidden bg-white border-b border-[#F0EDE7] h-14 flex items-center px-4 shrink-0">
+      <div className="flex-1 lg:ml-64">
+        <header className="lg:hidden bg-white border-b border-[#F0EDE7] h-16 flex items-center px-4">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="text-[#5B5750] hover:text-[#14213D]"
+            className="text-[#8B8680] hover:text-[#14213D]"
           >
             <Menu className="h-6 w-6" />
           </button>
