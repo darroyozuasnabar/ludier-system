@@ -8,6 +8,7 @@
     "build:analyze": "ANALYZE=true next build",
     "start": "next start",
     "lint": "next lint",
+    "test": "npx tsx --test __tests__/**/*.test.ts",
     "clean": "rm -rf .next node_modules && npm install"
   },
   "dependencies": {
