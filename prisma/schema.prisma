@@ -48,6 +48,7 @@ model Project {
   Hito                  Hito[]
   Trabajo               Trabajo[]
   Valorizacion          Valorizacion[]
+  Cotizacion            Cotizacion[]
 }
 
 model Session {
@@ -59,15 +60,17 @@ model Session {
 }
 
 model User {
-  id        String    @id @default(dbgenerated("(gen_random_uuid())::text"))
-  email     String    @unique
-  name      String?
-  role      String?   @default("OPERATIVO")
-  active    Boolean?  @default(true)
-  createdAt DateTime? @default(now()) @db.Timestamp(6)
-  updatedAt DateTime? @default(now()) @db.Timestamp(6)
-  Account   Account[]
-  Session   Session[]
+  id                    String                  @id @default(dbgenerated("(gen_random_uuid())::text"))
+  email                 String                  @unique
+  name                  String?
+  role                  String?                 @default("OPERATIVO")
+  active                Boolean?                @default(true)
+  createdAt             DateTime?               @default(now()) @db.Timestamp(6)
+  updatedAt             DateTime?               @default(now()) @db.Timestamp(6)
+  Account               Account[]
+  Session               Session[]
+  Cotizacion            Cotizacion[]
+  CotizacionSeguimiento CotizacionSeguimiento[]
 }
 
 model Alert {
@@ -216,4 +219,31 @@ model Worker {
   active    Boolean?  @default(true)
   createdAt DateTime? @default(now()) @db.Timestamp(6)
   updatedAt DateTime? @default(now()) @db.Timestamp(6)
+}
+
+// ============================================================
+// CRM — Módulo Contactos (Jhon · APF1)
+// ============================================================
+model Contacto {
+  id           String    @id @default(dbgenerated("(gen_random_uuid())::text"))
+  nombre       String    @db.VarChar(100)
+  apellido     String    @db.VarChar(100)
+  cargo        String?   @db.VarChar(100)
+  empresa      String?   @db.VarChar(150)
+  email        String?   @db.VarChar(150)
+  telefono     String?   @db.VarChar(20)
+  telefono_alt String?   @db.VarChar(20)
+  direccion    String?   @db.VarChar(200)
+  /// Estado del contacto: ACTIVO | INACTIVO | PROSPECTO
+  estado       String    @default("ACTIVO") @db.VarChar(20)
+  notas        String?
+  creado_por   String?
+  created_at   DateTime? @default(now()) @db.Timestamp(6)
+  updated_at   DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([empresa])
+  @@index([email])
+  @@index([estado])
+  @@index([creado_por])
+  @@map("Contacto")
 }

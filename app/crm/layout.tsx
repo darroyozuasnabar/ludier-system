@@ -1,20 +1,22 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Users, FileText, Menu, X, Loader2 } from "lucide-react";
+import { Users, FileText, UserRound, Menu, X, Loader2 } from "lucide-react";
 import LogoutButton from "@/components/LogoutButton";
 
 const navItems = [
-  { label: "Clientes", icon: Users, href: "/crm/clientes" },
-  { label: "Cotizaciones", icon: FileText, href: "/crm/cotizaciones" },
+  { label: "Clientes",     icon: Users,      href: "/crm/clientes"     },
+  { label: "Cotizaciones", icon: FileText,    href: "/crm/cotizaciones" },
+  { label: "Contactos",    icon: UserRound,   href: "/crm/contactos"    },
 ];
 
 export default function CRMLayout({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
-  const router = useRouter();
+  const router   = useRouter();
+  const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
@@ -22,7 +24,7 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
     if (!session || !["FUNDADOR", "ADMIN"].includes(session.user?.role || "")) {
       router.push("/login");
     }
-  }, [session, status]);
+  }, [session, status, router]);
 
   if (status === "loading") {
     return (
@@ -75,9 +77,17 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
           <LogoutButton
             variant="text"
             label="Cerrar sesión"
-            className="flex items-center gap-3 w-full px-3 py-2 rounded-lg !text-rose-500 hover:!bg-rose-50 mt-4"
+            className="flex items-center gap-3 w-full px-3 py-2 rounded-lg !text-rose-500 hover:!bg-rose-50 mt-4 text-sm"
           />
         </nav>
+
+        {/* Pie del sidebar: usuario */}
+        {session?.user && (
+          <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-[#F0EDE7]">
+            <p className="text-xs font-semibold text-[#14213D] truncate">{session.user.name}</p>
+            <p className="text-[10px] text-[#9B9488] truncate">{session.user.email}</p>
+          </div>
+        )}
       </aside>
 
       <div className="flex-1 lg:ml-64">
@@ -90,7 +100,7 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
           </button>
           <h1 className="ml-3 font-serif text-[#14213D]">CRM LUDIER</h1>
         </header>
-        <main className="p-6">{children}</main>
+        <main className="flex-1 p-6">{children}</main>
       </div>
     </div>
   );
