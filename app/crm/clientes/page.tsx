@@ -310,7 +310,7 @@ export default function ClientesPage() {
                   required
                   value={formData.nombre}
                   onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-                  className="w-full px-4 py-2 border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                  className="w-full px-4 py-2 bg-white text-zinc-900 placeholder:text-zinc-400 border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900"
                 />
               </div>
 
@@ -372,7 +372,7 @@ export default function ClientesPage() {
                   value={formData.notas}
                   onChange={(e) => setFormData({ ...formData, notas: e.target.value })}
                   rows={3}
-                  className="w-full px-4 py-2 border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                  className="w-full px-4 py-2 bg-white text-zinc-900 placeholder:text-zinc-400 border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900"
                 />
               </div>
 
