@@ -48,6 +48,7 @@ model Project {
   Hito                  Hito[]
   Trabajo               Trabajo[]
   Valorizacion          Valorizacion[]
+  Cotizacion            Cotizacion[]
 }
 
 model Session {
@@ -59,15 +60,17 @@ model Session {
 }
 
 model User {
-  id        String    @id @default(dbgenerated("(gen_random_uuid())::text"))
-  email     String    @unique
-  name      String?
-  role      String?   @default("OPERATIVO")
-  active    Boolean?  @default(true)
-  createdAt DateTime? @default(now()) @db.Timestamp(6)
-  updatedAt DateTime? @default(now()) @db.Timestamp(6)
-  Account   Account[]
-  Session   Session[]
+  id                    String                  @id @default(dbgenerated("(gen_random_uuid())::text"))
+  email                 String                  @unique
+  name                  String?
+  role                  String?                 @default("OPERATIVO")
+  active                Boolean?                @default(true)
+  createdAt             DateTime?               @default(now()) @db.Timestamp(6)
+  updatedAt             DateTime?               @default(now()) @db.Timestamp(6)
+  Account               Account[]
+  Session               Session[]
+  Cotizacion            Cotizacion[]
+  CotizacionSeguimiento CotizacionSeguimiento[]
 }
 
 model Alert {

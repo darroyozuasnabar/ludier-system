@@ -1,36 +1,69 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🏗️ LUDIER SYSTEM
 
-## Getting Started
+> ERP + CRM + Portal Cliente para **CONSTRUCCIONES GENERALES LUDIER E.I.R.L.**
+> RUC: 20610039546
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 📋 Descripción
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Sistema integral de gestión para LUDIER que incluye:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **ERP**: Gestión de obras, contratos, valorizaciones, personal, producción, inventario, compras.
+- **CRM**: Gestión de clientes, contactos, cotizaciones, seguimiento, oportunidades.
+- **Portal Cliente**: Dashboard de seguimiento de obra para clientes.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## 📦 Módulos del Sistema
 
-To learn more about Next.js, take a look at the following resources:
+### ERP (20 módulos)
+Dashboard, Personal, Producción, Obras, Contratos, Valorizaciones, Costos, Compras, Inventario, Documentos, Fotos, Calidad, Alertas, Reportes, Facturación, Indicadores.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### CRM (8 módulos)
+Clientes, Contactos, Cotizaciones, Seguimiento, Oportunidades, Actividades, Reportes, Configuración.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Portal Cliente (4 módulos)
+Dashboard, Fotos, Hitos, Valorizaciones.
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🛠️ Tecnologías
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Next.js 14
+- TypeScript
+- Supabase (PostgreSQL)
+- Tailwind CSS
+- NextAuth
+- Vercel
+
+---
+
+## 👥 Equipo
+
+| Rol | Nombre |
+|-----|--------|
+| Owner | Diego |
+| Developer | Ribau |
+| Developer | Jhon |
+
+---
+
+## 🌐 Enlaces
+
+| Recurso | URL |
+|---------|-----|
+| Producción | https://grupoludier.com |
+| CRM | https://grupoludier.com/crm/cotizaciones |
+| Portal Cliente | https://grupoludier.com/cliente/dashboard |
+| Repositorio | https://github.com/darroyozuasnabar/ludier-system |
+
+---
+
+## 📚 Documentación
+
+- [CRM](./docs/crm/README.md)
+
+---
+
+**Desarrollado con ❤️ por el equipo de LUDIER**
