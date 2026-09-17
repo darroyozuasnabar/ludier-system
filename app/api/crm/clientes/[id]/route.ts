@@ -12,7 +12,7 @@ const supabaseAdmin = createClient(
 // GET - Obtener un cliente
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
@@ -20,10 +20,12 @@ export async function GET(
       return NextResponse.json({ success: false, error: "No autorizado" }, { status: 401 });
     }
 
+    const { id } = await params;
+
     const { data, error } = await supabaseAdmin
       .from("Cliente")
       .select("*")
-      .eq("id", params.id)
+      .eq("id", id)
       .single();
 
     if (error) throw error;
@@ -40,7 +42,7 @@ export async function GET(
 // PUT - Actualizar cliente
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
@@ -48,6 +50,7 @@ export async function PUT(
       return NextResponse.json({ success: false, error: "No autorizado" }, { status: 401 });
     }
 
+    const { id } = await params;
     const body = await req.json();
     const {
       nombre, ruc, tipo_documento, numero_documento,
@@ -71,7 +74,7 @@ export async function PUT(
         notas,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", params.id)
+      .eq("id", id)
       .select()
       .single();
 
@@ -89,7 +92,7 @@ export async function PUT(
 // DELETE - Eliminar cliente (soft delete)
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
@@ -97,10 +100,12 @@ export async function DELETE(
       return NextResponse.json({ success: false, error: "No autorizado" }, { status: 401 });
     }
 
+    const { id } = await params;
+
     const { data, error } = await supabaseAdmin
       .from("Cliente")
       .update({ activo: false, updated_at: new Date().toISOString() })
-      .eq("id", params.id)
+      .eq("id", id)
       .select()
       .single();
 
