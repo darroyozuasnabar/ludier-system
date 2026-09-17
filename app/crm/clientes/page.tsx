@@ -186,7 +186,7 @@ export default function ClientesPage() {
               placeholder="Buscar por nombre, RUC o email..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900"
+              className="w-full pl-10 pr-4 py-2 bg-white text-zinc-900 placeholder:text-zinc-400 border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900"
             />
           </div>
           <button
@@ -321,7 +321,7 @@ export default function ClientesPage() {
                     type="text"
                     value={formData.ruc}
                     onChange={(e) => setFormData({ ...formData, ruc: e.target.value })}
-                    className="w-full px-4 py-2 border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                    className="w-full px-4 py-2 bg-white text-zinc-900 placeholder:text-zinc-400 border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900"
                   />
                 </div>
                 <div>
@@ -330,7 +330,7 @@ export default function ClientesPage() {
                     type="text"
                     value={formData.sector}
                     onChange={(e) => setFormData({ ...formData, sector: e.target.value })}
-                    className="w-full px-4 py-2 border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                    className="w-full px-4 py-2 bg-white text-zinc-900 placeholder:text-zinc-400 border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900"
                   />
                 </div>
               </div>
@@ -342,7 +342,7 @@ export default function ClientesPage() {
                     type="email"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-4 py-2 border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                    className="w-full px-4 py-2 bg-white text-zinc-900 placeholder:text-zinc-400 border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900"
                   />
                 </div>
                 <div>
@@ -351,7 +351,7 @@ export default function ClientesPage() {
                     type="text"
                     value={formData.telefono}
                     onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
-                    className="w-full px-4 py-2 border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                    className="w-full px-4 py-2 bg-white text-zinc-900 placeholder:text-zinc-400 border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900"
                   />
                 </div>
               </div>
@@ -362,7 +362,7 @@ export default function ClientesPage() {
                   type="text"
                   value={formData.direccion}
                   onChange={(e) => setFormData({ ...formData, direccion: e.target.value })}
-                  className="w-full px-4 py-2 border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                  className="w-full px-4 py-2 bg-white text-zinc-900 placeholder:text-zinc-400 border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900"
                 />
               </div>
 
