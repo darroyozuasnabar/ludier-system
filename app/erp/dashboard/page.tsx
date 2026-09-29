@@ -251,14 +251,26 @@ export default function DashboardPage() {
     0,
   );
 
-  // Cobrado en caja real = suma de valorizaciones COBRADA de TODOS los proyectos
-  const valorizacionesCobradas = allValorizaciones.filter(
-    (v) => v.status === "COBRADA",
+  // ── COBRADO EN CAJA (REAL) ───────────────────────────────────────────────
+  // = contratos cerrados completos
+  //   + valorizaciones COBRADA de contratos que aún NO están cerrados
+  // (evita doble conteo: si un contrato está COBRADO, su monto ya está
+  //  en el histórico y sus valorizaciones no deben sumarse otra vez)
+
+  // 1. Valorizaciones cobradas de contratos que NO están cerrados
+  const contratosCerradosIds = new Set(contratosCobrados.map((c) => c.id));
+
+  const valorizacionesCobradasParciales = allValorizaciones.filter(
+    (v) => v.status === "COBRADA" && !contratosCerradosIds.has(v.contrato_id),
   );
-  const totalCobradoEnCaja = valorizacionesCobradas.reduce(
+
+  const totalParcialesActivos = valorizacionesCobradasParciales.reduce(
     (sum, v) => sum + Number(v.totalFactura || 0),
     0,
   );
+
+  // 2. Total cobrado en caja real
+  const totalCobradoEnCaja = totalHistoricoCobrado + totalParcialesActivos;
 
   const montoContrato = Number(contratoSeleccionado?.monto || 0);
   const garantiaContrato = montoContrato * 0.05;
@@ -575,7 +587,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* KPI adicional: Cobrado en caja (flujo real) */}
+        {/* KPI adicional: Cobrado en caja (real) */}
         <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
           <div className="flex justify-between items-start">
             <div>
@@ -586,7 +598,9 @@ export default function DashboardPage() {
                 {formatCOP(totalCobradoEnCaja)}
               </p>
               <p className="text-xs text-gray-400 mt-1">
-                {valorizacionesCobradas.length} valorizaciones cobradas · incluye parciales de contratos activos
+                {contratosCobrados.length} contratos cerrados +{" "}
+                {valorizacionesCobradasParciales.length} valorizaciones parciales
+                de contratos activos
               </p>
             </div>
             <div className="p-3 rounded-lg bg-emerald-50">
@@ -751,7 +765,8 @@ export default function DashboardPage() {
                     Cobrado en caja (real)
                   </span>
                   <p className="text-xs text-gray-400">
-                    {valorizacionesCobradas.length} valorizaciones cobradas
+                    {contratosCobrados.length} cerrados +{" "}
+                    {valorizacionesCobradasParciales.length} parciales
                   </p>
                 </div>
                 <span className="font-semibold text-emerald-700">
