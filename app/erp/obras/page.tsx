@@ -104,40 +104,51 @@ export default function ObrasPage() {
   }, [status]);
 
   const loadData = async () => {
-    setLoading(true);
-    try {
-      const { data: contratosData } = await supabase
-        .from("Contrato")
-        .select("*")
-        .order("fecha", { ascending: false });
-      setContratos(contratosData || []);
+  setLoading(true);
+  try {
+    // 1. Primero cargar TODOS los proyectos (sin depender de contratos)
+    const { data: projectsData, error: projectsError } = await supabase
+      .from("Project")
+      .select("*")
+      .order("createdAt", { ascending: false });
 
-      const projectIds = [...new Set(contratosData?.map(c => c.project_id).filter(Boolean) || [])];
-      
-      const { data: projectsData } = await supabase
-        .from("Project")
-        .select("*")
-        .in("id", projectIds.length ? projectIds : [""]);
-      
-      const projectsMap: Record<string, any> = {};
-      projectsData?.forEach(p => { projectsMap[p.id] = p; });
-      setProyectosMap(projectsMap);
+    if (projectsError) throw projectsError;
 
-      const obrasList = (projectsData || []).map(project => ({
+    // 2. Cargar TODOS los contratos
+    const { data: contratosData, error: contratosError } = await supabase
+      .from("Contrato")
+      .select("*")
+      .order("fecha", { ascending: false });
+
+    if (contratosError) throw contratosError;
+
+    setContratos(contratosData || []);
+
+    // 3. Mapa de proyectos
+    const projectsMap: Record<string, any> = {};
+    projectsData?.forEach(p => { projectsMap[p.id] = p; });
+    setProyectosMap(projectsMap);
+
+    // 4. Combinar proyectos con sus contratos
+    const obrasList = (projectsData || []).map(project => {
+      const contratosProyecto = contratosData?.filter(c => c.project_id === project.id) || [];
+      
+      return {
         ...project,
-        contratos: contratosData?.filter(c => c.project_id === project.id) || [],
-        totalContratos: contratosData?.filter(c => c.project_id === project.id).reduce((sum, c) => sum + Number(c.monto), 0) || 0,
-        contratosCobrados: contratosData?.filter(c => c.project_id === project.id && c.estado === "COBRADO").length || 0,
-        contratosPendientes: contratosData?.filter(c => c.project_id === project.id && c.estado === "PENDIENTE").length || 0,
-      }));
-      
-      setObras(obrasList);
-    } catch (error) {
-      console.error("Error loading data:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+        contratos: contratosProyecto,
+        totalContratos: contratosProyecto.reduce((sum, c) => sum + Number(c.monto), 0),
+        contratosCobrados: contratosProyecto.filter(c => c.estado === "COBRADO").length,
+        contratosPendientes: contratosProyecto.filter(c => c.estado === "PENDIENTE").length,
+      };
+    });
+
+    setObras(obrasList);
+  } catch (error) {
+    console.error("Error loading data:", error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const showToastMsg = (type: "ok" | "err", msg: string) => {
     setToast({ type, msg });
