@@ -50,13 +50,13 @@ export async function GET(req: NextRequest) {
       prisma.cotizacion.findMany({
         where,
         include: {
-          items: {
+          CotizacionItem: {
             orderBy: { orden: "asc" },
           },
           Project: {
             select: { id: true, name: true, client: true },
           },
-          Creador: {
+          User: {
             select: { id: true, name: true, email: true },
           },
         },
@@ -147,7 +147,7 @@ export async function POST(req: NextRequest) {
           notas: validated.notas || null,
           creado_por: (token.id as string) || null,
           project_id: validated.project_id || null,
-          items: {
+          CotizacionItem: {
             create: validated.items.map((item, index) => ({
               descripcion: item.descripcion,
               cantidad: item.cantidad,
@@ -163,8 +163,8 @@ export async function POST(req: NextRequest) {
           },
         },
         include: {
-          items: true,
-          Creador: {
+          CotizacionItem: true,
+          User: {
             select: { id: true, name: true, email: true },
           },
         },

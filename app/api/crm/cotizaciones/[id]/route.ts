@@ -22,13 +22,13 @@ export async function GET(
     const cotizacion = await prisma.cotizacion.findUnique({
       where: { id },
       include: {
-        items: {
+        CotizacionItem: {
           orderBy: { orden: "asc" },
         },
-        seguimientos: {
+        CotizacionSeguimiento: {
           orderBy: { fecha: "desc" },
           include: {
-            Usuario: {
+            User: {
               select: { id: true, name: true, email: true },
             },
           },
@@ -36,7 +36,7 @@ export async function GET(
         Project: {
           select: { id: true, name: true, client: true, status: true },
         },
-        Creador: {
+        User: {
           select: { id: true, name: true, email: true },
         },
       },
@@ -75,7 +75,7 @@ export async function PUT(
 
     const existing = await prisma.cotizacion.findUnique({
       where: { id },
-      include: { items: true },
+      include: { CotizacionItem: true },
     });
 
     if (!existing) {
@@ -164,9 +164,9 @@ export async function PUT(
         where: { id },
         data: updateData,
         include: {
-          items: { orderBy: { orden: "asc" } },
+          CotizacionItem: { orderBy: { orden: "asc" } },
           Project: true,
-          Creador: { select: { id: true, name: true, email: true } },
+          User: { select: { id: true, name: true, email: true } },
         },
       });
 
