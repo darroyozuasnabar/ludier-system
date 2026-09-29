@@ -9,6 +9,10 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+// ============================================================
+// AUTENTICACIÓN (NextAuth)
+// ============================================================
+
 model Account {
   id                String  @id @default(dbgenerated("(gen_random_uuid())::text"))
   userId            String
@@ -27,30 +31,6 @@ model Account {
   @@unique([provider, providerAccountId])
 }
 
-model Project {
-  id                    String                  @id @default(dbgenerated("(gen_random_uuid())::text"))
-  name                  String
-  client                String
-  clientType            String?                 @default("CONSTRUCTORA")
-  valorization          Float
-  status                String?                 @default("ACTIVO")
-  startDate             DateTime                @db.Timestamp(6)
-  expectedEndDate       DateTime                @db.Timestamp(6)
-  actualEndDate         DateTime?               @db.Timestamp(6)
-  location              String
-  description           String?
-  createdAt             DateTime?               @default(now()) @db.Timestamp(6)
-  updatedAt             DateTime?               @default(now()) @db.Timestamp(6)
-  Alert                 Alert[]
-  ConfiguracionContrato ConfiguracionContrato[]
-  Contrato              Contrato[]
-  CostoReal             CostoReal[]
-  Hito                  Hito[]
-  Trabajo               Trabajo[]
-  Valorizacion          Valorizacion[]
-  Cotizacion            Cotizacion[]
-}
-
 model Session {
   id           String   @id @default(dbgenerated("(gen_random_uuid())::text"))
   sessionToken String   @unique
@@ -67,65 +47,88 @@ model User {
   active                Boolean?                @default(true)
   createdAt             DateTime?               @default(now()) @db.Timestamp(6)
   updatedAt             DateTime?               @default(now()) @db.Timestamp(6)
+  
   Account               Account[]
   Session               Session[]
   Cotizacion            Cotizacion[]
   CotizacionSeguimiento CotizacionSeguimiento[]
+  Project               Project[]               @relation("ClienteProject")
+  Contacto              Contacto[]
 }
 
-model Alert {
-  id          String    @id @default(dbgenerated("(gen_random_uuid())::text"))
-  projectId   String?
-  title       String
-  description String
-  priority    String
-  status      String?   @default("PENDIENTE")
-  createdAt   DateTime? @default(now()) @db.Timestamp(6)
-  Project     Project?  @relation(fields: [projectId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-}
+// ============================================================
+// ERP — Proyectos y Obras
+// ============================================================
 
-model ConfiguracionContrato {
-  id                String    @id @default(dbgenerated("(gen_random_uuid())::text"))
-  project_id        String?
-  nombre            String
-  costo_directo     Decimal   @db.Decimal(12, 2)
-  garantia          Decimal   @db.Decimal(12, 2)
-  total_pagar       Decimal   @db.Decimal(12, 2)
-  historico_cobrado Decimal?  @default(0) @db.Decimal(12, 2)
-  created_at        DateTime? @default(now()) @db.Timestamp(6)
-  updated_at        DateTime? @default(now()) @db.Timestamp(6)
-  Project           Project?  @relation(fields: [project_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+model Project {
+  id                    String                  @id @default(dbgenerated("(gen_random_uuid())::text"))
+  name                  String
+  client                String
+  clientType            String?                 @default("CONSTRUCTORA")
+  valorization          Float
+  status                String?                 @default("ACTIVO")
+  startDate             DateTime                @db.Timestamp(6)
+  expectedEndDate       DateTime                @db.Timestamp(6)
+  actualEndDate         DateTime?               @db.Timestamp(6)
+  location              String
+  description           String?
+  createdAt             DateTime?               @default(now()) @db.Timestamp(6)
+  updatedAt             DateTime?               @default(now()) @db.Timestamp(6)
+  cliente_user_id       String?
+  
+  Contrato              Contrato[]
+  CostoReal             CostoReal[]
+  Hito                  Hito[]
+  Trabajo               Trabajo[]
+  Valorizacion          Valorizacion[]
+  Cotizacion            Cotizacion[]
+  User                  User?                   @relation("ClienteProject", fields: [cliente_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([cliente_user_id])
+  @@map("Project")
 }
 
 model Contrato {
-  id         String    @id @default(dbgenerated("(gen_random_uuid())::text"))
-  project_id String?
-  nombre     String
-  monto      Decimal   @db.Decimal(12, 2)
-  fecha      DateTime  @db.Date
-  estado     String?   @default("ACTIVO")
-  tipo       String?   @default("CONTRATO")
-  created_at DateTime? @default(now()) @db.Timestamp(6)
-  updated_at DateTime? @default(now()) @db.Timestamp(6)
-  Project    Project?  @relation(fields: [project_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  id                String    @id @default(dbgenerated("(gen_random_uuid())::text"))
+  project_id        String?
+  nombre            String
+  monto             Decimal   @db.Decimal(12, 2)
+  fecha             DateTime  @db.Date
+  estado            String?   @default("ACTIVO")
+  tipo              String?   @default("CONTRATO")
+  created_at        DateTime? @default(now()) @db.Timestamp(6)
+  updated_at        DateTime? @default(now()) @db.Timestamp(6)
+  orden_estrategico Int?      @default(999)
+  
+  Project           Project?  @relation(fields: [project_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Valorizacion      Valorizacion[]
+
+  @@map("Contrato")
 }
 
 model CostoReal {
-  id             String    @id @default(dbgenerated("(gen_random_uuid())::text"))
-  projectId      String
-  descripcion    String
-  fecha          DateTime  @default(dbgenerated("CURRENT_DATE")) @db.Date
-  fierro         Decimal   @default(0) @db.Decimal(12, 2)
-  pintura        Decimal   @default(0) @db.Decimal(12, 2)
-  galvanizado    Decimal   @default(0) @db.Decimal(12, 2)
-  manoObra       Decimal   @default(0) @db.Decimal(12, 2)
-  transporte     Decimal   @default(0) @db.Decimal(12, 2)
-  instalacion    Decimal   @default(0) @db.Decimal(12, 2)
-  desperdicio    Decimal   @default(0) @db.Decimal(12, 2)
-  retrabajos     Decimal   @default(0) @db.Decimal(12, 2)
-  createdAt      DateTime? @default(now()) @db.Timestamp(6)
-  contratoNombre String    @default("")
-  Project        Project   @relation(fields: [projectId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  id                String    @id @default(dbgenerated("(gen_random_uuid())::text"))
+  projectId         String
+  descripcion       String
+  fecha             DateTime  @default(dbgenerated("CURRENT_DATE")) @db.Date
+  fierro            Decimal   @default(0) @db.Decimal(12, 2)
+  pintura           Decimal   @default(0) @db.Decimal(12, 2)
+  galvanizado       Decimal   @default(0) @db.Decimal(12, 2)
+  manoObra          Decimal   @default(0) @db.Decimal(12, 2)
+  transporte        Decimal   @default(0) @db.Decimal(12, 2)
+  instalacion       Decimal   @default(0) @db.Decimal(12, 2)
+  desperdicio       Decimal   @default(0) @db.Decimal(12, 2)
+  retrabajos        Decimal   @default(0) @db.Decimal(12, 2)
+  createdAt         DateTime? @default(now()) @db.Timestamp(6)
+  contratoNombre    String    @default("")
+  discos            Decimal   @default(0) @db.Decimal(12, 2)
+  electrodos        Decimal   @default(0) @db.Decimal(12, 2)
+  oxicorte          Decimal   @default(0) @db.Decimal(12, 2)
+  otrosConsumibles  Decimal   @default(0) @db.Decimal(12, 2)
+  
+  Project           Project   @relation(fields: [projectId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("CostoReal")
 }
 
 model Hito {
@@ -139,8 +142,61 @@ model Hito {
   acento      String
   orden       Int?      @default(0)
   created_at  DateTime? @default(now()) @db.Timestamp(6)
+  porcentaje  Int?      @default(0)
+  tipo        String?   @default("principal")
+  
   Project     Project?  @relation(fields: [project_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("Hito")
 }
+
+model Trabajo {
+  id         String    @id @default(dbgenerated("(gen_random_uuid())::text"))
+  project_id String?
+  name       String
+  orden      Int?      @default(0)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  
+  Project    Project?  @relation(fields: [project_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("Trabajo")
+}
+
+model Valorizacion {
+  id                     String      @id @default(dbgenerated("(gen_random_uuid())::text"))
+  projectId              String?
+  period                 String
+  costoDirecto           Decimal     @db.Decimal(12, 2)
+  igv                    Decimal     @db.Decimal(12, 2)
+  totalFactura           Decimal     @db.Decimal(12, 2)
+  garantia               Decimal     @db.Decimal(12, 2)
+  netoCobrar             Decimal     @db.Decimal(12, 2)
+  avancePct              Decimal     @db.Decimal(5, 2)
+  status                 String?     @default("PENDIENTE")
+  fechaEmision           DateTime    @db.Timestamp(6)
+  fechaCobro             DateTime?   @db.Timestamp(6)
+  createdAt              DateTime?   @default(now()) @db.Timestamp(6)
+  notas                  String?
+  factura_electronica_id String?
+  factura_serie          String?
+  factura_numero         String?
+  factura_pdf_url        String?
+  factura_xml_url        String?
+  factura_emitida_sunat  Boolean?    @default(false)
+  factura_fecha_emision  DateTime?   @db.Date
+  factura_cdr            String?
+  factura_mensaje        String?
+  contrato_id            String?
+  
+  Project                Project?    @relation(fields: [projectId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Contrato               Contrato?   @relation(fields: [contrato_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("Valorizacion")
+}
+
+// ============================================================
+// ERP — Inventario
+// ============================================================
 
 model Inventario {
   id            String          @id @default(dbgenerated("(gen_random_uuid())::text"))
@@ -153,8 +209,11 @@ model Inventario {
   contenido     String?
   created_at    DateTime?       @default(now()) @db.Timestamp(6)
   updated_at    DateTime?       @default(now()) @db.Timestamp(6)
+  
   Mantenimiento Mantenimiento[]
   Prestamo      Prestamo[]
+
+  @@map("Inventario")
 }
 
 model Mantenimiento {
@@ -167,7 +226,10 @@ model Mantenimiento {
   fechaproximo DateTime?   @db.Date
   costo        Decimal?    @db.Decimal(10, 2)
   created_at   DateTime?   @default(now()) @db.Timestamp(6)
+  
   Inventario   Inventario? @relation(fields: [item_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("Mantenimiento")
 }
 
 model Prestamo {
@@ -181,49 +243,37 @@ model Prestamo {
   estado              String?     @default("ACTIVO")
   observaciones       String?
   created_at          DateTime?   @default(now()) @db.Timestamp(6)
+  
   Inventario          Inventario? @relation(fields: [item_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("Prestamo")
 }
 
-model Trabajo {
-  id         String    @id @default(dbgenerated("(gen_random_uuid())::text"))
-  project_id String?
-  name       String
-  orden      Int?      @default(0)
-  created_at DateTime? @default(now()) @db.Timestamp(6)
-  Project    Project?  @relation(fields: [project_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-}
-
-model Valorizacion {
-  id           String    @id @default(dbgenerated("(gen_random_uuid())::text"))
-  projectId    String?
-  period       String
-  costoDirecto Decimal   @db.Decimal(12, 2)
-  igv          Decimal   @db.Decimal(12, 2)
-  totalFactura Decimal   @db.Decimal(12, 2)
-  garantia     Decimal   @db.Decimal(12, 2)
-  netoCobrar   Decimal   @db.Decimal(12, 2)
-  avancePct    Decimal   @db.Decimal(5, 2)
-  status       String?   @default("PENDIENTE")
-  fechaEmision DateTime  @db.Timestamp(6)
-  fechaCobro   DateTime? @db.Timestamp(6)
-  createdAt    DateTime? @default(now()) @db.Timestamp(6)
-  notas        String?
-  Project      Project?  @relation(fields: [projectId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-}
+// ============================================================
+// ERP — Personal
+// ============================================================
 
 model Worker {
-  id        String    @id @default(dbgenerated("(gen_random_uuid())::text"))
-  name      String
-  role      String
-  location  String
-  active    Boolean?  @default(true)
-  createdAt DateTime? @default(now()) @db.Timestamp(6)
-  updatedAt DateTime? @default(now()) @db.Timestamp(6)
+  id                 String    @id @default(dbgenerated("(gen_random_uuid())::text"))
+  name               String
+  role               String
+  location           String
+  active             Boolean?  @default(true)
+  createdAt          DateTime? @default(now()) @db.Timestamp(6)
+  updatedAt          DateTime? @default(now()) @db.Timestamp(6)
+  tarifa_diaria      Decimal?  @default(0) @db.Decimal(10, 2)
+  bono_almuerzo      Decimal?  @default(0) @db.Decimal(10, 2)
+  tipo_pago          String?   @default("DIARIO")
+  tarifa_mensual     Decimal?  @default(0) @db.Decimal(10, 2)
+  tarifa_hora_extra  Decimal?  @default(0) @db.Decimal(10, 2)
+
+  @@map("Worker")
 }
 
 // ============================================================
 // CRM — Módulo Contactos (Jhon · APF1)
 // ============================================================
+
 model Contacto {
   id           String    @id @default(dbgenerated("(gen_random_uuid())::text"))
   nombre       String    @db.VarChar(100)
@@ -234,16 +284,95 @@ model Contacto {
   telefono     String?   @db.VarChar(20)
   telefono_alt String?   @db.VarChar(20)
   direccion    String?   @db.VarChar(200)
-  /// Estado del contacto: ACTIVO | INACTIVO | PROSPECTO
   estado       String    @default("ACTIVO") @db.VarChar(20)
   notas        String?
   creado_por   String?
   created_at   DateTime? @default(now()) @db.Timestamp(6)
   updated_at   DateTime? @default(now()) @db.Timestamp(6)
+  
+  User         User?     @relation(fields: [creado_por], references: [id], onDelete: SetNull, onUpdate: NoAction)
 
   @@index([empresa])
   @@index([email])
   @@index([estado])
   @@index([creado_por])
   @@map("Contacto")
+}
+
+// ============================================================
+// CRM — Módulo Cotizaciones (Ribau · APF1)
+// ============================================================
+
+model Cotizacion {
+  id                 String                @id @default(dbgenerated("(gen_random_uuid())::text"))
+  numero             String                @unique
+  project_id         String?
+  cliente            String
+  cliente_ruc        String?
+  cliente_contacto   String?
+  cliente_telefono   String?
+  cliente_email      String?
+  cliente_direccion  String?
+  fecha_emision      DateTime              @default(now()) @db.Date
+  fecha_validez      DateTime?             @db.Date
+  estado             String                @default("BORRADOR")
+  subtotal           Decimal               @default(0) @db.Decimal(12, 2)
+  igv                Decimal               @default(0) @db.Decimal(12, 2)
+  total              Decimal               @default(0) @db.Decimal(12, 2)
+  moneda             String                @default("PEN")
+  tipo_cambio        Decimal?              @db.Decimal(8, 3)
+  condiciones        String?
+  notas              String?
+  creado_por         String?
+  fecha_envio        DateTime?             @db.Timestamp(6)
+  fecha_aprobacion   DateTime?             @db.Timestamp(6)
+  fecha_conversion   DateTime?             @db.Timestamp(6)
+  created_at         DateTime?             @default(now()) @db.Timestamp(6)
+  updated_at         DateTime?             @default(now()) @db.Timestamp(6)
+
+  Project            Project?              @relation(fields: [project_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  User               User?                 @relation(fields: [creado_por], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  CotizacionItem     CotizacionItem[]
+  CotizacionSeguimiento CotizacionSeguimiento[]
+
+  @@index([project_id])
+  @@index([estado])
+  @@index([numero])
+  @@index([cliente])
+  @@map("Cotizacion")
+}
+
+model CotizacionItem {
+  id              String     @id @default(dbgenerated("(gen_random_uuid())::text"))
+  cotizacion_id   String
+  descripcion     String
+  cantidad        Decimal    @db.Decimal(10, 2)
+  unidad          String
+  precio_unitario Decimal    @db.Decimal(12, 2)
+  descuento       Decimal?   @default(0) @db.Decimal(12, 2)
+  total           Decimal    @db.Decimal(12, 2)
+  orden           Int?       @default(0)
+  created_at      DateTime?  @default(now()) @db.Timestamp(6)
+
+  Cotizacion      Cotizacion @relation(fields: [cotizacion_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([cotizacion_id])
+  @@map("CotizacionItem")
+}
+
+model CotizacionSeguimiento {
+  id               String     @id @default(dbgenerated("(gen_random_uuid())::text"))
+  cotizacion_id    String
+  fecha            DateTime?  @default(now()) @db.Timestamp(6)
+  tipo             String
+  descripcion      String
+  realizado_por    String?
+  proximo_contacto DateTime?  @db.Date
+  created_at       DateTime?  @default(now()) @db.Timestamp(6)
+
+  Cotizacion       Cotizacion @relation(fields: [cotizacion_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  User             User?      @relation(fields: [realizado_por], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([cotizacion_id])
+  @@map("CotizacionSeguimiento")
 }
