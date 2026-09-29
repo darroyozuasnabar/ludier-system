@@ -7,7 +7,7 @@ import { prisma } from "@/lib/prisma";
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
@@ -19,10 +19,10 @@ export async function POST(
     const body = await req.json().catch(() => ({}));
 
     // 1. Verificar si la cotización existe
-    const cotizacion = await prisma.Cotizacion.findUnique({
+    const cotizacion = await prisma.cotizacion.findUnique({
       where: { id },
       include: {
-        CotizacionItem: true, // ← CORREGIDO
+        CotizacionItem: true,
         Project: true,
       },
     });
@@ -30,7 +30,7 @@ export async function POST(
     if (!cotizacion) {
       return NextResponse.json(
         { error: "Cotización no encontrada" },
-        { status: 404 },
+        { status: 404 }
       );
     }
 
@@ -42,7 +42,7 @@ export async function POST(
           projectId: cotizacion.project_id,
           fechaConversion: cotizacion.fecha_conversion,
         },
-        { status: 409 },
+        { status: 409 }
       );
     }
 
@@ -55,7 +55,8 @@ export async function POST(
         : new Date(Date.now() + 60 * 24 * 60 * 60 * 1000); // 60 días por defecto
 
       const projectName =
-        body.projectName || `Obra ${cotizacion.cliente} - ${cotizacion.numero}`;
+        body.projectName ||
+        `Obra ${cotizacion.cliente} - ${cotizacion.numero}`;
 
       const nuevoProyecto = await tx.project.create({
         data: {
@@ -66,8 +67,7 @@ export async function POST(
           status: "ACTIVO",
           startDate,
           expectedEndDate,
-          location:
-            body.location || cotizacion.cliente_direccion || "Lima, Perú",
+          location: body.location || cotizacion.cliente_direccion || "Lima, Perú",
           description:
             body.description ||
             `Proyecto generado automáticamente tras aprobar y convertir la cotización ${cotizacion.numero}. ` +
@@ -76,7 +76,7 @@ export async function POST(
       });
 
       // 3.2 Actualizar estado de la cotización
-      const cotizacionActualizada = await tx.Cotizacion.update({
+      const cotizacionActualizada = await tx.cotizacion.update({
         where: { id },
         data: {
           estado: "CONVERTIDA_A_OBRA",
@@ -88,7 +88,7 @@ export async function POST(
       });
 
       // 3.3 Registrar en la bitácora de seguimiento
-      await tx.CotizacionSeguimiento.create({
+      await tx.cotizacionSeguimiento.create({
         data: {
           cotizacion_id: id,
           tipo: "NOTA",
@@ -108,16 +108,13 @@ export async function POST(
         message: `Cotización ${cotizacion.numero} convertida exitosamente a Obra`,
         data: resultado,
       },
-      { status: 200 },
+      { status: 200 }
     );
   } catch (error: any) {
-    console.error(
-      "❌ Error en POST /api/crm/cotizaciones/[id]/convertir:",
-      error,
-    );
+    console.error("❌ Error en POST /api/crm/cotizaciones/[id]/convertir:", error);
     return NextResponse.json(
       { error: "Error al convertir la cotización", details: error.message },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
