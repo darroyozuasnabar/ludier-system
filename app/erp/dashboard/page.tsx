@@ -100,9 +100,9 @@ export default function DashboardPage() {
     setLoading(true);
     try {
       const { data: proyectosData } = await supabase
-        .from("Project")
-        .select("*")
-        .order("name");
+  .from("Project")
+  .select("*")
+  .order("createdAt", { ascending: false });
 
       setAllProjects(proyectosData || []);
 

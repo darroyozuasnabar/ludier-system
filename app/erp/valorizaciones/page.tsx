@@ -113,7 +113,7 @@ export default function ValorizacionesPage() {
       const { data: proyectosData } = await supabase
         .from("Project")
         .select("*")
-        .in("status", ["ACTIVO", "EN_PRODUCCION"])
+        .in("status", ["ACTIVO", "EN_PRODUCCION", "EN_INSTALACION", "EN_PROCESO", "PAUSADO", "COMPLETADO"])
         .order("name");
       setProyectos(proyectosData || []);
 
