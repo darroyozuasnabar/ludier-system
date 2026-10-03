@@ -563,7 +563,7 @@ export default function Contacto() {
       </section>
 
       {/* ============================================================
-          MAPA - CORREGIDO
+          MAPA - OpenStreetMap (sin API key, nunca se bloquea)
           ============================================================ */}
       <section className="relative overflow-hidden bg-[#F7F7F4] pb-12 lg:pb-16">
         <div
@@ -578,13 +578,11 @@ export default function Contacto() {
         >
           <div className="relative rounded-sm overflow-hidden border border-[#E3E1D8] shadow-md bg-[#14161A] aspect-[21/9] min-h-[300px]">
             <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15585.59051569327!2d-76.9731!3d-12.1486!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9105b9e2d1a1b1b1%3A0x1b1b1b1b1b1b1b1b!2sSan%20Juan%20de%20Miraflores!5e0!3m2!1ses!2spe!4v1713456789012!5m2!1ses!2spe"
+              src="https://www.openstreetmap.org/export/embed.html?bbox=-76.9900%2C-12.1600%2C-76.9550%2C-12.1350&layer=mapnik&marker=-12.1486%2C-76.9731"
               width="100%"
               height="100%"
               style={{ border: 0 }}
-              allowFullScreen
               loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
               className="w-full h-full"
               title="Ubicación de LUDIER en San Juan de Miraflores, Lima"
             />
@@ -596,13 +594,13 @@ export default function Contacto() {
               </span>
             </div>
             <a
-              href="https://www.google.com/maps/search/?api=1&query=San+Juan+de+Miraflores,+Lima,+Perú"
+              href="https://www.openstreetmap.org/?mlat=-12.1486&mlon=-76.9731#map=15/-12.1486/-76.9731"
               target="_blank"
               rel="noopener noreferrer"
               className="absolute top-4 right-4 bg-black/50 hover:bg-black/70 backdrop-blur-sm px-3 py-1 rounded-sm border border-white/10 transition-colors"
             >
               <span className="text-white text-[10px] font-medium" style={{ fontFamily: FONT_MONO }}>
-                📍 Ver en Google Maps
+                📍 Ver en el mapa
               </span>
             </a>
           </div>
