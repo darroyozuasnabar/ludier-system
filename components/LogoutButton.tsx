@@ -1,56 +1,55 @@
-// hooks/useLogout.ts
+// components/LogoutButton.tsx
 "use client";
 
-import { signOut } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useRef } from "react";
-import Swal from "sweetalert2";
+import { LogOut } from "lucide-react";
+import { useLogout } from "@/hooks/useLogout";
 
-export const useLogout = () => {
-  const router = useRouter();
-  const isLoggingOut = useRef(false);
+interface LogoutButtonProps {
+  className?: string;
+  variant?: "default" | "icon" | "text";
+  label?: string;
+}
 
-  const handleLogout = async () => {
-    // Guard: evita doble ejecución si el usuario hace doble click
-    if (isLoggingOut.current) return;
-    isLoggingOut.current = true;
+export default function LogoutButton({
+  className = "",
+  variant = "default",
+  label = "Cerrar sesión",
+}: LogoutButtonProps) {
+  const { handleLogout } = useLogout();
 
-    try {
-      const result = await Swal.fire({
-        title: "¿Cerrar sesión?",
-        text: "¿Estás seguro de que deseas salir de la plataforma?",
-        icon: "question",
-        showCancelButton: true,
-        confirmButtonColor: "#E07B20",
-        cancelButtonColor: "#6B7280",
-        confirmButtonText: "Sí, cerrar sesión",
-        cancelButtonText: "Cancelar",
-        reverseButtons: true,
-        background: "#0a0a0a",
-        color: "#fff",
-        backdrop: "rgba(0,0,0,0.8)",
-        allowOutsideClick: false,
-        allowEscapeKey: true,
-        customClass: {
-          popup: "rounded-xl border border-[#1e1e1e]",
-          confirmButton: "px-6 py-2.5 text-sm font-semibold",
-          cancelButton: "px-6 py-2.5 text-sm font-semibold",
-        },
-      });
+  if (variant === "icon") {
+    return (
+      <button
+        type="button"
+        onClick={handleLogout}
+        className={`p-2 rounded-lg hover:bg-[#1c1c1c] transition-colors ${className}`}
+        aria-label="Cerrar sesión"
+      >
+        <LogOut className="h-5 w-5 text-[#8A8F96]" />
+      </button>
+    );
+  }
 
-      // Si el usuario canceló, no hacemos nada
-      if (!result.isConfirmed) return;
+  if (variant === "text") {
+    return (
+      <button
+        type="button"
+        onClick={handleLogout}
+        className={`text-sm text-[#8A8F96] hover:text-white transition-colors ${className}`}
+      >
+        {label}
+      </button>
+    );
+  }
 
-      // Limpiamos la sesión SIN redirigir automáticamente
-      await signOut({ redirect: false });
-
-      // Redirigimos manualmente al login
-      router.push("/login");
-      router.refresh();
-    } finally {
-      isLoggingOut.current = false;
-    }
-  };
-
-  return { handleLogout };
-};
+  return (
+    <button
+      type="button"
+      onClick={handleLogout}
+      className={`flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[#E07B20] rounded-lg hover:bg-[#cf7219] transition-colors ${className}`}
+    >
+      <LogOut className="h-4 w-4" />
+      {label}
+    </button>
+  );
+}

@@ -11,7 +11,6 @@ export const useLogout = () => {
   const isLoggingOut = useRef(false);
 
   const handleLogout = async () => {
-    // Guard: evita doble ejecución si el usuario hace doble click
     if (isLoggingOut.current) return;
     isLoggingOut.current = true;
 
@@ -38,13 +37,9 @@ export const useLogout = () => {
         },
       });
 
-      // Si el usuario canceló, no hacemos nada
       if (!result.isConfirmed) return;
 
-      // Limpiamos la sesión SIN redirigir automáticamente
       await signOut({ redirect: false });
-
-      // Redirigimos manualmente al login
       router.push("/login");
       router.refresh();
     } finally {
