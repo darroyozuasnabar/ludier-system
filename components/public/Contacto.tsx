@@ -95,7 +95,7 @@ function CornerMarks({ active = false }: { active?: boolean }) {
 }
 
 // ============================================================
-// HOOK useScrollReveal (animación única y suave)
+// HOOK useScrollReveal
 // ============================================================
 function useScrollReveal<T extends HTMLElement>(threshold = 0.12) {
   const ref = useRef<T | null>(null);
@@ -122,7 +122,7 @@ function useScrollReveal<T extends HTMLElement>(threshold = 0.12) {
 }
 
 // ============================================================
-// SUBCOMPONENTE: ContactInfoCard (maneja su propia animación)
+// SUBCOMPONENTE: ContactInfoCard
 // ============================================================
 const ContactInfoCard = ({
   info,
@@ -189,7 +189,7 @@ export default function Contacto() {
   const { ref: mapRef, inView: mapInView } = useScrollReveal<HTMLDivElement>(0.1);
   const { ref: ctaRef, inView: ctaInView } = useScrollReveal<HTMLDivElement>(0.1);
 
-  // 🔥 FORZAR NAVBAR OSCURO DESDE EL INICIO
+  // 🔥 FORZAR NAVBAR OSCURO
   useEffect(() => {
     const navbar = document.querySelector('header');
     if (navbar) {
@@ -205,7 +205,6 @@ export default function Contacto() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // 🔥 Validación frontend rápida
     if (!formState.nombre || !formState.email || !formState.asunto || !formState.mensaje) {
       Swal.fire({
         icon: 'warning',
@@ -216,13 +215,12 @@ export default function Contacto() {
       return;
     }
 
-    // 🔥 Validación de email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formState.email)) {
       Swal.fire({
         icon: 'warning',
         title: 'Correo inválido',
-        text: 'Por favor, ingresa un correo electrónico válido (ej. usuario@dominio.com).',
+        text: 'Por favor, ingresa un correo electrónico válido.',
         confirmButtonColor: '#FF5A1F',
       });
       return;
@@ -233,16 +231,13 @@ export default function Contacto() {
     try {
       const response = await fetch('/api/contacto', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formState),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        // 🔥 Manejar errores de validación de Zod
         if (response.status === 400 && data.errors) {
           const errorMessages = data.errors.map((err: any) => err.message).join('\n');
           throw new Error(errorMessages);
@@ -253,7 +248,6 @@ export default function Contacto() {
         }
       }
 
-      // ✅ Éxito
       Swal.fire({
         icon: 'success',
         title: '¡Mensaje enviado!',
@@ -268,7 +262,6 @@ export default function Contacto() {
       setTimeout(() => setEnviado(false), 5000);
 
     } catch (error: any) {
-      // 🔥 Mostrar error con SweetAlert
       Swal.fire({
         icon: 'error',
         title: 'Error al enviar',
@@ -290,7 +283,7 @@ export default function Contacto() {
   return (
     <div className="min-h-screen bg-[#F7F7F4]" style={{ fontFamily: FONT_BODY }}>
       {/* ============================================================
-          HERO - IDÉNTICO A PROYECTOS
+          HERO
           ============================================================ */}
       <section className="relative overflow-hidden bg-[#14161A] py-28 lg:py-36">
         <div className="pointer-events-none absolute inset-0 opacity-[0.03] bg-[url('/img/grid-pattern.svg')] bg-repeat" />
@@ -379,7 +372,7 @@ export default function Contacto() {
       </section>
 
       {/* ============================================================
-          ESTADÍSTICAS - IDÉNTICO A PROYECTOS
+          ESTADÍSTICAS
           ============================================================ */}
       <section className="py-12 bg-white border-b border-[#E3E1D8]">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -406,7 +399,7 @@ export default function Contacto() {
       </section>
 
       {/* ============================================================
-          CONTACTO - GRID DE INFORMACIÓN + FORMULARIO
+          CONTACTO - INFO + FORMULARIO
           ============================================================ */}
       <section className="py-20 lg:py-28">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -420,13 +413,12 @@ export default function Contacto() {
                 "opacity 900ms cubic-bezier(0.16,1,0.3,1), transform 900ms cubic-bezier(0.16,1,0.3,1)",
             }}
           >
-            {/* ===== COLUMNA IZQUIERDA: TARJETAS DE INFORMACIÓN ===== */}
+            {/* COLUMNA IZQUIERDA */}
             <div className="space-y-6">
               {contactInfoData.map((info, index) => (
                 <ContactInfoCard key={info.id} info={info} index={index} />
               ))}
 
-              {/* Sello de calidad LUDIER */}
               <div className="group relative bg-[#14161A] border border-[#3A3F45] p-6 rounded-sm overflow-hidden transition-all hover:border-[#FF5A1F]/40 hover:shadow-xl">
                 <CornerMarks active />
                 <div className="text-center">
@@ -447,7 +439,7 @@ export default function Contacto() {
               </div>
             </div>
 
-            {/* ===== COLUMNA DERECHA: FORMULARIO ===== */}
+            {/* COLUMNA DERECHA: FORMULARIO */}
             <div className="bg-white border border-[#E3E1D8] rounded-sm p-6 md:p-8 shadow-sm">
               <h2
                 className="text-2xl font-semibold text-[#1E2126] mb-2"
@@ -479,7 +471,7 @@ export default function Contacto() {
                         value={formState.nombre}
                         onChange={handleChange}
                         required
-                        className="w-full px-4 py-2 border border-[#E3E1D8] rounded-sm focus:border-[#FF5A1F] focus:outline-none transition-colors bg-[#F7F7F4]"
+                        className="w-full px-4 py-2 border border-[#E3E1D8] rounded-sm focus:border-[#FF5A1F] focus:outline-none transition-colors bg-white text-[#1E2126] placeholder:text-[#8B8F86]"
                         placeholder="Ej. Juan Pérez"
                       />
                     </div>
@@ -494,7 +486,7 @@ export default function Contacto() {
                         value={formState.email}
                         onChange={handleChange}
                         required
-                        className="w-full px-4 py-2 border border-[#E3E1D8] rounded-sm focus:border-[#FF5A1F] focus:outline-none transition-colors bg-[#F7F7F4]"
+                        className="w-full px-4 py-2 border border-[#E3E1D8] rounded-sm focus:border-[#FF5A1F] focus:outline-none transition-colors bg-white text-[#1E2126] placeholder:text-[#8B8F86]"
                         placeholder="ejemplo@correo.com"
                       />
                     </div>
@@ -509,7 +501,7 @@ export default function Contacto() {
                       name="telefono"
                       value={formState.telefono}
                       onChange={handleChange}
-                      className="w-full px-4 py-2 border border-[#E3E1D8] rounded-sm focus:border-[#FF5A1F] focus:outline-none transition-colors bg-[#F7F7F4]"
+                      className="w-full px-4 py-2 border border-[#E3E1D8] rounded-sm focus:border-[#FF5A1F] focus:outline-none transition-colors bg-white text-[#1E2126] placeholder:text-[#8B8F86]"
                       placeholder="+51 999 999 999"
                     />
                   </div>
@@ -524,7 +516,7 @@ export default function Contacto() {
                       value={formState.asunto}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-2 border border-[#E3E1D8] rounded-sm focus:border-[#FF5A1F] focus:outline-none transition-colors bg-[#F7F7F4]"
+                      className="w-full px-4 py-2 border border-[#E3E1D8] rounded-sm focus:border-[#FF5A1F] focus:outline-none transition-colors bg-white text-[#1E2126] placeholder:text-[#8B8F86]"
                       placeholder="Ej. Cotización de barandas"
                     />
                   </div>
@@ -539,7 +531,7 @@ export default function Contacto() {
                       value={formState.mensaje}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-2 border border-[#E3E1D8] rounded-sm focus:border-[#FF5A1F] focus:outline-none transition-colors bg-[#F7F7F4] resize-none"
+                      className="w-full px-4 py-2 border border-[#E3E1D8] rounded-sm focus:border-[#FF5A1F] focus:outline-none transition-colors bg-white text-[#1E2126] placeholder:text-[#8B8F86] resize-none"
                       placeholder="Describe tu proyecto o consulta..."
                     />
                   </div>
@@ -571,7 +563,7 @@ export default function Contacto() {
       </section>
 
       {/* ============================================================
-          MAPA - SAN JUAN DE MIRAFLORES, LIMA
+          MAPA - CORREGIDO
           ============================================================ */}
       <section className="relative overflow-hidden bg-[#F7F7F4] pb-12 lg:pb-16">
         <div
@@ -586,7 +578,7 @@ export default function Contacto() {
         >
           <div className="relative rounded-sm overflow-hidden border border-[#E3E1D8] shadow-md bg-[#14161A] aspect-[21/9] min-h-[300px]">
             <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3900.0!2d-76.9731!3d-12.1486!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9105b9f6c9c2e4e3%3A0x6b7c8a9f2e4d8b1c!2sSan%20Juan%20de%20Miraflores%2C%20Lima%2C%20Per%C3%BA!5e0!3m2!1ses!2spe!4v1713456789012"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15585.59051569327!2d-76.9731!3d-12.1486!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9105b9e2d1a1b1b1%3A0x1b1b1b1b1b1b1b1b!2sSan%20Juan%20de%20Miraflores!5e0!3m2!1ses!2spe!4v1713456789012!5m2!1ses!2spe"
               width="100%"
               height="100%"
               style={{ border: 0 }}
@@ -603,17 +595,22 @@ export default function Contacto() {
                 San Juan de Miraflores, Lima
               </span>
             </div>
-            <div className="absolute top-4 right-4 bg-black/50 backdrop-blur-sm px-3 py-1 rounded-sm border border-white/10">
+            <a
+              href="https://www.google.com/maps/search/?api=1&query=San+Juan+de+Miraflores,+Lima,+Perú"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="absolute top-4 right-4 bg-black/50 hover:bg-black/70 backdrop-blur-sm px-3 py-1 rounded-sm border border-white/10 transition-colors"
+            >
               <span className="text-white text-[10px] font-medium" style={{ fontFamily: FONT_MONO }}>
                 📍 Ver en Google Maps
               </span>
-            </div>
+            </a>
           </div>
         </div>
       </section>
 
       {/* ============================================================
-          CTA FINAL - IDÉNTICO A PROYECTOS
+          CTA FINAL
           ============================================================ */}
       <section className="bg-white py-16 lg:py-20 border-t border-[#E3E1D8]">
         <div
