@@ -1,9 +1,10 @@
 "use client";
 
-import { signIn, signOut, useSession } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, useRef, Suspense } from "react";
 import Image from "next/image";
+import Link from "next/link";
 
 type TipoAcceso = "equipo" | "cliente";
 
@@ -592,6 +593,71 @@ function LoginPageInner() {
         }
         @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
 
+        /* ── BACK TO LANDING ── */
+        .l-back {
+          position: absolute;
+          top: 28px;
+          left: 28px;
+          z-index: 20;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 8px 14px;
+          background: rgba(20, 20, 20, 0.7);
+          backdrop-filter: blur(10px);
+          border: 1px solid #1e1e1e;
+          border-radius: 10px;
+          color: #8A8F96;
+          font-family: 'Barlow', sans-serif;
+          font-size: 12px;
+          font-weight: 500;
+          letter-spacing: 0.5px;
+          text-decoration: none;
+          transition: all 0.2s ease;
+          opacity: 0;
+          transform: translateY(-8px);
+          animation: l-back-in 0.6s ease 0.2s forwards;
+        }
+        .l-back:hover {
+          background: rgba(224, 123, 32, 0.08);
+          border-color: #E07B20;
+          color: #E07B20;
+        }
+        .l-back:active {
+          transform: scale(0.97);
+        }
+        .l-back-arrow {
+          font-size: 14px;
+          line-height: 1;
+          transition: transform 0.2s ease;
+        }
+        .l-back:hover .l-back-arrow {
+          transform: translateX(-3px);
+        }
+        .l-back-text {
+          display: inline;
+        }
+        @keyframes l-back-in {
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        @media (max-width: 640px) {
+          .l-back {
+            top: 18px;
+            left: 18px;
+            padding: 6px 10px;
+            font-size: 11px;
+          }
+          .l-back-text {
+            display: none;
+          }
+          .l-back-arrow {
+            font-size: 16px;
+          }
+        }
+
         @media (prefers-reduced-motion: reduce) {
           .l-logo-wrap, .l-plate, .l-tagline, .l-desc, .l-roles, .cl-wrap, .l-toggle, .l-form-header, .l-form-body {
             transition: none !important;
@@ -601,6 +667,12 @@ function LoginPageInner() {
 
       <div className="l-root">
         <div className="l-topbar" />
+
+        {/* Botón volver a la landing */}
+        <Link href="/" className="l-back" aria-label="Volver al inicio">
+          <span className="l-back-arrow">←</span>
+          <span className="l-back-text">Volver al inicio</span>
+        </Link>
 
         <div className="l-main">
 
