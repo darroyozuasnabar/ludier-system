@@ -160,10 +160,10 @@ function setSecurityHeaders(response: NextResponse): NextResponse {
     "default-src 'self'",
     "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://*.supabase.co",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "img-src 'self' data: https://*.supabase.co",
+    "img-src 'self' data: https://*.supabase.co https://*.tile.openstreetmap.org https://www.openstreetmap.org",
     "font-src 'self' https://fonts.gstatic.com",
     "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.resend.com",
-    "frame-src 'self'",
+    "frame-src 'self' https://www.openstreetmap.org",
     "base-uri 'self'",
     "form-action 'self'",
   ].join('; ');
