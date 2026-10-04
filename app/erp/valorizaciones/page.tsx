@@ -145,7 +145,6 @@ export default function ValorizacionesPage() {
     setValorizaciones(valsRes.data || []);
     setContratosDelProyecto(contratosRes.data || []);
 
-    // Config derivada de los contratos del proyecto
     const contratos = contratosRes.data || [];
     const montoTotalContratos = contratos.reduce(
       (s, c) => s + Number(c.monto || 0),
@@ -453,7 +452,7 @@ export default function ValorizacionesPage() {
   };
 
   // ══════════════════════════════════════════════════════════════════════════
-  // KPIs — CONTRATOS DEL PROYECTO
+  // CÁLCULOS — CONTRATOS
   // ══════════════════════════════════════════════════════════════════════════
 
   const contratosCobrados = contratosDelProyecto.filter((c) => c.estado === "COBRADO");
@@ -471,10 +470,8 @@ export default function ValorizacionesPage() {
     (s, c) => s + Number(c.monto || 0),
     0,
   );
-  const avanceContratosPct =
-    totalContratado > 0 ? (totalCobradoContratos / totalContratado) * 100 : 0;
 
-  // ── Contrato principal (el de mayor monto) ──
+  // Contrato principal (el de mayor monto)
   const contratoPrincipal =
     contratosDelProyecto.length > 0
       ? contratosDelProyecto.reduce(
@@ -497,7 +494,33 @@ export default function ValorizacionesPage() {
       : 0;
 
   // ══════════════════════════════════════════════════════════════════════════
-  // KPIs — VALORIZACIONES DEL PROYECTO
+  // CÁLCULOS — COBRADO REAL DEL PROYECTO (unificado)
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // cobradoRealProyecto =
+  //   contratos cerrados (estado='COBRADO')
+  //   + valorizaciones cobradas de contratos que NO están cerrados
+  //   (evita doble conteo si un contrato se cierra y ya tenía valorizaciones)
+
+  const contratosCerradosIds = new Set(contratosCobrados.map((c) => c.id));
+
+  const valorizacionesParcialesActivos = valorizaciones.filter(
+    (v) => v.status === "COBRADA" && !contratosCerradosIds.has(v.contrato_id),
+  );
+
+  const totalValorizacionesParciales = valorizacionesParcialesActivos.reduce(
+    (s, v) => s + Number(v.totalFactura || 0),
+    0,
+  );
+
+  const totalCobradoRealProyecto =
+    totalCobradoContratos + totalValorizacionesParciales;
+
+  const avanceRealProyectoPct =
+    totalContratado > 0 ? (totalCobradoRealProyecto / totalContratado) * 100 : 0;
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // CÁLCULOS — VALORIZACIONES
   // ══════════════════════════════════════════════════════════════════════════
 
   const totalValorizadoBruto = valorizaciones.reduce(
@@ -513,8 +536,11 @@ export default function ValorizacionesPage() {
     .filter((v) => v.status !== "COBRADA")
     .reduce((s, v) => s + Number(v.netoCobrar), 0);
 
-  const ticketPromedio =
+  const ticketPromedioValorizaciones =
     valorizaciones.length > 0 ? totalValorizadoBruto / valorizaciones.length : 0;
+
+  const ticketPromedioContratos =
+    contratosDelProyecto.length > 0 ? totalContratado / contratosDelProyecto.length : 0;
 
   // ── Selector de contrato en formulario ──────────────────────────────────────
 
@@ -939,7 +965,7 @@ export default function ValorizacionesPage() {
         )}
 
         {/* ═══════════════════════════════════════════════════════════════════
-            KPIs — CONTRATO PRINCIPAL
+            BLOQUE 1 · CONTRATO PRINCIPAL
             ═══════════════════════════════════════════════════════════════════ */}
         {selectedProject && contratoPrincipal && (
           <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl border border-gray-800 p-5 shadow-sm">
@@ -986,54 +1012,91 @@ export default function ValorizacionesPage() {
         )}
 
         {/* ═══════════════════════════════════════════════════════════════════
-            KPIs — CONTRATOS DEL PROYECTO
+            BLOQUE 2 · COBRADO DEL PROYECTO (unificado)
             ═══════════════════════════════════════════════════════════════════ */}
         {selectedProject && contratosDelProyecto.length > 0 && (
           <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
             <div className="flex items-center justify-between mb-3">
               <div>
                 <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">
-                  Contratos del proyecto
+                  Cobrado del proyecto
                 </p>
                 <p className="text-sm text-gray-700 mt-1">
-                  <span className="font-semibold text-gray-900">{contratosDelProyecto.length} contratos</span>
-                  {" "}· total contratado {formatCOP(totalContratado)}
+                  <span className="font-semibold text-gray-900">{selectedProject.name}</span>
+                  {" "}· de {formatCOP(totalContratado)} contratado
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-2xl font-bold text-gray-900">{avanceContratosPct.toFixed(2)}%</p>
-                <p className="text-xs text-gray-400">avance cobrado</p>
+                <p className="text-3xl font-bold text-gray-900">{avanceRealProyectoPct.toFixed(2)}%</p>
+                <p className="text-xs text-gray-400">avance cobrado real</p>
               </div>
             </div>
 
-            <div className="h-2 bg-gray-100 rounded-full overflow-hidden mb-4">
+            <div className="h-3 bg-gray-100 rounded-full overflow-hidden mb-4">
               <div
-                className="h-full bg-gray-900 rounded-full transition-all duration-500"
-                style={{ width: `${Math.min(avanceContratosPct, 100)}%` }}
+                className="h-full bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full transition-all duration-500"
+                style={{ width: `${Math.min(avanceRealProyectoPct, 100)}%` }}
               />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                <p className="text-[10px] text-gray-400 uppercase tracking-wider">Contratos cerrados</p>
+                <p className="text-lg font-bold text-gray-900 mt-1">{formatCOP(totalCobradoContratos)}</p>
+                <p className="text-xs text-gray-400 mt-0.5">{contratosCobrados.length} contratos finalizados</p>
+              </div>
+              <div className="bg-emerald-50 rounded-lg p-3 border border-emerald-100">
+                <p className="text-[10px] text-emerald-700 uppercase tracking-wider">Parciales activos</p>
+                <p className="text-lg font-bold text-emerald-700 mt-1">{formatCOP(totalValorizacionesParciales)}</p>
+                <p className="text-xs text-emerald-600 mt-0.5">
+                  {valorizacionesParcialesActivos.length} valorizaciones de contratos activos
+                </p>
+              </div>
+              <div className="bg-gray-900 rounded-lg p-3 border border-gray-800">
+                <p className="text-[10px] text-emerald-400 uppercase tracking-wider">Total cobrado real</p>
+                <p className="text-lg font-bold text-white mt-1">{formatCOP(totalCobradoRealProyecto)}</p>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  de {formatCOP(totalContratado)}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ═══════════════════════════════════════════════════════════════════
+            BLOQUE 3 · CONTRATOS DEL PROYECTO
+            ═══════════════════════════════════════════════════════════════════ */}
+        {selectedProject && contratosDelProyecto.length > 0 && (
+          <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
+            <div className="mb-4">
+              <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">
+                Contratos del proyecto
+              </p>
+              <p className="text-sm text-gray-700 mt-1">
+                <span className="font-semibold text-gray-900">{contratosDelProyecto.length} contratos</span>
+                {" "}· total {formatCOP(totalContratado)}
+              </p>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
                 <p className="text-[10px] text-gray-400 uppercase tracking-wider">Contratado</p>
                 <p className="text-lg font-bold text-gray-900 mt-1">{formatCOP(totalContratado)}</p>
-                <p className="text-xs text-gray-400 mt-0.5">{contratosDelProyecto.length} contratos</p>
+                <p className="text-xs text-gray-400 mt-0.5">{contratosDelProyecto.length} total</p>
               </div>
               <div className="bg-emerald-50 rounded-lg p-3 border border-emerald-100">
                 <p className="text-[10px] text-emerald-700 uppercase tracking-wider">Cobrados</p>
                 <p className="text-lg font-bold text-emerald-700 mt-1">{formatCOP(totalCobradoContratos)}</p>
-                <p className="text-xs text-emerald-600 mt-0.5">{contratosCobrados.length} contratos</p>
+                <p className="text-xs text-emerald-600 mt-0.5">{contratosCobrados.length} cerrados</p>
               </div>
               <div className="bg-amber-50 rounded-lg p-3 border border-amber-100">
                 <p className="text-[10px] text-amber-700 uppercase tracking-wider">Pendientes</p>
                 <p className="text-lg font-bold text-amber-700 mt-1">{formatCOP(totalPendienteContratos)}</p>
-                <p className="text-xs text-amber-600 mt-0.5">{contratosPendientes.length} contratos</p>
+                <p className="text-xs text-amber-600 mt-0.5">{contratosPendientes.length} activos</p>
               </div>
               <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
                 <p className="text-[10px] text-gray-400 uppercase tracking-wider">Ticket prom.</p>
-                <p className="text-lg font-bold text-gray-900 mt-1">
-                  {formatCOP(contratosDelProyecto.length > 0 ? totalContratado / contratosDelProyecto.length : 0)}
-                </p>
+                <p className="text-lg font-bold text-gray-900 mt-1">{formatCOP(ticketPromedioContratos)}</p>
                 <p className="text-xs text-gray-400 mt-0.5">por contrato</p>
               </div>
             </div>
@@ -1041,7 +1104,7 @@ export default function ValorizacionesPage() {
         )}
 
         {/* ═══════════════════════════════════════════════════════════════════
-            KPIs — VALORIZACIONES DEL PROYECTO
+            BLOQUE 4 · VALORIZACIONES DEL PROYECTO
             ═══════════════════════════════════════════════════════════════════ */}
         {selectedProject && (
           <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
@@ -1077,7 +1140,7 @@ export default function ValorizacionesPage() {
               </div>
               <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
                 <p className="text-[10px] text-gray-400 uppercase tracking-wider">Ticket prom.</p>
-                <p className="text-lg font-bold text-gray-900 mt-1">{formatCOP(ticketPromedio)}</p>
+                <p className="text-lg font-bold text-gray-900 mt-1">{formatCOP(ticketPromedioValorizaciones)}</p>
                 <p className="text-xs text-gray-400 mt-0.5">bruto</p>
               </div>
             </div>
