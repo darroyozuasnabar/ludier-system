@@ -449,12 +449,25 @@ export default function ValorizacionesPage() {
   const totalValorizado = valorizaciones.reduce((s, v) => s + Number(v.costoDirecto), 0);
   const costoTotal = configContrato?.costo_directo_total || 0;
   const avancePct = costoTotal > 0 ? (totalValorizado / costoTotal) * 100 : 0;
+
+  // Total valorizado BRUTO (con IGV) — avance comercial
+  const totalValorizadoBruto = valorizaciones.reduce(
+    (s, v) => s + Number(v.totalFactura || 0),
+    0,
+  );
+
+  // Cobrado neto (post-garantía) — flujo real
   const totalCobrado = valorizaciones
     .filter((v) => v.status === "COBRADA")
     .reduce((s, v) => s + Number(v.netoCobrar), 0);
+
   const totalPendienteCobro = valorizaciones
     .filter((v) => v.status !== "COBRADA")
     .reduce((s, v) => s + Number(v.netoCobrar), 0);
+
+  // Ticket promedio por valorización
+  const ticketPromedio =
+    valorizaciones.length > 0 ? totalValorizadoBruto / valorizaciones.length : 0;
 
   // ── Selector de contrato en formulario ──────────────────────────────────────
 
@@ -885,7 +898,7 @@ export default function ValorizacionesPage() {
 
         {/* KPIs */}
         {selectedProject && configContrato && (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
               <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Avance valorizado</p>
               <p className="text-xl font-bold text-gray-900">{avancePct.toFixed(2)}%</p>
@@ -894,20 +907,35 @@ export default function ValorizacionesPage() {
               </div>
               <p className="text-xs text-gray-400 mt-1">{formatCOP(totalValorizado)} de {formatCOP(costoTotal)}</p>
             </div>
+
             <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
               <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Valorizaciones</p>
               <p className="text-xl font-bold text-gray-900">{valorizaciones.length}</p>
               <p className="text-xs text-gray-400 mt-1">{valorizaciones.filter((v) => v.status === "COBRADA").length} cobradas</p>
             </div>
+
             <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
-              <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Total cobrado</p>
-              <p className="text-xl font-bold text-emerald-700">{formatCOP(totalCobrado)}</p>
-              <p className="text-xs text-gray-400 mt-1">Neto recibido</p>
+              <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Total valorizado (bruto)</p>
+              <p className="text-xl font-bold text-gray-900">{formatCOP(totalValorizadoBruto)}</p>
+              <p className="text-xs text-gray-400 mt-1">Con IGV · antes de garantía</p>
             </div>
+
             <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
-              <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Pendiente de cobro</p>
+              <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Total cobrado (neto)</p>
+              <p className="text-xl font-bold text-emerald-700">{formatCOP(totalCobrado)}</p>
+              <p className="text-xs text-gray-400 mt-1">Después de garantía</p>
+            </div>
+
+            <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+              <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Por cobrar (neto)</p>
               <p className="text-xl font-bold text-amber-700">{formatCOP(totalPendienteCobro)}</p>
               <p className="text-xs text-gray-400 mt-1">{valorizaciones.filter((v) => v.status !== "COBRADA").length} activas</p>
+            </div>
+
+            <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+              <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Ticket promedio</p>
+              <p className="text-xl font-bold text-gray-900">{formatCOP(ticketPromedio)}</p>
+              <p className="text-xs text-gray-400 mt-1">Por valorización (bruto)</p>
             </div>
           </div>
         )}
