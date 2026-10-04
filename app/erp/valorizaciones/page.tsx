@@ -129,12 +129,7 @@ export default function ValorizacionesPage() {
   };
 
   const loadConfigAndValorizaciones = async (projectId: string) => {
-    const [configRes, valsRes, contratosRes] = await Promise.all([
-      supabase
-        .from("ConfiguracionContrato")
-        .select("*")
-        .eq("project_id", projectId)
-        .maybeSingle(),
+    const [valsRes, contratosRes] = await Promise.all([
       supabase
         .from("Valorizacion")
         .select("*")
@@ -147,9 +142,24 @@ export default function ValorizacionesPage() {
         .order("orden_estrategico", { ascending: true }),
     ]);
 
-    setConfigContrato(configRes.data);
     setValorizaciones(valsRes.data || []);
     setContratosDelProyecto(contratosRes.data || []);
+
+    // Config derivada de los contratos del proyecto (ya no dependemos de ConfiguracionContrato)
+    const contratos = contratosRes.data || [];
+    const montoTotalContratos = contratos.reduce(
+      (s, c) => s + Number(c.monto || 0),
+      0,
+    );
+
+    // Costo directo total = monto total contratos / 1.18 (quitando IGV)
+    const costoDirectoTotal = montoTotalContratos / 1.18;
+
+    setConfigContrato({
+      igv_porcentaje: 0.18,
+      garantia_porcentaje: 0.05,
+      costo_directo_total: costoDirectoTotal,
+    });
   };
 
   const handleProjectChange = async (projectId: string) => {
@@ -897,7 +907,7 @@ export default function ValorizacionesPage() {
         )}
 
         {/* KPIs */}
-        {selectedProject && configContrato && (
+        {selectedProject && (
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
               <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Avance valorizado</p>
