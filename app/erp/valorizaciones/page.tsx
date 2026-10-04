@@ -479,6 +479,28 @@ export default function ValorizacionesPage() {
   const ticketPromedio =
     valorizaciones.length > 0 ? totalValorizadoBruto / valorizaciones.length : 0;
 
+  // ── Contrato principal (el de mayor monto) — para cuadrar con Dashboard ──
+  const contratoPrincipal =
+    contratosDelProyecto.length > 0
+      ? contratosDelProyecto.reduce(
+          (max, c) => (Number(c.monto) > Number(max.monto) ? c : max),
+          contratosDelProyecto[0],
+        )
+      : null;
+
+  const valorizacionesContratoPrincipal = contratoPrincipal
+    ? valorizaciones.filter((v) => v.contrato_id === contratoPrincipal.id)
+    : [];
+
+  const cobradoContratoPrincipal = valorizacionesContratoPrincipal
+    .filter((v) => v.status === "COBRADA")
+    .reduce((s, v) => s + Number(v.totalFactura || 0), 0);
+
+  const avanceContratoPrincipal =
+    contratoPrincipal && Number(contratoPrincipal.monto) > 0
+      ? (cobradoContratoPrincipal / Number(contratoPrincipal.monto)) * 100
+      : 0;
+
   // ── Selector de contrato en formulario ──────────────────────────────────────
 
   const ContratoSelector = ({ value, onChange }: { value: string; onChange: (v: string) => void }) => (
@@ -908,44 +930,93 @@ export default function ValorizacionesPage() {
 
         {/* KPIs */}
         {selectedProject && (
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-            <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
-              <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Avance valorizado</p>
-              <p className="text-xl font-bold text-gray-900">{avancePct.toFixed(2)}%</p>
-              <div className="mt-2 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                <div className="h-full bg-gray-900 rounded-full" style={{ width: `${Math.min(avancePct, 100)}%` }} />
+          <div className="space-y-4">
+
+            {/* Contrato principal — cuadra con Dashboard */}
+            {contratoPrincipal && (
+              <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl border border-gray-800 p-5 shadow-sm">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex-1 min-w-0 pr-4">
+                    <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">
+                      Contrato principal del proyecto
+                    </p>
+                    <p className="text-sm font-semibold text-white mt-1 truncate" title={contratoPrincipal.nombre}>
+                      {contratoPrincipal.nombre}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      {formatCOP(Number(contratoPrincipal.monto))} · {contratoPrincipal.estado}
+                    </p>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className="text-3xl font-bold text-white">{avanceContratoPrincipal.toFixed(2)}%</p>
+                    <p className="text-xs text-gray-400">avance cobrado</p>
+                  </div>
+                </div>
+                <div className="h-2 bg-gray-700 rounded-full overflow-hidden mb-3">
+                  <div
+                    className="h-full bg-gradient-to-r from-amber-500 to-emerald-500 rounded-full transition-all duration-500"
+                    style={{ width: `${Math.min(avanceContratoPrincipal, 100)}%` }}
+                  />
+                </div>
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div>
+                    <p className="text-[10px] text-gray-400 uppercase tracking-wider">Contratado</p>
+                    <p className="text-sm font-bold text-white">{formatCOP(Number(contratoPrincipal.monto))}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-gray-400 uppercase tracking-wider">Cobrado</p>
+                    <p className="text-sm font-bold text-emerald-400">{formatCOP(cobradoContratoPrincipal)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-gray-400 uppercase tracking-wider">Saldo</p>
+                    <p className="text-sm font-bold text-amber-400">
+                      {formatCOP(Math.max(0, Number(contratoPrincipal.monto) - cobradoContratoPrincipal))}
+                    </p>
+                  </div>
+                </div>
               </div>
-              <p className="text-xs text-gray-400 mt-1">{formatCOP(totalValorizado)} de {formatCOP(costoTotal)}</p>
-            </div>
+            )}
 
-            <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
-              <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Valorizaciones</p>
-              <p className="text-xl font-bold text-gray-900">{valorizaciones.length}</p>
-              <p className="text-xs text-gray-400 mt-1">{valorizaciones.filter((v) => v.status === "COBRADA").length} cobradas</p>
-            </div>
+            {/* KPIs del proyecto completo */}
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+                <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Avance valorizado</p>
+                <p className="text-xl font-bold text-gray-900">{avancePct.toFixed(2)}%</p>
+                <div className="mt-2 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-gray-900 rounded-full" style={{ width: `${Math.min(avancePct, 100)}%` }} />
+                </div>
+                <p className="text-xs text-gray-400 mt-1">{formatCOP(totalValorizado)} de {formatCOP(costoTotal)}</p>
+              </div>
 
-            <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
-              <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Total valorizado (bruto)</p>
-              <p className="text-xl font-bold text-gray-900">{formatCOP(totalValorizadoBruto)}</p>
-              <p className="text-xs text-gray-400 mt-1">Con IGV · antes de garantía</p>
-            </div>
+              <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+                <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Valorizaciones del proyecto</p>
+                <p className="text-xl font-bold text-gray-900">{valorizaciones.length}</p>
+                <p className="text-xs text-gray-400 mt-1">{valorizaciones.filter((v) => v.status === "COBRADA").length} cobradas</p>
+              </div>
 
-            <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
-              <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Total cobrado (neto)</p>
-              <p className="text-xl font-bold text-emerald-700">{formatCOP(totalCobrado)}</p>
-              <p className="text-xs text-gray-400 mt-1">Después de garantía</p>
-            </div>
+              <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+                <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Valorizado del proyecto (bruto)</p>
+                <p className="text-xl font-bold text-gray-900">{formatCOP(totalValorizadoBruto)}</p>
+                <p className="text-xs text-gray-400 mt-1">Con IGV · antes de garantía</p>
+              </div>
 
-            <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
-              <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Por cobrar (neto)</p>
-              <p className="text-xl font-bold text-amber-700">{formatCOP(totalPendienteCobro)}</p>
-              <p className="text-xs text-gray-400 mt-1">{valorizaciones.filter((v) => v.status !== "COBRADA").length} activas</p>
-            </div>
+              <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+                <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Cobrado del proyecto (neto)</p>
+                <p className="text-xl font-bold text-emerald-700">{formatCOP(totalCobrado)}</p>
+                <p className="text-xs text-gray-400 mt-1">Después de garantía</p>
+              </div>
 
-            <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
-              <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Ticket promedio</p>
-              <p className="text-xl font-bold text-gray-900">{formatCOP(ticketPromedio)}</p>
-              <p className="text-xs text-gray-400 mt-1">Por valorización (bruto)</p>
+              <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+                <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Por cobrar del proyecto (neto)</p>
+                <p className="text-xl font-bold text-amber-700">{formatCOP(totalPendienteCobro)}</p>
+                <p className="text-xs text-gray-400 mt-1">{valorizaciones.filter((v) => v.status !== "COBRADA").length} activas</p>
+              </div>
+
+              <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+                <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Ticket promedio</p>
+                <p className="text-xl font-bold text-gray-900">{formatCOP(ticketPromedio)}</p>
+                <p className="text-xs text-gray-400 mt-1">Por valorización (bruto)</p>
+              </div>
             </div>
           </div>
         )}
