@@ -3,6 +3,7 @@
 
 import { useParams } from "next/navigation";
 import { proyectosData } from "@/components/public/Proyectos"; // ✅ Ruta corregida
+import GaleriaFotos from "@/components/public/GaleriaFotos";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -120,7 +121,7 @@ export default function ProyectoDetalle() {
             {proyecto.servicios.map((s, i) => (
               <li
                 key={i}
-                className="flex items-start gap-2 text-sm text-[#1E2126]" // ✅ Texto oscuro
+                className="flex items-start gap-2 text-sm text-[#1E2126]"
               >
                 <CheckCircle className="w-4 h-4 text-[#FF5A1F] shrink-0 mt-0.5" />
                 <span>{s}</span>
@@ -129,6 +130,9 @@ export default function ProyectoDetalle() {
           </ul>
         </div>
 
+        {/* 👇 Galería de fotos — solo se muestra si el slug tiene galería cargada */}
+        <GaleriaFotos slug={String(slug)} />
+
         <div className="bg-[#FF5A1F]/5 p-6 rounded-sm border border-[#FF5A1F]/20">
           <h2
             className="text-xl font-semibold mb-2 text-[#1E2126]"
@@ -136,7 +140,7 @@ export default function ProyectoDetalle() {
           >
             Resultado
           </h2>
-          <p className="text-[#1E2126]">{proyecto.resultado}</p> {/* ✅ Texto oscuro */}
+          <p className="text-[#1E2126]">{proyecto.resultado}</p>
         </div>
 
         {clienteURL && (
