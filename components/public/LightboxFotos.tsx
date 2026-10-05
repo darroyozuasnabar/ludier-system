@@ -6,6 +6,7 @@ import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { CATEGORIAS_INFO, type FotoGaleria } from "@/lib/proyectos-galeria";
 
 const FONT_DISPLAY = "var(--font-display, Oswald, sans-serif)";
+const FONT_BODY = "var(--font-body, Inter, sans-serif)";
 const FONT_MONO = 'var(--font-mono, "JetBrains Mono", monospace)';
 
 type Props = {
@@ -41,7 +42,6 @@ export default function LightboxFotos({
     };
     document.addEventListener("keydown", handleKey);
     document.body.style.overflow = "hidden";
-    // Animación de entrada
     setTimeout(() => setVisible(true), 10);
     return () => {
       document.removeEventListener("keydown", handleKey);
@@ -55,94 +55,88 @@ export default function LightboxFotos({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex flex-col bg-black/97 backdrop-blur-xl transition-opacity duration-500"
+      className="fixed inset-0 z-[100] flex flex-col bg-[#F7F7F4] transition-opacity duration-300"
       style={{ opacity: visible ? 1 : 0 }}
       onClick={onClose}
     >
-      {/* ─── BARRA SUPERIOR ─── */}
-      <div className="flex items-center justify-between px-6 py-5 flex-shrink-0">
+      {/* Barra superior */}
+      <div className="flex items-center justify-between px-6 md:px-8 py-4 border-b border-[#E3E1D8] bg-white/80 backdrop-blur-md flex-shrink-0">
         <div className="flex items-center gap-3">
           <span
-            className="text-[10px] font-medium uppercase tracking-[0.25em] text-[#FF5A1F]"
+            className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#FF5A1F]"
             style={{ fontFamily: FONT_MONO }}
           >
             {catInfo.label}
           </span>
-        </div>
-
-        <div className="flex items-center gap-6">
-          <div
-            className="text-white/50 text-xs tracking-widest"
+          <span className="h-1 w-1 rounded-full bg-[#E3E1D8]" />
+          <span
+            className="text-[10px] uppercase tracking-[0.2em] text-[#8B8F86]"
             style={{ fontFamily: FONT_MONO }}
           >
-            <span className="text-white font-medium">
-              {String(indiceActual + 1).padStart(2, "0")}
-            </span>
-            <span className="mx-2">/</span>
-            <span>{String(total).padStart(2, "0")}</span>
-          </div>
-          <button
-            onClick={onClose}
-            className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-white transition-colors"
-            aria-label="Cerrar"
-          >
-            <X className="w-5 h-5" />
-          </button>
+            {indiceActual + 1} / {total}
+          </span>
         </div>
+        <button
+          onClick={onClose}
+          className="w-9 h-9 rounded-full hover:bg-[#1E2126] hover:text-white text-[#1E2126] flex items-center justify-center transition-colors"
+          aria-label="Cerrar"
+        >
+          <X className="w-5 h-5" />
+        </button>
       </div>
 
-      {/* ─── IMAGEN CENTRAL ─── */}
-      <div className="flex-1 relative flex items-center justify-center px-4 md:px-20 py-4 min-h-0">
-        {/* Flecha izquierda */}
+      {/* Imagen */}
+      <div className="flex-1 relative flex items-center justify-center px-4 md:px-16 py-6 min-h-0">
         {total > 1 && (
           <button
             onClick={(e) => {
               e.stopPropagation();
               irAnterior();
             }}
-            className="absolute left-3 md:left-6 z-10 w-12 h-12 rounded-full bg-white/5 hover:bg-[#FF5A1F] border border-white/10 flex items-center justify-center text-white transition-all duration-300 hover:scale-110"
+            className="absolute left-3 md:left-6 z-10 w-11 h-11 rounded-full bg-white border border-[#E3E1D8] hover:bg-[#1E2126] hover:text-white hover:border-[#1E2126] text-[#1E2126] flex items-center justify-center transition-all shadow-md"
             aria-label="Anterior"
           >
-            <ChevronLeft className="w-6 h-6" />
+            <ChevronLeft className="w-5 h-5" />
           </button>
         )}
 
-        {/* Imagen */}
         <img
           src={foto.src}
           alt={foto.alt}
           onClick={(e) => e.stopPropagation()}
-          className="max-w-full max-h-full object-contain rounded-sm shadow-2xl"
+          className="max-w-full max-h-full object-contain rounded-sm shadow-xl"
         />
 
-        {/* Flecha derecha */}
         {total > 1 && (
           <button
             onClick={(e) => {
               e.stopPropagation();
               irSiguiente();
             }}
-            className="absolute right-3 md:right-6 z-10 w-12 h-12 rounded-full bg-white/5 hover:bg-[#FF5A1F] border border-white/10 flex items-center justify-center text-white transition-all duration-300 hover:scale-110"
+            className="absolute right-3 md:right-6 z-10 w-11 h-11 rounded-full bg-white border border-[#E3E1D8] hover:bg-[#1E2126] hover:text-white hover:border-[#1E2126] text-[#1E2126] flex items-center justify-center transition-all shadow-md"
             aria-label="Siguiente"
           >
-            <ChevronRight className="w-6 h-6" />
+            <ChevronRight className="w-5 h-5" />
           </button>
         )}
       </div>
 
-      {/* ─── INFO INFERIOR ─── */}
+      {/* Info inferior */}
       <div
-        className="flex-shrink-0 px-6 md:px-20 py-8 border-t border-white/5"
+        className="flex-shrink-0 px-6 md:px-8 py-5 border-t border-[#E3E1D8] bg-white/80 backdrop-blur-md"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="max-w-3xl mx-auto">
           <h3
-            className="text-xl md:text-2xl font-semibold text-white mb-2 leading-tight"
+            className="text-lg md:text-xl font-semibold text-[#1E2126] mb-1.5"
             style={{ fontFamily: FONT_DISPLAY }}
           >
             {foto.titulo}
           </h3>
-          <p className="text-sm text-white/50 leading-relaxed line-clamp-2">
+          <p
+            className="text-sm text-[#565C63] leading-relaxed line-clamp-2"
+            style={{ fontFamily: FONT_BODY }}
+          >
             {foto.descripcion}
           </p>
         </div>

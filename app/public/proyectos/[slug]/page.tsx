@@ -2,7 +2,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { proyectosData } from "@/components/public/Proyectos"; // ✅ Ruta corregida
+import { proyectosData } from "@/components/public/Proyectos";
 import GaleriaFotos from "@/components/public/GaleriaFotos";
 import Link from "next/link";
 import {
@@ -11,16 +11,12 @@ import {
   MapPin,
   Users,
   CheckCircle,
-  Wrench,
-  Shield,
   ExternalLink,
 } from "lucide-react";
 
 const FONT_DISPLAY = "var(--font-display, Oswald, sans-serif)";
 const FONT_BODY = "var(--font-body, Inter, sans-serif)";
-const FONT_MONO = 'var(--font-mono, "JetBrains Mono", monospace)';
 
-// Mapeo de clientes a URLs
 const clienteURLs: Record<string, string> = {
   "Grupo LAR": "https://grupolar.pe/",
   "MDP CONSTRUCCIONES S.A.C.": "https://mdpconstrucciones.com.pe/",
@@ -52,10 +48,10 @@ export default function ProyectoDetalle() {
   const clienteURL = clienteURLs[proyecto.cliente] || null;
 
   return (
-    <div
-      className="min-h-screen bg-[#F7F7F4]"
-      style={{ fontFamily: FONT_BODY }}
-    >
+    <div className="min-h-screen bg-[#F7F7F4]" style={{ fontFamily: FONT_BODY }}>
+      {/* ═══════════════════════════════════════════════════════════════
+          SECCIÓN 1 — INTRO DEL PROYECTO (max-w-4xl)
+          ═══════════════════════════════════════════════════════════════ */}
       <div className="max-w-4xl mx-auto px-4 py-16">
         <Link
           href="/proyectos"
@@ -110,7 +106,7 @@ export default function ProyectoDetalle() {
           />
         </div>
 
-        <div className="bg-white p-6 rounded-sm border border-[#E3E1D8] mb-8">
+        <div className="bg-white p-6 rounded-sm border border-[#E3E1D8]">
           <h2
             className="text-xl font-semibold mb-3 text-[#1E2126]"
             style={{ fontFamily: FONT_DISPLAY }}
@@ -129,10 +125,17 @@ export default function ProyectoDetalle() {
             ))}
           </ul>
         </div>
+      </div>
 
-        {/* 👇 Galería de fotos — solo se muestra si el slug tiene galería cargada */}
-        <GaleriaFotos slug={String(slug)} />
+      {/* ═══════════════════════════════════════════════════════════════
+          SECCIÓN 2 — GALERÍA FULL-BLEED (rompe el max-w-4xl)
+          ═══════════════════════════════════════════════════════════════ */}
+      <GaleriaFotos slug={String(slug)} />
 
+      {/* ═══════════════════════════════════════════════════════════════
+          SECCIÓN 3 — RESULTADO + CTA (max-w-4xl)
+          ═══════════════════════════════════════════════════════════════ */}
+      <div className="max-w-4xl mx-auto px-4 pb-16">
         <div className="bg-[#FF5A1F]/5 p-6 rounded-sm border border-[#FF5A1F]/20">
           <h2
             className="text-xl font-semibold mb-2 text-[#1E2126]"
