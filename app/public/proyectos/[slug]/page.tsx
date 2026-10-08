@@ -3,6 +3,7 @@
 
 import { useParams } from "next/navigation";
 import { proyectosData } from "@/components/public/Proyectos";
+import GaleriaServicios from "@/components/public/GaleriaServicios";
 import GaleriaFotos from "@/components/public/GaleriaFotos";
 import Link from "next/link";
 import {
@@ -128,12 +129,17 @@ export default function ProyectoDetalle() {
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════
-          SECCIÓN 2 — GALERÍA FULL-BLEED (rompe el max-w-4xl)
+          SECCIÓN 2 — PROCESO CONSTRUCTIVO (servicios con carrusel)
+          ═══════════════════════════════════════════════════════════════ */}
+      <GaleriaServicios slug={String(slug)} />
+
+      {/* ═══════════════════════════════════════════════════════════════
+          SECCIÓN 3 — GALERÍA COMPLETA (grid plano)
           ═══════════════════════════════════════════════════════════════ */}
       <GaleriaFotos slug={String(slug)} />
 
       {/* ═══════════════════════════════════════════════════════════════
-          SECCIÓN 3 — RESULTADO + CTA (max-w-4xl)
+          SECCIÓN 4 — RESULTADO + CTA (max-w-4xl)
           ═══════════════════════════════════════════════════════════════ */}
       <div className="max-w-4xl mx-auto px-4 pb-16">
         <div className="bg-[#FF5A1F]/5 p-6 rounded-sm border border-[#FF5A1F]/20">
