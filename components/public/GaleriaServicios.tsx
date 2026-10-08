@@ -92,7 +92,11 @@ export default function GaleriaServicios({ slug }: { slug: string }) {
                 )}ms`,
               }}
             >
-              <ServicioCarrusel servicio={servicio} />
+              <ServicioCarrusel
+  servicio={servicio}
+  indiceServicio={idx}
+  totalServicios={galeria.servicios.length}
+/>
             </div>
           ))}
         </div>

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import Swal from "sweetalert2";
 import {
   Building2,
@@ -171,9 +172,11 @@ const ContactInfoCard = ({
 };
 
 // ============================================================
-// COMPONENTE PRINCIPAL
+// COMPONENTE PRINCIPAL (INNER — usa useSearchParams)
 // ============================================================
-export default function Contacto() {
+function ContactoInner() {
+  const searchParams = useSearchParams();
+
   const [formState, setFormState] = useState({
     nombre: "",
     email: "",
@@ -197,6 +200,34 @@ export default function Contacto() {
       navbar.style.borderBottom = '1px solid #3A3F45';
     }
   }, []);
+
+  // 🔥 PRECARGAR FORMULARIO DESDE URL (?servicio=...&proyecto=...)
+  useEffect(() => {
+    const servicioParam = searchParams.get("servicio");
+    const proyectoParam = searchParams.get("proyecto");
+
+    if (servicioParam) {
+      setFormState((prev) => {
+        // Solo precargar si los campos están vacíos (no sobreescribir input del usuario)
+        if (prev.asunto || prev.mensaje) return prev;
+
+        const proyectoTexto = proyectoParam ? ` del proyecto ${proyectoParam}` : "";
+        return {
+          ...prev,
+          asunto: `Cotización: ${servicioParam}`,
+          mensaje: `Hola, me interesa un servicio como el de "${servicioParam}"${proyectoTexto}. ¿Podrían darme más información y una cotización?`,
+        };
+      });
+
+      // Scroll suave al formulario después de un pequeño delay
+      setTimeout(() => {
+        const formEl = document.querySelector("#formulario-contacto");
+        if (formEl) {
+          formEl.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 600);
+    }
+  }, [searchParams]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormState({ ...formState, [e.target.name]: e.target.value });
@@ -440,7 +471,10 @@ export default function Contacto() {
             </div>
 
             {/* COLUMNA DERECHA: FORMULARIO */}
-            <div className="bg-white border border-[#E3E1D8] rounded-sm p-6 md:p-8 shadow-sm">
+            <div
+              id="formulario-contacto"
+              className="bg-white border border-[#E3E1D8] rounded-sm p-6 md:p-8 shadow-sm"
+            >
               <h2
                 className="text-2xl font-semibold text-[#1E2126] mb-2"
                 style={{ fontFamily: FONT_DISPLAY }}
@@ -655,5 +689,16 @@ export default function Contacto() {
         }
       `}</style>
     </div>
+  );
+}
+
+// ============================================================
+// EXPORT — envuelto en Suspense por useSearchParams
+// ============================================================
+export default function Contacto() {
+  return (
+    <Suspense fallback={null}>
+      <ContactoInner />
+    </Suspense>
   );
 }
