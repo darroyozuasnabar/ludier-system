@@ -21,6 +21,12 @@ import {
   ExternalLink,
 } from "lucide-react";
 
+import { proyectosData, type Proyecto } from "@/lib/proyectos-data";
+
+// Re-exportar para no romper imports existentes en otros archivos
+export { proyectosData };
+export type { Proyecto };
+
 // ============================================================
 // TIPOGRAFÍAS
 // ============================================================
@@ -28,158 +34,6 @@ const FONT_DISPLAY = "var(--font-display, Oswald, ui-sans-serif, sans-serif)";
 const FONT_BODY =
   "var(--font-body, Inter, ui-sans-serif, system-ui, sans-serif)";
 const FONT_MONO = 'var(--font-mono, "JetBrains Mono", ui-monospace, monospace)';
-
-// ============================================================
-// TIPOS Y DATOS (EXPORTADOS)
-// ============================================================
-export type Proyecto = {
-  id: number;
-  slug: string;
-  titulo: string;
-  cliente: string;
-  ubicacion: string;
-  servicios: string[];
-  resultado: string;
-  imagen: string;
-  categoria: "residencial" | "comercial" | "industrial";
-};
-
-export const proyectosData: Proyecto[] = [
-{
-  id: 1,
-  slug: "zendai",
-  titulo: "Edificio Residencial 28 Pisos Zendai",
-  cliente: "Grupo LAR", // ✅ Corregido
-  ubicacion: "La Victoria, Lima",
-  categoria: "residencial",
-  servicios: [
-    "Chute metálico para evacuación de residuos",
-    "Barandas metálicas de seguridad",
-    "Pasamanos metálicos",
-    "Montaje, anclaje y soldadura en obra",
-    "Adecuaciones metalmecánicas complementarias",
-  ],
-  resultado:
-    "Implementación exitosa que contribuyó a la seguridad, operatividad y avance eficiente del proyecto.",
-  imagen: "/img/zendai.png",
-},
-  {
-    id: 2,
-    slug: "lince",
-    titulo: "Cerco Metálico Perimetral – Lince",
-    cliente: "Flat Canevaro S.A.C.",
-    ubicacion: "Lince, Lima",
-    categoria: "comercial",
-    servicios: [
-      "Estructuras metálicas para cerramiento perimetral",
-      "Postes y paneles metálicos",
-      "Instalación y nivelación",
-      "Anclaje, soldadura y refuerzo estructural",
-      "Adecuaciones según requerimientos",
-      "Acabados y protección anticorrosiva",
-    ],
-    resultado:
-      "Mejora de la seguridad, control de accesos y protección del proyecto durante las distintas etapas.",
-    imagen: "/img/Flat_Lince.png",
-  },
-  {
-    id: 3,
-    slug: "san-miguel",
-    titulo: "Edificación Multifamiliar – San Miguel",
-    cliente: "MDP Construcciones S.A.C.",
-    ubicacion: "San Miguel, Lima",
-    categoria: "residencial",
-    servicios: [
-      "Chute metálico para evacuación de residuos",
-      "Componentes estructurales para chute",
-      "Estructuras auxiliares de soporte",
-      "Soldadura, anclaje y fijación estructural",
-      "Supervisión de montaje",
-      "Acabados y protección",
-    ],
-    resultado:
-      "Mejora de la seguridad, eficiencia operativa y gestión de residuos durante el desarrollo del proyecto.",
-    imagen: "/img/Edificio_SanMiguel.png",
-  },
-  {
-    id: 4,
-    slug: "surco",
-    titulo: "Proyecto Residencial – Surco",
-    cliente: "Grupo Percola S.A.C.",
-    ubicacion: "Santiago de Surco, Lima",
-    categoria: "residencial",
-    servicios: [
-      "Chute metálico para evacuación de residuos",
-      "Componentes estructurales para chute",
-      "Estructuras auxiliares de soporte",
-      "Soldadura, anclaje y fijación estructural",
-      "Supervisión de montaje",
-      "Acabados y protección",
-    ],
-    resultado:
-      "Implementación exitosa de sistemas metalmecánicos para apoyo a la construcción, mejorando seguridad, eficiencia y gestión de residuos.",
-    imagen: "/img/Proyecto_Surco.png",
-  },
-  {
-    id: 5,
-    slug: "centro-lima",
-    titulo: "Edificación Urbana – Centro de Lima",
-    cliente: "MDP Construcciones S.A.C.",
-    ubicacion: "Centro Histórico, Lima",
-    categoria: "comercial",
-    servicios: [
-      "Chute metálico para evacuación de residuos",
-      "Pasamanos metálicos para circulación segura",
-      "Componentes estructurales complementarios",
-      "Montaje, anclaje y soldadura en campo",
-      "Elementos de seguridad para trabajos en altura",
-      "Acabados y verificación de calidad",
-    ],
-    resultado:
-      "Soluciones orientadas a la seguridad, operatividad y productividad en un entorno urbano de alta exigencia.",
-    imagen: "/img/Edificacion_CentroLima.png",
-  },
-  {
-    id: 6,
-    slug: "qantua",
-    titulo: "Proyecto Residencial QANTUA – Fase 1 y 2",
-    cliente: "Grupo LAR",
-    ubicacion: "Cercado de Lima",
-    categoria: "residencial",
-    servicios: [
-      "Barandas para escaleras de emergencia",
-      "Pasamanos adosados a pared",
-      "Chute metálico para residuos",
-      "Estructuras metálicas para azotea",
-      "Vigas metálicas para locales comerciales",
-      "Rejillas y estructuras para tragaluces",
-      "Apertura y cerramiento de cercos",
-      "Trazado, perforación, anclaje, montaje y soldadura",
-      "Acabados industriales (anticorrosivo, pintura, gloss mate)",
-      "Control de calidad y adecuaciones",
-    ],
-    resultado:
-      "Participación exitosa en ambas fases, fortaleciendo la seguridad, funcionalidad y calidad de la obra, cumpliendo estándares y plazos.",
-    imagen: "/img/Qantua.jpg",
-  },
-  {
-    id: 7,
-    slug: "hilton",
-    titulo: "Hilton MDP – Chacarilla",
-    cliente: "MDP CONSTRUCCIONES S.A.C.",
-    ubicacion: "Chacarilla, Surco",
-    categoria: "comercial",
-    servicios: [
-      "Fabricación e instalación de chute metálico de 19 pisos",
-      "Estructuras de soporte para sistema de evacuación",
-      "Anclajes y fijaciones estructurales",
-      "Acabados anticorrosivos",
-    ],
-    resultado:
-      "Instalación exitosa del sistema de evacuación de residuos para el proyecto Hilton MDP, mejorando la eficiencia y seguridad durante la construcción.",
-    imagen: "/img/hilton-lima-miraflores.jpg",
-  },
-];
 
 // ============================================================
 // COLORES Y BADGES POR CATEGORÍA
@@ -260,10 +114,7 @@ function useScrollReveal<T extends HTMLElement>(threshold = 0.12) {
 }
 
 // ============================================================
-// MODAL MEJORADO (con animación y botón a detalle)
-// ============================================================
-// ============================================================
-// MODAL MEJORADO (oscuro, con enlaces a clientes)
+// MODAL PROYECTO
 // ============================================================
 const ModalProyecto = ({
   proyecto,
@@ -276,12 +127,10 @@ const ModalProyecto = ({
   if (!proyecto) return null;
   const CatIcon = categoriaEstilos[proyecto.categoria].icon;
 
-  // Mapeo de clientes a URLs
   const clienteURLs: Record<string, string> = {
     "Grupo LAR": "https://grupolar.pe/",
     "MDP Construcciones S.A.C.": "https://mdpconstrucciones.com.pe/",
     "Flat Canevaro S.A.C.": "https://flat-peru.com/",
-    // Agrega más clientes según sea necesario
   };
 
   const clienteURL = clienteURLs[proyecto.cliente] || null;
@@ -313,7 +162,6 @@ const ModalProyecto = ({
       >
         <CornerMarks active />
 
-        {/* Cabecera con gradiente naranja */}
         <div className="sticky top-0 flex justify-between items-start p-6 bg-gradient-to-r from-[#FF5A1F] to-[#D94A14] text-white z-10 rounded-t-sm">
           <h3
             className="text-2xl font-semibold pr-8"
@@ -330,7 +178,6 @@ const ModalProyecto = ({
         </div>
 
         <div className="p-6 space-y-6">
-          {/* Imagen más grande */}
           <div className="relative h-80 rounded-sm overflow-hidden border border-[#3A3F45]">
             <img
               src={proyecto.imagen}
@@ -346,7 +193,6 @@ const ModalProyecto = ({
             </div>
           </div>
 
-          {/* Cliente y ubicación */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[#1D2024] p-4 rounded-sm border border-[#3A3F45]">
             <div className="flex items-start gap-3">
               <Users className="w-5 h-5 text-[#FF5A1F] mt-0.5" />
@@ -385,7 +231,6 @@ const ModalProyecto = ({
             </div>
           </div>
 
-          {/* Servicios */}
           <div>
             <p
               className="text-sm font-semibold text-[#C7CBD1] mb-3 flex items-center gap-2"
@@ -406,7 +251,6 @@ const ModalProyecto = ({
             </ul>
           </div>
 
-          {/* Resultado */}
           <div className="bg-[#1D2024] p-4 rounded-sm border border-[#3A3F45]">
             <p
               className="text-sm font-semibold text-[#C7CBD1] mb-1 flex items-center gap-2"
@@ -419,7 +263,6 @@ const ModalProyecto = ({
             </p>
           </div>
 
-          {/* Botones de acción */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button
               onClick={handleVerCompleto}
@@ -460,7 +303,7 @@ const ModalProyecto = ({
 };
 
 // ============================================================
-// SUBCOMPONENTE: ProyectoCard (maneja su propia animación)
+// SUBCOMPONENTE: ProyectoCard
 // ============================================================
 const ProyectoCard = ({
   proyecto,
@@ -585,9 +428,8 @@ export default function Proyectos({
     { value: "100%", label: "Satisfacción garantizada", icon: Award },
   ];
 
-  // ---------- VERSIÓN HOME (sin secciones extras) ----------
+  // ---------- VERSIÓN HOME ----------
   if (isHome) {
-    // Proyectos específicos para el home en el orden deseado
     const homeProjectSlugs = ["qantua", "zendai", "hilton"];
     const homeProjects = homeProjectSlugs
       .map((slug) => proyectosData.find((p) => p.slug === slug))
@@ -631,7 +473,6 @@ export default function Proyectos({
           </div>
         </div>
 
-        {/* Modal */}
         {proyectoSeleccionado && (
           <ModalProyecto
             proyecto={proyectoSeleccionado}
@@ -769,7 +610,6 @@ export default function Proyectos({
       {/* FILTROS Y GRID */}
       <section className="py-20 lg:py-28">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          {/* Filtros */}
           <div
             ref={gridRef}
             className="flex flex-wrap justify-center gap-3 mb-12"
@@ -801,7 +641,6 @@ export default function Proyectos({
             })}
           </div>
 
-          {/* Grid con subcomponente ProyectoCard */}
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {proyectosFiltrados.map((proyecto, index) => (
               <ProyectoCard

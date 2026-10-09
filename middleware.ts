@@ -20,6 +20,10 @@ const PUBLIC_PREFIXES = [
   "/api/auth",
   "/api/contacto",
   "/api/cotizaciones",
+  // ── SEO ──
+  "/sitemap.xml",
+  "/robots.txt",
+  "/manifest.webmanifest",
 ];
 
 const PUBLIC_PATH_PREFIXES = [
@@ -184,6 +188,17 @@ function setSecurityHeaders(response: NextResponse): NextResponse {
 export async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
 
+  // ─── 0. IGNORAR ARCHIVOS ESTÁTICOS Y SEO ───
+  // Si la ruta termina en extensión estática, dejar pasar sin auth
+  if (
+    path === "/sitemap.xml" ||
+    path === "/robots.txt" ||
+    path === "/manifest.webmanifest" ||
+    /\.(?:ico|png|jpg|jpeg|gif|webp|svg|xml|txt|webmanifest)$/.test(path)
+  ) {
+    return NextResponse.next();
+  }
+
   // ─── 1. VERIFICAR RUTAS PÚBLICAS ───
   const isExactPublic = PUBLIC_PREFIXES.some(prefix => path === prefix);
   const isPathPublic = PUBLIC_PATH_PREFIXES.some(prefix => path.startsWith(prefix));
@@ -239,6 +254,6 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|img|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon\\.ico|img|sitemap\\.xml|robots\\.txt|manifest\\.webmanifest|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|xml|txt|webmanifest)$).*)",
   ],
 };

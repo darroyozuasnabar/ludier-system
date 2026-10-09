@@ -1,67 +1,127 @@
-"use client";
-
+// app/layout.tsx
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { Providers } from "@/components/providers";
-import DashboardLayout from "@/components/DashboardLayout";
-import PublicLayout from "@/components/public/PublicLayout";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { usePathname } from "next/navigation";
+import LayoutClient from "./layout-client";
 
 const inter = Inter({ subsets: ["latin"] });
 
-// 🔥 Rutas públicas (NO requieren login)
-const PUBLIC_ROUTES = [
-  "/",
-  "/public",
-  "/public/servicios",
-  "/public/proyectos",
-  "/public/nosotros",
-  "/public/contacto",
-  "/public/faq",
-  "/public/blog",
-  "/public/testimonios",
-];
+const SITE_URL = "https://grupoludier.com";
 
-// 🔥 Rutas de autenticación (sin layout)
-const AUTH_ROUTES = ["/login", "/register"];
+export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
+
+  title: {
+    default:
+      "LUDIER — Soluciones Metalmecánicas en Lima, Perú",
+    template: "%s · LUDIER",
+  },
+
+  description:
+    "Fabricación e instalación de estructuras metálicas, barandas, cercos perimetrales y chutes metálicos para proyectos residenciales, comerciales e industriales en Lima, Perú. Más de 10 años de experiencia.",
+
+  keywords: [
+    "carpintería metálica Lima",
+    "estructuras metálicas Perú",
+    "barandas metálicas",
+    "pasamanos metálicos",
+    "chutes metálicos",
+    "cercos perimetrales",
+    "soluciones metalmecánicas",
+    "construcción metálica Lima",
+    "LUDIER",
+    "Grupo LUDIER",
+  ],
+
+  authors: [{ name: "CONSTRUCCIONES GENERALES LUDIER E.I.R.L." }],
+  creator: "LUDIER",
+  publisher: "CONSTRUCCIONES GENERALES LUDIER E.I.R.L.",
+
+  formatDetection: {
+    email: false,
+    telephone: false,
+    address: false,
+  },
+
+  // ── Open Graph (WhatsApp, LinkedIn, Facebook) ──
+  openGraph: {
+    type: "website",
+    locale: "es_PE",
+    url: SITE_URL,
+    siteName: "LUDIER — Soluciones Metalmecánicas",
+    title: "LUDIER — Soluciones Metalmecánicas en Lima, Perú",
+    description:
+      "Fabricación e instalación de estructuras metálicas, barandas, cercos perimetrales y chutes metálicos para proyectos residenciales, comerciales e industriales.",
+    images: [
+      {
+        url: "/img/og-default.jpg",
+        width: 1200,
+        height: 630,
+        alt: "LUDIER — Soluciones Metalmecánicas",
+      },
+    ],
+  },
+
+  // ── Twitter Card ──
+  twitter: {
+    card: "summary_large_image",
+    title: "LUDIER — Soluciones Metalmecánicas",
+    description:
+      "Estructuras metálicas, barandas y cercos perimetrales para proyectos residenciales, comerciales e industriales en Lima, Perú.",
+    images: ["/img/og-default.jpg"],
+  },
+
+  // ── Robots ──
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+
+  // ── Iconos (favicon, apple touch, PWA) ──
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-icon.png", sizes: "180x180" }],
+  },
+
+  // ── Verification (poner cuando lo tengas de Search Console) ──
+  // verification: {
+  //   google: "tu-codigo-de-google-search-console",
+  // },
+
+  alternates: {
+    canonical: SITE_URL,
+  },
+
+  category: "Construcción",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#14161A",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+};
 
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const pathname = usePathname();
-
-  const isAuthPage = AUTH_ROUTES.includes(pathname);
-
-  const isPublicPage =
-    PUBLIC_ROUTES.some(route => pathname === route || pathname.startsWith(route + "/")) ||
-    pathname === "/" ||
-    pathname.startsWith("/public/");
-
-  const isClienteAppRoute = pathname.startsWith("/cliente") && !isAuthPage;
-
   return (
     <html lang="es" suppressHydrationWarning>
       <body className={inter.className}>
-        <TooltipProvider>
-          <Providers>
-            {isAuthPage ? (
-              // ✅ Páginas de autenticación (sin layout)
-              children
-            ) : isPublicPage ? (
-              // ✅ Páginas públicas (con Navbar + Footer)
-              <PublicLayout>{children}</PublicLayout>
-            ) : isClienteAppRoute ? (
-              // ✅ Panel de cliente
-              children
-            ) : (
-              // ✅ Páginas protegidas del ERP (con Sidebar + Dashboard)
-              <DashboardLayout>{children}</DashboardLayout>
-            )}
-          </Providers>
-        </TooltipProvider>
+        <LayoutClient>{children}</LayoutClient>
       </body>
     </html>
   );
