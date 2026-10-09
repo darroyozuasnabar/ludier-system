@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useCallback, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   X,
   ChevronLeft,
@@ -9,10 +10,7 @@ import {
   ArrowRight,
   MessageCircle,
 } from "lucide-react";
-import {
-  ETAPAS_INFO,
-  type ServicioGaleria,
-} from "@/lib/proyectos-galeria";
+import { ETAPAS_INFO, type ServicioGaleria } from "@/lib/proyectos-galeria";
 
 const FONT_DISPLAY = "var(--font-display, Oswald, sans-serif)";
 const FONT_BODY = "var(--font-body, Inter, sans-serif)";
@@ -40,10 +38,15 @@ export default function LightboxServicio({
 }: Props) {
   const [idx, setIdx] = useState(0);
   const [visible, setVisible] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const total = servicio.fotos.length;
   const foto = servicio.fotos[idx];
   const etapaInfo = ETAPAS_INFO[foto.etapa];
   const etapaColor = ETAPA_COLORS[etapaInfo.color] || ETAPA_COLORS.gray;
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const irAnterior = useCallback(() => {
     setIdx((i) => (i - 1 + total) % total);
@@ -68,25 +71,22 @@ export default function LightboxServicio({
     };
   }, [onClose, irAnterior, irSiguiente]);
 
-  // Reset del índice cuando cambia el servicio
   useEffect(() => {
     setIdx(0);
   }, [servicio.id]);
 
-  if (!foto) return null;
+  if (!mounted || !foto) return null;
 
-  // CTA hacia /contacto con contexto
   const contactHref = `/contacto?servicio=${encodeURIComponent(
     servicio.titulo,
   )}&proyecto=qantua`;
 
-  return (
+  const content = (
     <div
-      className="fixed inset-0 z-[100] flex flex-col bg-[#0F1115]/98 backdrop-blur-md transition-opacity duration-300"
+      className="fixed inset-0 z-[9999] flex flex-col bg-[#0F1115]/98 backdrop-blur-md transition-opacity duration-300"
       style={{ opacity: visible ? 1 : 0, fontFamily: FONT_BODY }}
       onClick={onClose}
     >
-      {/* ─── Barra superior ─── */}
       <div className="flex items-center justify-between px-6 md:px-8 py-4 border-b border-white/5 flex-shrink-0">
         <div className="flex items-center gap-3 min-w-0">
           <span
@@ -126,12 +126,10 @@ export default function LightboxServicio({
         </div>
       </div>
 
-      {/* ─── Imagen central ─── */}
       <div
         className="flex-1 relative flex items-center justify-center px-4 md:px-16 py-6 min-h-0"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Flecha izquierda */}
         {total > 1 && (
           <button
             onClick={irAnterior}
@@ -142,7 +140,6 @@ export default function LightboxServicio({
           </button>
         )}
 
-        {/* Imagen */}
         <div className="relative max-w-full max-h-full">
           <img
             key={foto.src}
@@ -154,7 +151,6 @@ export default function LightboxServicio({
             }}
           />
 
-          {/* Badge de etapa sobre la imagen */}
           <div className="absolute top-4 left-4">
             <span
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.15em] rounded-full shadow-lg ${etapaColor}`}
@@ -165,7 +161,6 @@ export default function LightboxServicio({
           </div>
         </div>
 
-        {/* Flecha derecha */}
         {total > 1 && (
           <button
             onClick={irSiguiente}
@@ -177,7 +172,6 @@ export default function LightboxServicio({
         )}
       </div>
 
-      {/* ─── Dots ─── */}
       {total > 1 && (
         <div
           className="flex justify-center gap-2 py-3"
@@ -188,7 +182,9 @@ export default function LightboxServicio({
               key={i}
               onClick={() => setIdx(i)}
               className={`h-1.5 rounded-full transition-all duration-300 ${
-                i === idx ? "w-8 bg-[#FF5A1F]" : "w-1.5 bg-white/20 hover:bg-white/40"
+                i === idx
+                  ? "w-8 bg-[#FF5A1F]"
+                  : "w-1.5 bg-white/20 hover:bg-white/40"
               }`}
               aria-label={`Ir a imagen ${i + 1}`}
             />
@@ -196,36 +192,51 @@ export default function LightboxServicio({
         </div>
       )}
 
-      {/* ─── Panel inferior con descripción + CTA ─── */}
       <div
-        className="flex-shrink-0 border-t border-white/5 bg-black/40 backdrop-blur-sm"
+        className="flex-shrink-0 bg-[#14161A]/95 backdrop-blur-md border-t border-white/10"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="max-w-4xl mx-auto px-6 md:px-8 py-6">
-          <div className="grid md:grid-cols-[1fr_auto] gap-6 items-end">
-            {/* Texto */}
-            <div className="min-w-0">
+        <div className="max-w-5xl mx-auto px-6 md:px-10 py-6 md:py-8">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div className="flex-1 min-w-0 max-w-2xl">
+              <div className="flex items-center gap-3 mb-3 flex-wrap">
+                <span
+                  className="inline-flex items-center px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#FF5A1F] bg-[#FF5A1F]/10 border border-[#FF5A1F]/30 rounded-full"
+                  style={{ fontFamily: FONT_MONO }}
+                >
+                  Servicio {indiceServicio + 1} de {totalServicios}
+                </span>
+              </div>
+
               <h3
-                className="text-xl md:text-2xl font-semibold text-white mb-2 leading-tight"
+                className="text-2xl md:text-3xl font-bold text-white mb-3 leading-tight"
                 style={{ fontFamily: FONT_DISPLAY }}
               >
                 {servicio.titulo}
               </h3>
-              <p className="text-sm text-white/60 leading-relaxed line-clamp-3">
+
+              <p className="text-sm md:text-base text-white/70 leading-relaxed">
                 {servicio.descripcion}
               </p>
             </div>
 
-            {/* CTA */}
-            <a
-              href={contactHref}
-              className="group/cta inline-flex items-center justify-center gap-2 bg-[#FF5A1F] hover:bg-[#FF7A44] text-white px-6 py-3.5 rounded-full text-sm font-semibold uppercase tracking-wider transition-all duration-300 shadow-lg shadow-[#FF5A1F]/30 hover:shadow-[#FF5A1F]/50 hover:-translate-y-0.5 whitespace-nowrap"
-              style={{ fontFamily: FONT_MONO }}
-            >
-              <MessageCircle className="w-4 h-4" />
-              Cotizar algo así
-              <ArrowRight className="w-4 h-4 transition-transform group-hover/cta:translate-x-1" />
-            </a>
+            <div className="flex-shrink-0 flex flex-col items-stretch md:items-end gap-3">
+              <a
+                href={contactHref}
+                className="group/cta inline-flex items-center justify-center gap-2 bg-[#FF5A1F] hover:bg-[#FF7A44] text-white px-7 py-4 rounded-full text-sm font-bold uppercase tracking-widest transition-all duration-300 shadow-lg shadow-[#FF5A1F]/30 hover:shadow-[#FF5A1F]/60 hover:-translate-y-0.5 whitespace-nowrap"
+                style={{ fontFamily: FONT_MONO }}
+              >
+                <MessageCircle className="w-4 h-4" />
+                Cotizar algo así
+                <ArrowRight className="w-4 h-4 transition-transform group-hover/cta:translate-x-1" />
+              </a>
+              <p
+                className="text-[10px] uppercase tracking-widest text-white/40 text-center md:text-right"
+                style={{ fontFamily: FONT_MONO }}
+              >
+                Respuesta en menos de 24h
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -244,4 +255,6 @@ export default function LightboxServicio({
       `}</style>
     </div>
   );
+
+  return createPortal(content, document.body);
 }
