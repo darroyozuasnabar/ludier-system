@@ -149,30 +149,40 @@ export const GALERIAS: Record<string, GaleriaProyecto> = {
         ],
       },
       {
-        id: "pasamanos-locales",
-        titulo: "Pasamanos para locales comerciales",
+        id: "barandas-balcones",
+        titulo: "Barandas para balcones residenciales",
         descripcion:
-          "Instalación de pasamanos metálicos en escaleras de circulación para locales comerciales de Qantua Fase 2. Diseño moderno en acabado negro mate.",
-        tipo: "proceso",
+          "Fabricación e instalación de barandas metálicas en acabado negro mate para balcones residenciales de las Torres A, B y C de Qantua. El diseño uniforme realza la fachada y aporta seguridad estructural, integrando una identidad visual moderna a todo el conjunto.",
+        tipo: "antes-despues",
         fotos: [
           {
-            src: "/img/proyectos/qantua/19-instalacion-pasamanos-locales-comerciales-qantua-fase-2.png",
-            etapa: "proceso",
-            alt: "Instalación de pasamanos metálicos en locales comerciales de Qantua Fase 2",
+            src: "/img/proyectos/qantua/05-instalacion-barandas-balcones-qantua-fase-2.png",
+            etapa: "antes",
+            alt: "Instalación de barandas metálicas para balcones durante la etapa de construcción en Qantua Fase 2",
+          },
+          {
+            src: "/img/proyectos/qantua/01-barandas-balcones-qantua.png",
+            etapa: "despues",
+            alt: "Barandas metálicas en acabado negro mate terminadas en balcones de Qantua Fase 1",
           },
         ],
       },
       {
         id: "mesa-isla",
-        titulo: "Estructura metálica para mesa tipo isla",
+        titulo: "Estructura metálica para mesa integrada",
         descripcion:
-          "Fabricación e instalación de estructura metálica tubular para soporte de mesa tipo isla en departamentos residenciales de Qantua Fase 2.",
-        tipo: "final",
+          "Fabricación e instalación de estructura metálica tubular para soporte de mesa integrada en departamentos residenciales de Qantua Fase 2. La solución combina funcionalidad y diseño en acabado negro mate, integrándose al mobiliario interior del ambiente.",
+        tipo: "antes-despues",
         fotos: [
           {
+            src: "/img/proyectos/qantua/15-estructura-metalica-mesa-proceso-qantua-fase-2.png",
+            etapa: "antes",
+            alt: "Estructura metálica para mesa integrada durante el proceso de fabricación en Qantua Fase 2",
+          },
+          {
             src: "/img/proyectos/qantua/22-estructura-metalica-mesa-departamento-qantua.png",
-            etapa: "final",
-            alt: "Estructura metálica para mesa tipo isla en departamento de Qantua Fase 2",
+            etapa: "despues",
+            alt: "Estructura metálica para mesa integrada terminada en departamento de Qantua Fase 2",
           },
         ],
       },
@@ -180,12 +190,17 @@ export const GALERIAS: Record<string, GaleriaProyecto> = {
         id: "rejillas-ductos",
         titulo: "Rejillas metálicas para ductos técnicos",
         descripcion:
-          "Fabricación e instalación de rejillas metálicas para ductos técnicos en las torres de Qantua Fase 1 y Fase 2. Permiten tránsito seguro para labores de inspección y mantenimiento.",
-        tipo: "final",
+          "Fabricación e instalación de rejillas metálicas para ductos técnicos en las torres de Qantua Fase 1 y Fase 2. Permiten el tránsito seguro y la ventilación de áreas de inspección y mantenimiento.",
+        tipo: "antes-despues",
         fotos: [
           {
+            src: "/img/proyectos/qantua/14-rejilla-metalica-ventilacion-ducto-qantua-fase-1.png",
+            etapa: "antes",
+            alt: "Ducto técnico antes de la instalación de rejilla metálica en Qantua Fase 1",
+          },
+          {
             src: "/img/proyectos/qantua/23-rejilla-metalica-ducto-tecnico-qantua.png",
-            etapa: "final",
+            etapa: "despues",
             alt: "Rejilla metálica instalada en ducto técnico de Qantua",
           },
         ],
@@ -375,11 +390,11 @@ export const GALERIAS: Record<string, GaleriaProyecto> = {
       },
       {
         src: "/img/proyectos/qantua/22-estructura-metalica-mesa-departamento-qantua.png",
-        titulo: "Estructura metálica para mesa tipo isla",
+        titulo: "Estructura metálica para mesa integrada",
         descripcion:
-          "Fabricación e instalación de estructura metálica tubular para soporte de mesa tipo isla en departamentos residenciales de Qantua Fase 2.",
+          "Fabricación e instalación de estructura metálica tubular para soporte de mesa integrada en departamentos residenciales de Qantua Fase 2.",
         categoria: "mobiliario",
-        alt: "Estructura metálica para mesa tipo isla en departamento de Qantua Fase 2",
+        alt: "Estructura metálica para mesa integrada en departamento de Qantua Fase 2",
       },
       {
         src: "/img/proyectos/qantua/23-rejilla-metalica-ducto-tecnico-qantua.png",
