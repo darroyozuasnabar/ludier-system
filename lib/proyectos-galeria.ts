@@ -191,16 +191,11 @@ export const GALERIAS: Record<string, GaleriaProyecto> = {
         titulo: "Rejillas metálicas para ductos técnicos",
         descripcion:
           "Fabricación e instalación de rejillas metálicas para ductos técnicos en las torres de Qantua Fase 1 y Fase 2. Permiten el tránsito seguro y la ventilación de áreas de inspección y mantenimiento.",
-        tipo: "antes-despues",
+        tipo: "final",
         fotos: [
           {
-            src: "/img/proyectos/qantua/14-rejilla-metalica-ventilacion-ducto-qantua-fase-1.png",
-            etapa: "antes",
-            alt: "Ducto técnico antes de la instalación de rejilla metálica en Qantua Fase 1",
-          },
-          {
             src: "/img/proyectos/qantua/23-rejilla-metalica-ducto-tecnico-qantua.png",
-            etapa: "despues",
+            etapa: "final",
             alt: "Rejilla metálica instalada en ducto técnico de Qantua",
           },
         ],
