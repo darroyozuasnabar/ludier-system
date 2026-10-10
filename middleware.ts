@@ -162,12 +162,18 @@ function matchesRoute(path: string, route: string): boolean {
 function setSecurityHeaders(response: NextResponse): NextResponse {
   const csp = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://*.supabase.co",
+    // Scripts: propios + Supabase + Google Tag Manager + Analytics + Vercel
+    "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://*.supabase.co https://www.googletagmanager.com https://www.google-analytics.com https://*.vercel.app https://va.vercel-scripts.com",
+    // Estilos: propios + Google Fonts
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "img-src 'self' data: https://*.supabase.co https://*.tile.openstreetmap.org https://www.openstreetmap.org",
-    "font-src 'self' https://fonts.gstatic.com",
-    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.resend.com",
-    "frame-src 'self' https://www.openstreetmap.org",
+    // Imágenes: propios + Supabase + OpenStreetMap + Google Analytics (pixel)
+    "img-src 'self' data: blob: https://*.supabase.co https://*.tile.openstreetmap.org https://www.openstreetmap.org https://www.google-analytics.com https://www.googletagmanager.com",
+    // Fuentes
+    "font-src 'self' https://fonts.gstatic.com data:",
+    // Conexiones: Supabase + Resend + Google Analytics + Vercel
+    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.resend.com https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com https://*.vercel-insights.com https://va.vercel-scripts.com",
+    // Frames: OpenStreetMap + Google Tag Manager
+    "frame-src 'self' https://www.openstreetmap.org https://www.googletagmanager.com",
     "base-uri 'self'",
     "form-action 'self'",
   ].join('; ');
@@ -189,7 +195,6 @@ export async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
 
   // ─── 0. IGNORAR ARCHIVOS ESTÁTICOS Y SEO ───
-  // Si la ruta termina en extensión estática, dejar pasar sin auth
   if (
     path === "/sitemap.xml" ||
     path === "/robots.txt" ||

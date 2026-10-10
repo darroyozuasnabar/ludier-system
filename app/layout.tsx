@@ -1,12 +1,14 @@
 // app/layout.tsx
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 import LayoutClient from "./layout-client";
 
 const inter = Inter({ subsets: ["latin"] });
 
 const SITE_URL = "https://grupoludier.com";
+const GA_ID = "G-GYRFKP6RFF";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -123,6 +125,7 @@ export default function RootLayout({
     <html lang="es" suppressHydrationWarning>
       <body className={inter.className}>
         <LayoutClient>{children}</LayoutClient>
+        <GoogleAnalytics gaId={GA_ID} />
       </body>
     </html>
   );
