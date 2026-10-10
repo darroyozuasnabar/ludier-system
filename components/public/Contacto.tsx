@@ -68,12 +68,12 @@ const contactInfoData: ContactInfo[] = [
     contenido: "ernestoarroyo1969@hotmail.com",
     detalle: "Consultas y cotizaciones",
   },
-  {
+    {
     id: 4,
     icon: Clock,
     titulo: "Horario de atención",
     contenido: "Lun - Vie: 8:00 am - 6:00 pm",
-    detalle: "Sábados con cita previa",
+    detalle: "Sáb: 8:00 am - 1:00 pm",
   },
 ];
 
@@ -661,8 +661,8 @@ function ContactoInner() {
           >
             ¿Prefieres llamarnos?
           </h2>
-          <p className="mt-3 text-[#565C63] max-w-xl mx-auto">
-            Estamos disponibles de lunes a viernes para atenderte directamente.
+            <p className="mt-3 text-[#565C63] max-w-xl mx-auto">
+            Estamos disponibles de lunes a viernes de 8am a 6pm y sábados de 8am a 1pm.
           </p>
           <Link
             href="tel:+51930747399"
