@@ -107,7 +107,7 @@ const faqs = [
     id: 7,
     pregunta: "¿Cómo puedo solicitar una cotización?",
     respuesta:
-      "Puedes solicitar una cotización a través de nuestro formulario de contacto, llamándonos al +51 930 747 399 o enviándonos un correo a ernestoarroyo1969@hotmail.com. Respondemos en menos de 24 horas.",
+      "Puedes solicitar una cotización a través de nuestro formulario de contacto, llamándonos al +51 965 391 256 o enviándonos un correo a ernestoarroyo1969@hotmail.com. Respondemos en menos de 24 horas.",
   },
   {
     id: 8,
@@ -301,11 +301,11 @@ export default function Faq() {
                 Contactar
               </Link>
               <Link
-                href="tel:+51930747399"
+                href="tel:+51965391256"
                 className="inline-flex items-center gap-2 border border-[#E3E1D8] px-6 py-2.5 text-sm font-semibold text-[#1E2126] transition-all hover:border-[#FF5A1F] hover:text-[#FF5A1F]"
               >
                 <PhoneCall className="h-4 w-4" />
-                +51 930 747 399
+                +51 965 391 256
               </Link>
             </div>
           </div>

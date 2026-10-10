@@ -129,7 +129,7 @@ export default function Footer() {
             </p>
 
             <a
-              href="https://wa.me/51930747399?text=Hola%20LUDIER%2C%20quiero%20cotizar%20un%20proyecto"
+              href="https://wa.me/51965391256?text=Hola%20LUDIER%2C%20quiero%20cotizar%20un%20proyecto"
               target="_blank"
               rel="noopener noreferrer"
               className="group inline-flex items-center gap-2 rounded-sm bg-[#25D366] px-4 py-2.5 text-sm font-medium text-[#0B1A0F] shadow-lg shadow-[#25D366]/10 transition-all duration-300 hover:bg-[#1FB855] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#25D366]"
@@ -195,10 +195,10 @@ export default function Footer() {
               <div>
                 <p className="text-[10px] uppercase tracking-[0.14em] text-[#6E7379]">Teléfono</p>
                 <a
-                  href="tel:+51930747399"
+                  href="tel:+51965391256"
                   className="text-sm font-medium text-[#D4D4D8] transition-colors hover:text-white"
                 >
-                  +51 930 747 399
+                  +51 965 391 256
                 </a>
               </div>
             </div>

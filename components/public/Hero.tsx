@@ -549,7 +549,7 @@ export default function Hero() {
 
             {/* CTA flotante de WhatsApp — visible desde md para no invadir el carrusel en móvil/tablet */}
             <a
-              href="https://wa.me/51930747399?text=Hola%20LUDIER%2C%20quiero%20cotizar%20un%20proyecto"
+              href="https://wa.me/51965391256?text=Hola%20LUDIER%2C%20quiero%20cotizar%20un%20proyecto"
               target="_blank"
               rel="noopener noreferrer"
               className="absolute -right-2 -top-4 hidden items-center gap-2 rounded-full bg-[#25D366] px-3.5 py-2 text-[11px] font-semibold text-[#0B1A0F] shadow-lg transition-transform hover:scale-105 md:-right-3 md:-top-5 md:flex md:px-4 md:py-2.5 md:text-xs"

@@ -54,12 +54,12 @@ const contactInfoData: ContactInfo[] = [
     contenido: "San Juan de Miraflores, Lima",
     detalle: "Oficina principal en SJM",
   },
-  {
+    {
     id: 2,
     icon: PhoneCall,
     titulo: "Teléfono / WhatsApp",
-    contenido: "+51 930 747 399",
-    detalle: "Respuesta inmediata",
+    contenido: "+51 965 391 256",
+    detalle: "Atención comercial · Respaldo: +51 930 747 399",
   },
   {
     id: 3,
@@ -374,7 +374,7 @@ function ContactoInner() {
 
             <div className="mt-8 flex flex-wrap gap-4">
               <Link
-                href="tel:+51930747399"
+                href="tel:+51965391256"
                 className="inline-flex items-center gap-2 bg-[#FF5A1F] px-6 py-3 text-sm font-semibold uppercase tracking-wide text-white shadow-lg shadow-[#FF5A1F]/20 transition-all hover:bg-[#FF7A44] hover:shadow-[#FF5A1F]/40 hover:-translate-y-1"
               >
                 <PhoneCall className="h-4 w-4" />
@@ -665,11 +665,11 @@ function ContactoInner() {
             Estamos disponibles de lunes a viernes de 8am a 6pm y sábados de 8am a 1pm.
           </p>
           <Link
-            href="tel:+51930747399"
+            href="tel:+51965391256"
             className="mt-6 inline-flex items-center gap-2 bg-[#FF5A1F] px-8 py-4 text-sm font-semibold uppercase tracking-wide text-white shadow-lg shadow-[#FF5A1F]/20 transition-all hover:bg-[#FF7A44] hover:shadow-[#FF5A1F]/40 hover:-translate-y-1"
           >
             <PhoneCall className="h-4 w-4" />
-            +51 930 747 399
+            +51 965 391 256
             <ArrowRight className="h-4 w-4" />
           </Link>
           <div className="mt-4 flex justify-center gap-4 text-xs text-[#8B8F86]">
