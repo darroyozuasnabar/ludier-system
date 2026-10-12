@@ -5,11 +5,11 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { crmContactoSchema } from "@/lib/validations/contactos";
-import type { ContactoInput } from "@/lib/validations/contactos";
+import type { CrmContactoInput } from "@/lib/validations/contactos";
 import React from "react";
 
 // El formulario expone este tipo como interfaz pública
-export type ContactoFormData = ContactoInput;
+export type ContactoFormData = CrmContactoInput;
 
 interface ContactoFormProps {
   /** Valores iniciales (para modo edición) */
