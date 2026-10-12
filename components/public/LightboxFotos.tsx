@@ -4,6 +4,7 @@
 import { useEffect, useCallback, useState } from "react";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { CATEGORIAS_INFO, type FotoGaleria } from "@/lib/proyectos-galeria";
+import { trackEvent } from "@/lib/analytics";
 
 const FONT_DISPLAY = "var(--font-display, Oswald, sans-serif)";
 const FONT_BODY = "var(--font-body, Inter, sans-serif)";
@@ -48,6 +49,15 @@ export default function LightboxFotos({
       document.body.style.overflow = "";
     };
   }, [onClose, irAnterior, irSiguiente]);
+
+  // 📊 Google Analytics — Tracking de vista de foto
+  useEffect(() => {
+    if (!foto) return;
+    trackEvent("foto_view", {
+      foto_titulo: foto.titulo,
+      categoria: foto.categoria,
+    });
+  }, [foto]);
 
   if (!foto) return null;
 

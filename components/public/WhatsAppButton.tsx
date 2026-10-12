@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { trackEvent } from "@/lib/analytics";
 
 export default function WhatsAppButton() {
   const [isVisible, setIsVisible] = useState(false);
@@ -24,6 +25,11 @@ export default function WhatsAppButton() {
         href={whatsappUrl}
         target="_blank"
         rel="noopener noreferrer"
+        onClick={() => {
+          trackEvent("whatsapp_click", {
+            ubicacion: "boton_flotante",
+          });
+        }}
         className="group relative flex items-center justify-center w-16 h-16 rounded-full bg-[#25D366] shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95"
         aria-label="Contactar por WhatsApp"
       >

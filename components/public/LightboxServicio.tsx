@@ -11,6 +11,7 @@ import {
   MessageCircle,
 } from "lucide-react";
 import { ETAPAS_INFO, type ServicioGaleria } from "@/lib/proyectos-galeria";
+import { trackEvent } from "@/lib/analytics";
 
 const FONT_DISPLAY = "var(--font-display, Oswald, sans-serif)";
 const FONT_BODY = "var(--font-body, Inter, sans-serif)";
@@ -223,6 +224,12 @@ export default function LightboxServicio({
             <div className="flex-shrink-0 flex flex-col items-stretch md:items-end gap-3">
               <a
                 href={contactHref}
+                onClick={() => {
+                  trackEvent("cta_cotizar_click", {
+                    servicio: servicio.titulo,
+                    ubicacion: "lightbox_servicio",
+                  });
+                }}
                 className="group/cta inline-flex items-center justify-center gap-2 bg-[#FF5A1F] hover:bg-[#FF7A44] text-white px-7 py-4 rounded-full text-sm font-bold uppercase tracking-widest transition-all duration-300 shadow-lg shadow-[#FF5A1F]/30 hover:shadow-[#FF5A1F]/60 hover:-translate-y-0.5 whitespace-nowrap"
                 style={{ fontFamily: FONT_MONO }}
               >

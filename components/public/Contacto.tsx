@@ -24,6 +24,7 @@ import {
   Clock,
   Send,
 } from "lucide-react";
+import { trackEvent } from "@/lib/analytics";
 
 // ============================================================
 // TIPOGRAFÍAS
@@ -54,7 +55,7 @@ const contactInfoData: ContactInfo[] = [
     contenido: "San Juan de Miraflores, Lima",
     detalle: "Oficina principal en SJM",
   },
-    {
+  {
     id: 2,
     icon: PhoneCall,
     titulo: "Teléfono / WhatsApp",
@@ -68,7 +69,7 @@ const contactInfoData: ContactInfo[] = [
     contenido: "ernestoarroyo1969@hotmail.com",
     detalle: "Consultas y cotizaciones",
   },
-    {
+  {
     id: 4,
     icon: Clock,
     titulo: "Horario de atención",
@@ -208,7 +209,6 @@ function ContactoInner() {
 
     if (servicioParam) {
       setFormState((prev) => {
-        // Solo precargar si los campos están vacíos (no sobreescribir input del usuario)
         if (prev.asunto || prev.mensaje) return prev;
 
         const proyectoTexto = proyectoParam ? ` del proyecto ${proyectoParam}` : "";
@@ -219,7 +219,6 @@ function ContactoInner() {
         };
       });
 
-      // Scroll suave al formulario después de un pequeño delay
       setTimeout(() => {
         const formEl = document.querySelector("#formulario-contacto");
         if (formEl) {
@@ -278,6 +277,18 @@ function ContactoInner() {
           throw new Error(data.error || 'Error al enviar el mensaje.');
         }
       }
+
+      // 📊 Google Analytics — Conversión
+      const servicioParam = searchParams.get("servicio");
+      trackEvent("form_submit", {
+        form_name: "contacto_landing",
+        servicio_origen: servicioParam || "directo",
+        tiene_telefono: formState.telefono ? "si" : "no",
+      });
+      trackEvent("generate_lead", {
+        value: 1,
+        currency: "PEN",
+      });
 
       Swal.fire({
         icon: 'success',
@@ -661,7 +672,7 @@ function ContactoInner() {
           >
             ¿Prefieres llamarnos?
           </h2>
-            <p className="mt-3 text-[#565C63] max-w-xl mx-auto">
+          <p className="mt-3 text-[#565C63] max-w-xl mx-auto">
             Estamos disponibles de lunes a viernes de 8am a 6pm y sábados de 8am a 1pm.
           </p>
           <Link
