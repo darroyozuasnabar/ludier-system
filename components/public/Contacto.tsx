@@ -265,7 +265,23 @@ function ContactoInner() {
         body: JSON.stringify(formState),
       });
 
-      const data = await response.json();
+      // 🔥 Manejar respuestas no-JSON (ej: HTML de error 500, 404, redirect)
+      const contentType = response.headers.get("content-type");
+      let data: any = {};
+
+      if (contentType && contentType.includes("application/json")) {
+        data = await response.json();
+      } else {
+        // El servidor devolvió algo que NO es JSON
+        const text = await response.text();
+        console.error(
+          `[Contacto] Respuesta no-JSON del servidor (status ${response.status}):`,
+          text.substring(0, 500),
+        );
+        throw new Error(
+          `Error del servidor (${response.status}). Escríbenos directamente a ernestoarroyo1969@hotmail.com o por WhatsApp al +51 965 391 256.`,
+        );
+      }
 
       if (!response.ok) {
         if (response.status === 400 && data.errors) {

@@ -194,6 +194,13 @@ function setSecurityHeaders(response: NextResponse): NextResponse {
 export async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
 
+  // ─── API ROUTES: PASAR SIN HEADERS NI AUTH ───
+  // Importante: las APIs devuelven JSON, no HTML
+  // Aplicar CSP aquí puede romper las respuestas
+  if (path.startsWith("/api/")) {
+    return NextResponse.next();
+  }
+
   // ─── 0. IGNORAR ARCHIVOS ESTÁTICOS Y SEO ───
   if (
     path === "/sitemap.xml" ||
