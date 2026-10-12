@@ -7,7 +7,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { rateLimit } from "@/lib/rate-limit";
 import { z } from "zod";
-import { contactoSchema, contactoFiltrosSchema } from "@/lib/validations/contactos";
+import { crmContactoSchema, contactoFiltrosSchema } from "@/lib/validations/contactos";
 
 // ============================================================
 // 🔥 CLIENTE SUPABASE (server-side con cookies de sesión)
@@ -123,7 +123,7 @@ export async function POST(req: NextRequest) {
 
     // 3. Validar body con Zod
     const body = await req.json();
-    const datos = contactoSchema.parse(body);
+    const datos = crmContactoSchema.parse(body);
 
     const supabase = await createSupabaseClient();
 

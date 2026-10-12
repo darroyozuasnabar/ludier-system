@@ -4,7 +4,7 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { contactoSchema } from "@/lib/validations/contactos";
+import { crmContactoSchema } from "@/lib/validations/contactos";
 import type { ContactoInput } from "@/lib/validations/contactos";
 import React from "react";
 
@@ -67,7 +67,7 @@ export default function ContactoForm({
     handleSubmit,
     formState: { errors },
   } = useForm<ContactoFormData>({
-    resolver: zodResolver(contactoSchema),
+resolver: zodResolver(crmContactoSchema),
     defaultValues: {
       estado: "ACTIVO",
       ...defaultValues,

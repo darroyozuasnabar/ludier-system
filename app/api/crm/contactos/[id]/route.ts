@@ -6,8 +6,7 @@ import { cookies } from "next/headers";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { z } from "zod";
-import { contactoSchema } from "@/lib/validations/contactos";
-
+import { crmContactoSchema } from "@/lib/validations/contactos";
 // ============================================================
 // 🔥 CLIENTE SUPABASE
 // ============================================================
@@ -84,7 +83,7 @@ export async function PUT(
 
     // Validar body con Zod (schema parcial para actualización)
     const body = await req.json();
-    const datos = contactoSchema.partial().parse(body);
+    const datos = crmContactoSchema.partial().parse(body);
 
     const supabase = await createSupabaseClient();
 

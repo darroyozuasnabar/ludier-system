@@ -10,8 +10,8 @@ import { emailSchema, phoneSchema } from "./shared";
 export const ESTADO_CONTACTO = ["ACTIVO", "INACTIVO", "PROSPECTO"] as const;
 export type EstadoContacto = (typeof ESTADO_CONTACTO)[number];
 
-/** Schema para crear o actualizar un contacto */
-export const contactoSchema = z.object({
+/** Schema para crear o actualizar un contacto CRM */
+export const crmContactoSchema = z.object({
   nombre: z
     .string()
     .min(2, "El nombre debe tener al menos 2 caracteres")
@@ -64,5 +64,5 @@ export const contactoFiltrosSchema = z.object({
   offset:  z.coerce.number().int().min(0).optional().default(0),
 });
 
-export type ContactoInput    = z.infer<typeof contactoSchema>;
+export type CrmContactoInput = z.infer<typeof crmContactoSchema>;
 export type ContactoFiltros  = z.infer<typeof contactoFiltrosSchema>;
