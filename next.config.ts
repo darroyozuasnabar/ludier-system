@@ -22,153 +22,82 @@ const nextConfig: NextConfig = {
   // ============================================================
   async redirects() {
     return [
-      // === PÁGINAS PÚBLICAS (/public) ===
+      // === REDIRECT 301: URLs VIEJAS (/public/*) → NUEVAS (/*) ===
+      // Preserva el SEO ya ganado en Google Search Console
       {
-        source: "/proyectos",
-        destination: "/public/proyectos",
+        source: "/public/servicios",
+        destination: "/servicios",
         permanent: true,
       },
       {
-        source: "/proyectos/:slug",
-        destination: "/public/proyectos/:slug",
+        source: "/public/servicios/:slug",
+        destination: "/servicios/:slug",
         permanent: true,
       },
       {
-        source: "/servicios",
-        destination: "/public/servicios",
+        source: "/public/proyectos",
+        destination: "/proyectos",
         permanent: true,
       },
       {
-        source: "/servicios/:slug",
-        destination: "/public/servicios/:slug",
+        source: "/public/proyectos/:slug",
+        destination: "/proyectos/:slug",
         permanent: true,
       },
       {
-        source: "/contacto",
-        destination: "/public/contacto",
+        source: "/public/contacto",
+        destination: "/contacto",
         permanent: true,
       },
       {
-        source: "/nosotros",
-        destination: "/public/nosotros",
+        source: "/public/nosotros",
+        destination: "/nosotros",
         permanent: true,
       },
       {
-        source: "/blog",
-        destination: "/public/blog",
+        source: "/public/blog",
+        destination: "/blog",
         permanent: true,
       },
       {
-        source: "/blog/:slug",
-        destination: "/public/blog/:slug",
+        source: "/public/blog/:slug",
+        destination: "/blog/:slug",
         permanent: true,
       },
       {
-        source: "/faq",
-        destination: "/public/faq",
+        source: "/public/faq",
+        destination: "/faq",
         permanent: true,
       },
       {
-        source: "/testimonios",
-        destination: "/public/testimonios",
+        source: "/public/testimonios",
+        destination: "/testimonios",
         permanent: true,
       },
 
       // === PÁGINAS DEL ERP (/erp) ===
-      {
-        source: "/dashboard",
-        destination: "/erp/dashboard",
-        permanent: true,
-      },
-      {
-        source: "/personal",
-        destination: "/erp/personal",
-        permanent: true,
-      },
-      {
-        source: "/produccion",
-        destination: "/erp/produccion",
-        permanent: true,
-      },
-      {
-        source: "/obras",
-        destination: "/erp/obras",
-        permanent: true,
-      },
-      {
-        source: "/valorizaciones",
-        destination: "/erp/valorizaciones",
-        permanent: true,
-      },
-      {
-        source: "/costos",
-        destination: "/erp/costos",
-        permanent: true,
-      },
-      {
-        source: "/compras",
-        destination: "/erp/compras",
-        permanent: true,
-      },
-      {
-        source: "/inventario",
-        destination: "/erp/inventario",
-        permanent: true,
-      },
-      {
-        source: "/documentos",
-        destination: "/erp/documentos",
-        permanent: true,
-      },
-      {
-        source: "/fotos",
-        destination: "/erp/fotos",
-        permanent: true,
-      },
-      {
-        source: "/calidad",
-        destination: "/erp/calidad",
-        permanent: true,
-      },
-      {
-        source: "/alertas",
-        destination: "/erp/alertas",
-        permanent: true,
-      },
-      {
-        source: "/reportes",
-        destination: "/erp/reportes",
-        permanent: true,
-      },
-      {
-        source: "/facturacion",
-        destination: "/erp/facturacion",
-        permanent: true,
-      },
-      {
-        source: "/indicadores",
-        destination: "/erp/indicadores",
-        permanent: true,
-      },
+      { source: "/dashboard", destination: "/erp/dashboard", permanent: true },
+      { source: "/personal", destination: "/erp/personal", permanent: true },
+      { source: "/produccion", destination: "/erp/produccion", permanent: true },
+      { source: "/obras", destination: "/erp/obras", permanent: true },
+      { source: "/valorizaciones", destination: "/erp/valorizaciones", permanent: true },
+      { source: "/costos", destination: "/erp/costos", permanent: true },
+      { source: "/compras", destination: "/erp/compras", permanent: true },
+      { source: "/inventario", destination: "/erp/inventario", permanent: true },
+      { source: "/documentos", destination: "/erp/documentos", permanent: true },
+      { source: "/fotos", destination: "/erp/fotos", permanent: true },
+      { source: "/calidad", destination: "/erp/calidad", permanent: true },
+      { source: "/alertas", destination: "/erp/alertas", permanent: true },
+      { source: "/reportes", destination: "/erp/reportes", permanent: true },
+      { source: "/facturacion", destination: "/erp/facturacion", permanent: true },
+      { source: "/indicadores", destination: "/erp/indicadores", permanent: true },
 
       // ✅ COTIZACIONES - AHORA VA A /erp/cotizaciones
-      {
-        source: "/cotizaciones",
-        destination: "/erp/cotizaciones",
-        permanent: true,
-      },
-      {
-        source: "/cotizaciones/:slug",
-        destination: "/erp/cotizaciones/:slug",
-        permanent: true,
-      },
+      { source: "/cotizaciones", destination: "/erp/cotizaciones", permanent: true },
+      { source: "/cotizaciones/:slug", destination: "/erp/cotizaciones/:slug", permanent: true },
 
       // === PÁGINAS DEL CRM (/crm) ===
-      {
-        source: "/clientes",
-        destination: "/crm/clientes",
-        permanent: true,
-      },
+      { source: "/clientes", destination: "/crm/clientes", permanent: true },
     ];
   },
 
@@ -177,26 +106,11 @@ const nextConfig: NextConfig = {
       {
         source: "/:path*",
         headers: [
-          {
-            key: "X-DNS-Prefetch-Control",
-            value: "on",
-          },
-          {
-            key: "X-Frame-Options",
-            value: "SAMEORIGIN",
-          },
-          {
-            key: "X-Content-Type-Options",
-            value: "nosniff",
-          },
-          {
-            key: "Referrer-Policy",
-            value: "strict-origin-when-cross-origin",
-          },
-          {
-            key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=()",
-          },
+          { key: "X-DNS-Prefetch-Control", value: "on" },
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
           {
             key: "Content-Security-Policy",
             value: `
@@ -216,10 +130,7 @@ const nextConfig: NextConfig = {
       {
         source: "/_next/static/:path*",
         headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
-          },
+          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
         ],
       },
     ];

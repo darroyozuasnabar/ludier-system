@@ -9,14 +9,13 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 
 const PUBLIC_ROUTES = [
   "/",
-  "/public",
-  "/public/servicios",
-  "/public/proyectos",
-  "/public/nosotros",
-  "/public/contacto",
-  "/public/faq",
-  "/public/blog",
-  "/public/testimonios",
+  "/servicios",
+  "/proyectos",
+  "/nosotros",
+  "/contacto",
+  "/faq",
+  "/blog",
+  "/testimonios",
 ];
 
 const AUTH_ROUTES = ["/login", "/register"];
@@ -34,8 +33,7 @@ export default function LayoutClient({
     PUBLIC_ROUTES.some(
       (route) => pathname === route || pathname.startsWith(route + "/"),
     ) ||
-    pathname === "/" ||
-    pathname.startsWith("/public/");
+    pathname === "/";
 
   const isClienteAppRoute = pathname.startsWith("/cliente") && !isAuthPage;
 

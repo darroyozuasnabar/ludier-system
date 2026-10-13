@@ -10,13 +10,13 @@ import { getToken } from "next-auth/jwt";
 const PUBLIC_PREFIXES = [
   "/",
   "/login",
-  "/public/servicios",
-  "/public/proyectos",
-  "/public/nosotros",
-  "/public/contacto",
-  "/public/faq",
-  "/public/blog",
-  "/public/testimonios",
+  "/servicios",
+  "/proyectos",
+  "/nosotros",
+  "/contacto",
+  "/faq",
+  "/blog",
+  "/testimonios",
   "/api/auth",
   "/api/contacto",
   "/api/cotizaciones",
@@ -27,9 +27,9 @@ const PUBLIC_PREFIXES = [
 ];
 
 const PUBLIC_PATH_PREFIXES = [
-  "/public/servicios/",
-  "/public/proyectos/",
-  "/public/blog/",
+  "/servicios/",
+  "/proyectos/",
+  "/blog/",
   "/api/auth/",
 ];
 
