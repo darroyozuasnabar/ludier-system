@@ -10,8 +10,10 @@
  *  5. Sanitización de campos opcionales nulos
  */
 
+import type { ZodIssue } from "zod";
+
 import {
-  contactoSchema,
+  crmContactoSchema as contactoSchema,
   contactoFiltrosSchema,
   ESTADO_CONTACTO,
 } from "@/lib/validations/contactos";
@@ -97,7 +99,7 @@ describe("contactoSchema — casos inválidos", () => {
     const result = contactoSchema.safeParse({ ...contactoValido, nombre: "" });
     expect(result.success).toBe(false);
     if (!result.success) {
-      const campos = result.error.errors.map((e) => e.path[0]);
+      const campos = result.error.errors.map((e: ZodIssue) => e.path[0]);
       expect(campos).toContain("nombre");
     }
   });
@@ -171,7 +173,7 @@ describe("contactoSchema — casos inválidos", () => {
     const result = contactoSchema.safeParse({});
     expect(result.success).toBe(false);
     if (!result.success) {
-      const campos = result.error.errors.map((e) => e.path[0]);
+      const campos = result.error.errors.map((e: ZodIssue) => e.path[0]);
       expect(campos).toContain("nombre");
       expect(campos).toContain("apellido");
     }
