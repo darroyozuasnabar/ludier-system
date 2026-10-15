@@ -2,6 +2,7 @@
 import type { MetadataRoute } from "next";
 import { proyectosData } from "@/lib/proyectos-data";
 import { SERVICIOS_SEO } from "@/lib/servicios-seo";
+import { POSTS } from "@/lib/blog-posts";
 
 const SITE_URL = "https://grupoludier.com";
 
@@ -50,7 +51,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `${SITE_URL}/blog`,
       lastModified: now,
       changeFrequency: "weekly",
-      priority: 0.7,
+      priority: 0.8,
     },
     {
       url: `${SITE_URL}/testimonios`,
@@ -78,5 +79,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8,
   }));
 
-  return [...staticPages, ...servicePages, ...projectPages];
+  // ── Artículos del blog (7 artículos) ──
+  const blogPages: MetadataRoute.Sitemap = POSTS.map((post) => ({
+    url: `${SITE_URL}/blog/${post.slug}`,
+    lastModified: new Date(post.fechaISO),
+    changeFrequency: "monthly" as const,
+    priority: 0.7,
+  }));
+
+  return [...staticPages, ...servicePages, ...projectPages, ...blogPages];
 }
