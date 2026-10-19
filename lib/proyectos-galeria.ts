@@ -2,18 +2,14 @@
 //
 // Metadatos de la galería de fotos y videos por proyecto.
 // Fuente única de verdad para la landing (carpeta pública + JSON estático).
-//
-// Estructura:
-//   - servicios[]  → tarjetas con carrusel (antes/proceso/después)
-//   - fotos[]      → grid plano completo (catálogo)
-//   - videos[]     → videos del proyecto
 
 export type CategoriaFoto =
   | "barandas"
   | "instalacion"
   | "estructuras"
   | "cercos"
-  | "mobiliario";
+  | "mobiliario"
+  | "proyecto_terminado";
 
 export type EtapaFoto = "antes" | "proceso" | "despues" | "final";
 
@@ -68,6 +64,7 @@ export const CATEGORIAS_INFO: Record<
   estructuras: { label: "Estructuras metálicas", color: "amber" },
   cercos: { label: "Cercos y cerramientos", color: "gray" },
   mobiliario: { label: "Mobiliario metálico", color: "emerald" },
+  proyecto_terminado: { label: "Proyecto Terminado", color: "green" },
 };
 
 // ─── Info de etapas (carrusel servicios) ───────────────────────────────────
@@ -86,10 +83,58 @@ export const ETAPAS_INFO: Record<
 // ═══════════════════════════════════════════════════════════════════════════
 
 export const GALERIAS: Record<string, GaleriaProyecto> = {
+  zendai: {
+    servicios: [
+      {
+        id: "barandas-balcones",
+        titulo: "Barandas metálicas para balcones residenciales",
+        descripcion:
+          "Fabricación e instalación de barandas metálicas de seguridad para los balcones del Edificio Residencial Zendai. La solución aporta protección estructural, cumple con las normativas de seguridad en altura y define la estética de la fachada del edificio.",
+        tipo: "antes-despues",
+        fotos: [
+          {
+            src: "/img/proyectos/zendai/zendai_construccion.jpg",
+            etapa: "antes",
+            alt: "Balcones del edificio Zendai durante la etapa de construcción antes de la instalación de barandas",
+          },
+          {
+            src: "/img/proyectos/zendai/zendai_img2.jpg",
+            etapa: "despues",
+            alt: "Barandas metálicas instaladas y terminadas en los balcones del Edificio Zendai",
+          },
+        ],
+      },
+    ],
+    fotos: [
+      {
+        src: "/img/proyectos/zendai/zendai_img1.png",
+        titulo: "Barandas metálicas para balcones en Zendai",
+        descripcion:
+          "Vista de las barandas metálicas instaladas en los balcones del Edificio Residencial Zendai, aportando seguridad y un diseño moderno a la fachada.",
+        categoria: "barandas",
+        alt: "Barandas metálicas en balcones del edificio Zendai",
+      },
+      {
+        src: "/img/proyectos/zendai/zendai_imagen3.jpg",
+        titulo: "Detalle de barandas y estructura metálica",
+        descripcion:
+          "Detalle de los trabajos de carpintería metálica realizados en el proyecto Zendai, mostrando la precisión en soldadura y acabados.",
+        categoria: "estructuras",
+        alt: "Detalle de instalación de barandas en Zendai",
+      },
+      {
+        src: "/img/proyectos/zendai/zendai_img2.jpg",
+        titulo: "Acabado final de barandas en balcones",
+        descripcion:
+          "Vista final de las barandas metálicas terminadas en los balcones del Edificio Zendai, resaltando la uniformidad del diseño y la integración con la fachada terminada.",
+        categoria: "barandas",
+        alt: "Acabado final de barandas metálicas en Zendai",
+      },
+    ],
+    videos: [],
+  },
+
   qantua: {
-    // ─────────────────────────────────────────────────────────────────────
-    // SERVICIOS — Tarjetas con carrusel antes/proceso/después
-    // ─────────────────────────────────────────────────────────────────────
     servicios: [
       {
         id: "barandas-azotea",
@@ -171,7 +216,7 @@ export const GALERIAS: Record<string, GaleriaProyecto> = {
         id: "mesa-isla",
         titulo: "Estructura metálica para mesa integrada",
         descripcion:
-          "Fabricación e instalación de estructura metálica tubular para soporte de mesa integrada en departamentos residenciales de Qantua Fase 2. La solución combina funcionalidad y diseño en acabado negro mate, integrándose al mobiliario interior del ambiente.",
+          "Fabricación e instalación de estructura metálica tubular para soporte de mesa integrada en departamentos residenciales de Qantua Fase 2. La combinación funcional y de diseño en acabado negro mate se integra al mobiliario interior del ambiente.",
         tipo: "antes-despues",
         fotos: [
           {
@@ -187,25 +232,35 @@ export const GALERIAS: Record<string, GaleriaProyecto> = {
         ],
       },
       {
-        id: "rejillas-ductos",
-        titulo: "Rejillas metálicas para ductos técnicos",
+        id: "escaleras-emergencia",
+        titulo: "Escaleras de emergencia con barandas metálicas",
         descripcion:
-          "Fabricación e instalación de rejillas metálicas para ductos técnicos en las torres de Qantua Fase 1 y Fase 2. Permiten el tránsito seguro y la ventilación de áreas de inspección y mantenimiento.",
-        tipo: "final",
+          "Fabricación e instalación de barandas metálicas para escaleras de emergencia en Qantua Fase 1. El sistema garantiza la seguridad y evacuación del edificio, cumpliendo con las normativas vigentes.",
+        tipo: "antes-despues",
         fotos: [
           {
-            src: "/img/proyectos/qantua/23-rejilla-metalica-ducto-tecnico-qantua.png",
-            etapa: "final",
-            alt: "Rejilla metálica instalada en ducto técnico de Qantua",
+            src: "/img/proyectos/qantua/03-instalacion-barandas-escalera-emergencia-qantua.png",
+            etapa: "antes",
+            alt: "Instalación de barandas metálicas para escaleras de emergencia en Qantua Fase 1",
+          },
+          {
+            src: "/img/proyectos/qantua/27-escaleras-de-emergencia_acabado.jpg",
+            etapa: "despues",
+            alt: "Acabado final de escaleras de emergencia con barandas metálicas en Qantua",
           },
         ],
       },
     ],
 
-    // ─────────────────────────────────────────────────────────────────────
-    // FOTOS — Grid plano completo (19 fotos)
-    // ─────────────────────────────────────────────────────────────────────
     fotos: [
+      {
+        src: "/img/proyectos/qantua/28-vistaIntegralQantuaF1&F2.jpeg",
+        titulo: "Vista integral de Qantua Fase 1 y Qantua Fase 2",
+        descripcion:
+          "Vista panorámica del proyecto Qantua que muestra el conjunto residencial conformado por las torres de Qantua Fase 1 y Qantua Fase 2. La imagen permite apreciar la integración arquitectónica de ambas etapas, así como las barandas metálicas instaladas en balcones, áreas comunes y espacios de circulación, elementos fabricados e instalados por LUDIER como parte de los trabajos metalmecánicos desarrollados para el proyecto.",
+        categoria: "proyecto_terminado",
+        alt: "Vista panorámica de las torres de Qantua Fase 1 y Fase 2",
+      },
       {
         src: "/img/proyectos/qantua/01-barandas-balcones-qantua.png",
         titulo: "Barandas metálicas para balcones residenciales",
@@ -358,7 +413,6 @@ export const GALERIAS: Record<string, GaleriaProyecto> = {
         categoria: "instalacion",
         alt: "Barandas metálicas para azotea con base anticorrosiva en Qantua Fase 2",
       },
-      // ── Nuevas fotos (19-26) ───────────────────────────────────────────
       {
         src: "/img/proyectos/qantua/19-instalacion-pasamanos-locales-comerciales-qantua-fase-2.png",
         titulo: "Instalación de pasamanos en locales comerciales",
@@ -425,24 +479,22 @@ export const GALERIAS: Record<string, GaleriaProyecto> = {
       },
     ],
 
-    // ─────────────────────────────────────────────────────────────────────
-    // VIDEOS — Comentar cuando suban
-    // ─────────────────────────────────────────────────────────────────────
+    // 👇 RUTA EXACTA DE TUS 2 VIDEOS
     videos: [
-      // {
-      //   src: "/img/proyectos/qantua/videos/recorrido-qantua.mp4",
-      //   titulo: "Recorrido por Qantua Fase 2",
-      //   descripcion: "Recorrido completo por la obra terminada de Qantua Fase 2.",
-      //   poster: "/img/proyectos/qantua/11-barandas-balcones-fachada-terminada-qantua-fase-1.png",
-      //   duracion: "1:20",
-      // },
-      // {
-      //   src: "/img/proyectos/qantua/videos/instalacion-timelapse.mp4",
-      //   titulo: "Timelapse de instalación",
-      //   descripcion: "Proceso de instalación en cámara rápida.",
-      //   poster: "/img/proyectos/qantua/05-instalacion-barandas-balcones-qantua-fase-2.png",
-      //   duracion: "0:35",
-      // },
+      {
+        src: "/img/proyectos/qantua/recorridoQantua.mp4",
+        titulo: "Recorrido por las barandas de balcones en Qantua",
+        descripcion:
+          "Video grabado desde la azotea del proyecto, mostrando una vista panorámica de las barandas metálicas instaladas en los balcones de Qantua, con un enfoque hacia abajo para apreciar el acabado y la magnitud de la obra.",
+        poster: "/img/proyectos/qantua/28-vistaIntegralQantuaF1&F2.jpeg",
+      },
+      {
+        src: "/img/proyectos/qantua/VistaIntegralQantuaF1_amp_F2.mp4",
+        titulo: "Vista integral de Qantua Fase 1 y Qantua Fase 2",
+        descripcion:
+          "Vista panorámica en video del conjunto residencial, apreciando la integración arquitectónica de las torres y los elementos metálicos fabricados e instalados por LUDIER.",
+        poster: "/img/proyectos/qantua/28-vistaIntegralQantuaF1&F2.jpeg",
+      },
     ],
   },
 };
