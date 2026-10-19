@@ -21,7 +21,6 @@ import {
   ExternalLink,
 } from "lucide-react";
 
-// 👇 IMPORTAMOS LA DATA DESDE LA FUENTE DE VERDAD
 import { proyectosData, type Proyecto } from "@/lib/proyectos-data";
 
 // Re-exportar para no romper imports existentes
@@ -120,16 +119,15 @@ const ModalProyecto = ({
   if (!proyecto) return null;
   const CatIcon = categoriaEstilos[proyecto.categoria].icon;
 
-  // 👇 ACTUALIZADO CON LOS NUEVOS CLIENTES
-    const clienteURLs: Record<string, string> = {
-    "Grupo LAR": "https://grupolar.pe/",
+  const clienteURLs: Record<string, string> = {
+    "Grupo LAR": "https://grupolar.pe/proyectos/la-victoria-elant/fase-3/",
     "Desarrollo Plaza Grau S.A.C. / Grupo LAR": "https://grupolar.pe/",
     "Desarrollo Inmobiliario FG S.A.C. / Grupo LAR": "https://grupolar.pe/",
     "Desarrollo Inmobiliario FG S.A.C.": "https://grupolar.pe/",
     "MDP Construcciones S.A.C.": "https://mdpconstrucciones.com.pe/",
     "MDP CONSTRUCCIONES S.A.C.": "https://mdpconstrucciones.com.pe/",
     "Flat Canevaro S.A.C.": "https://flat-peru.com/",
-    "Zonum Inmobiliaria": "https://www.zonum.pe/inmobiliaria/proyecto-edificio-echenique-355/", // 👈 NUEVO
+    "Zonum Inmobiliaria": "https://www.zonum.pe/inmobiliaria/proyecto-edificio-echenique-355/",
   };
 
   const clienteURL = clienteURLs[proyecto.cliente] || null;
@@ -385,7 +383,7 @@ const ProyectoCard = ({
 };
 
 // ============================================================
-// COMPONENTE PRINCIPAL
+// COMPONENTE PRINCIPAL (EXPORT DEFAULT)
 // ============================================================
 export default function Proyectos({
   limit,
@@ -429,7 +427,7 @@ export default function Proyectos({
 
   // ---------- VERSIÓN HOME ----------
   if (isHome) {
-    const homeProjectSlugs = ["qantua", "zendai", "hilton"];
+    const homeProjectSlugs = ["qantua", "zendai", "hilton", "elant-fase-3"];
     const homeProjects = homeProjectSlugs
       .map((slug) => proyectosData.find((p) => p.slug === slug))
       .filter((p): p is Proyecto => p !== undefined);

@@ -33,7 +33,7 @@ export const proyectosData: Proyecto[] = [
       "Trabajos Auxiliares y Modificaciones: Apertura y cierre temporal de cercos, desmontaje de almacenes de ascensores, reparación de portones corredizos, estructuras para lavaderos y modificaciones estructurales en obra."
     ],
     resultado:
-      "Participación integral y continua en ambas fases del proyecto. LUDIER se consolidó como el proveedor estratégico de Grupo LAR, demostrando una capacidad operativa inigualable para ejecutar desde la seguridad perimetral de la obra hasta los acabados arquitectónicos finales y estructuras de alta complejidad.",
+      "Participación integral y continua en las Fases 1 y 2. LUDIER se consolidó como el socio estratégico de Grupo LAR, demostrando una capacidad operativa inigualable para ejecutar desde la seguridad perimetral hasta los acabados arquitectónicos. Mantenemos una alianza comercial activa para continuar brindando soluciones metalmecánicas integrales en las siguientes etapas del proyecto.",
     imagen: "/img/Qantua.jpg",
   },
   // 2. ZENDAI
@@ -41,7 +41,7 @@ export const proyectosData: Proyecto[] = [
     id: 1,
     slug: "zendai",
     titulo: "Edificio Zendai",
-    cliente: "Desarrollo Inmobiliario FG S.A.C. / Grupo LAR",
+    cliente: "Desarrollo Inmobiliario FG S.A.C.",
     ubicacion: "Santa Catalina, La Victoria, Lima",
     categoria: "residencial",
     servicios: [
@@ -52,14 +52,14 @@ export const proyectosData: Proyecto[] = [
       "Cumplimiento de rigurosos estándares corporativos de seguridad, incluyendo SCTR y EPP para todo el personal."
     ],
     resultado:
-      "Consolidación como proveedor corporativo del Grupo LAR. Se demostró la capacidad técnica para fabricar e instalar sistemas de seguridad metálicos de gran escala en un edificio de 28 pisos, cumpliendo estrictamente con los estándares de calidad y seguridad exigidos por la gran minería y construcción.",
+      "Consolidación como proveedor corporativo del Grupo LAR. Se demostró la capacidad técnica para fabricar e instalar sistemas de seguridad metálicos de gran escala en un edificio de 28 pisos. La relación comercial se mantiene activa y en constante expansión, posicionando a LUDIER como el proveedor recurrente para futuras adecuaciones y nuevos proyectos de infraestructura.",
     imagen: "/img/zendai.png",
   },
   // 3. HILTON
   {
     id: 7,
     slug: "hilton",
-    titulo: "Hotel Hilton",
+    titulo: "Hotel Hilton MDP",
     cliente: "MDP CONSTRUCCIONES S.A.C.",
     ubicacion: "Chacarilla, Surco",
     categoria: "comercial",
@@ -71,11 +71,11 @@ export const proyectosData: Proyecto[] = [
       "Acabados anticorrosivos y control de calidad en soldadura."
     ],
     resultado:
-      "Instalación exitosa del sistema de evacuación de residuos para el proyecto Hotel Hilton MDP. LUDIER demostró su capacidad de ingeniería al fabricar e instalar un chute metálico de 19 pisos con una curva de empalme fabricada con plancha rolada de alta precisión, garantizando la eficiencia operativa y la seguridad durante la construcción del hotel.",
+      "Instalación exitosa del sistema de evacuación de residuos para el Hotel Hilton MDP. LUDIER demostró su capacidad de ingeniería al fabricar e instalar un chute metálico de 19 pisos con curvas de alta precisión. Quedamos posicionados como el socio técnico de cabecera para las futuras etapas operativas y de mantenimiento del hotel, asegurando soporte especializado a largo plazo.",
     imagen: "/img/hilton-lima-miraflores.jpg",
   },
-  // 4. EDIFICIO ECHENIQUE
-  {
+  // 4. EDIFICIO ECHENIQUE 355
+{
     id: 8,
     slug: "edificio-echenique-355",
     titulo: "Edificio Echenique 355",
@@ -89,10 +89,29 @@ export const proyectosData: Proyecto[] = [
       "Cerramiento de laterales generados por el desplazamiento",
     ],
     resultado:
-      "Modificación integral del cerramiento metálico para optimizar el acceso y la seguridad del edificio, incluyendo el desplazamiento de la estructura existente y el cierre de nuevos espacios.",
+      "Modificación integral del cerramiento metálico para optimizar el acceso y la seguridad del edificio. Esta intervención técnica demostró nuestra precisión y agilidad para resolver adecuaciones en obra. El trabajo culminó con éxito, dejando a LUDIER posicionado como un proveedor confiable y con disponibilidad total para colaborar en futuros requerimientos de herrería y soluciones metalmecánicas de Zonum Inmobiliaria.",
     imagen: "/img/EDIFICIO ECHENIQUE 355_Proyecto.png",
   },
-  // 5. CERCO LINCE (Resto de proyectos)
+  // 5. PROYECTO ELANT FASE 3
+  {
+    id: 9,
+    slug: "elant-fase-3",
+    titulo: "Proyecto Elant Fase 3",
+    cliente: "Grupo LAR",
+    ubicacion: "La Victoria, Lima",
+    categoria: "residencial",
+    servicios: [
+      "Trabajos varios de carpintería y cerrajería metálica en obra.",
+      "Apertura de acceso hacia sótano: corte y habilitación de espacio en escalera (Piso 1) para ingreso seguro.",
+      "Fabricación de ventana metálica abatible para pase de tubería de bombeo de concreto.",
+      "Servicio integral de cerrajería: instalación de chapas nuevas y soldadura de bisagras en puertas de acceso.",
+      "Retiro y desmontaje de cerco metálico existente."
+    ],
+    resultado:
+      "Ejecución de trabajos complementarios de alta precisión. LUDIER demostró agilidad técnica para resolver requerimientos de cerrajería y habilitación de accesos en la Fase 3. Esta intervención puntual refuerza nuestra confiabilidad como proveedor operativo de Grupo LAR, garantizando nuestra disponibilidad para los futuros trabajos y adecuaciones que requiera el proyecto.",
+    imagen: "/img/ProyectoElant.jpg",
+  },
+  // 6. CERCO LINCE
   {
     id: 2,
     slug: "lince",
@@ -111,7 +130,7 @@ export const proyectosData: Proyecto[] = [
       "Mejora de la seguridad, control de accesos y protección del proyecto durante las distintas etapas.",
     imagen: "/img/Flat_Lince.png",
   },
-  // 6. SAN MIGUEL
+  // 7. SAN MIGUEL
   {
     id: 3,
     slug: "san-miguel",
@@ -131,7 +150,7 @@ export const proyectosData: Proyecto[] = [
       "Mejora de la seguridad, eficiencia operativa y gestión de residuos durante el desarrollo del proyecto.",
     imagen: "/img/Edificio_SanMiguel.png",
   },
-  // 7. SURCO
+  // 8. SURCO
   {
     id: 4,
     slug: "surco",
@@ -151,7 +170,7 @@ export const proyectosData: Proyecto[] = [
       "Implementación exitosa de sistemas metalmecánicos para apoyo a la construcción, mejorando seguridad, eficiencia y gestión de residuos.",
     imagen: "/img/Proyecto_Surco.png",
   },
-  // 8. CENTRO DE LIMA
+  // 9. CENTRO DE LIMA
   {
     id: 5,
     slug: "centro-lima",
