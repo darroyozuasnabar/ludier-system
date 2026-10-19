@@ -41,7 +41,7 @@ export const proyectosData: Proyecto[] = [
     id: 1,
     slug: "zendai",
     titulo: "Edificio Zendai",
-    cliente: "Desarrollo Inmobiliario FG S.A.C.",
+    cliente: "Desarrollo Inmobiliario FG S.A.C. / Grupo LAR",
     ubicacion: "Santa Catalina, La Victoria, Lima",
     categoria: "residencial",
     servicios: [
@@ -59,7 +59,7 @@ export const proyectosData: Proyecto[] = [
   {
     id: 7,
     slug: "hilton",
-    titulo: "Hotel Hilton MDP",
+    titulo: "Hotel Hilton",
     cliente: "MDP CONSTRUCCIONES S.A.C.",
     ubicacion: "Chacarilla, Surco",
     categoria: "comercial",
