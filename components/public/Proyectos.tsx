@@ -21,9 +21,10 @@ import {
   ExternalLink,
 } from "lucide-react";
 
+// 👇 IMPORTAMOS LA DATA DESDE LA FUENTE DE VERDAD
 import { proyectosData, type Proyecto } from "@/lib/proyectos-data";
 
-// Re-exportar para no romper imports existentes en otros archivos
+// Re-exportar para no romper imports existentes
 export { proyectosData };
 export type { Proyecto };
 
@@ -70,24 +71,16 @@ function CornerMarks({ active = false }: { active?: boolean }) {
     : "border-[#3A3F45] opacity-50";
   return (
     <>
-      <span
-        className={`${base} left-3 top-3 border-l-2 border-t-2 ${border}`}
-      />
-      <span
-        className={`${base} right-3 top-3 border-r-2 border-t-2 ${border}`}
-      />
-      <span
-        className={`${base} bottom-3 left-3 border-b-2 border-l-2 ${border}`}
-      />
-      <span
-        className={`${base} bottom-3 right-3 border-b-2 border-r-2 ${border}`}
-      />
+      <span className={`${base} left-3 top-3 border-l-2 border-t-2 ${border}`} />
+      <span className={`${base} right-3 top-3 border-r-2 border-t-2 ${border}`} />
+      <span className={`${base} bottom-3 left-3 border-b-2 border-l-2 ${border}`} />
+      <span className={`${base} bottom-3 right-3 border-b-2 border-r-2 ${border}`} />
     </>
   );
 }
 
 // ============================================================
-// HOOK useScrollReveal (animación única y suave)
+// HOOK useScrollReveal
 // ============================================================
 function useScrollReveal<T extends HTMLElement>(threshold = 0.12) {
   const ref = useRef<T | null>(null);
@@ -127,10 +120,16 @@ const ModalProyecto = ({
   if (!proyecto) return null;
   const CatIcon = categoriaEstilos[proyecto.categoria].icon;
 
-  const clienteURLs: Record<string, string> = {
+  // 👇 ACTUALIZADO CON LOS NUEVOS CLIENTES
+    const clienteURLs: Record<string, string> = {
     "Grupo LAR": "https://grupolar.pe/",
+    "Desarrollo Plaza Grau S.A.C. / Grupo LAR": "https://grupolar.pe/",
+    "Desarrollo Inmobiliario FG S.A.C. / Grupo LAR": "https://grupolar.pe/",
+    "Desarrollo Inmobiliario FG S.A.C.": "https://grupolar.pe/",
     "MDP Construcciones S.A.C.": "https://mdpconstrucciones.com.pe/",
+    "MDP CONSTRUCCIONES S.A.C.": "https://mdpconstrucciones.com.pe/",
     "Flat Canevaro S.A.C.": "https://flat-peru.com/",
+    "Zonum Inmobiliaria": "https://www.zonum.pe/inmobiliaria/proyecto-edificio-echenique-355/", // 👈 NUEVO
   };
 
   const clienteURL = clienteURLs[proyecto.cliente] || null;

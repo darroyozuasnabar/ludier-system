@@ -22,6 +22,7 @@ const clienteURLs: Record<string, string> = {
   "Grupo LAR": "https://grupolar.pe/",
   "MDP CONSTRUCCIONES S.A.C.": "https://mdpconstrucciones.com.pe/",
   "Flat Canevaro S.A.C.": "https://flat-peru.com/",
+    "Zonum Inmobiliaria": "https://www.zonum.pe/inmobiliaria/proyecto-edificio-echenique-355/",
 };
 
 export default function ProyectoDetalle() {

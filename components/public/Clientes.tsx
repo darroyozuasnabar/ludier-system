@@ -14,11 +14,12 @@ const clientes = [
   { nombre: "Grupo Percola", logo: "/img/grupo_pergola_logo.png" },
   { nombre: "Real Edificaciones", logo: "/img/RealEdificaciones.png" },
   { nombre: "CHL", logo: "/img/CHL_Logo.png" },
+  { nombre: "Zonum Inmobiliaria", logo: "/img/zonumInmobiliariaLogo.png" },
 ];
 
 const stats = [
   { value: 20, prefix: "+", suffix: "", label: "Proyectos ejecutados" },
-  { value: 6, prefix: "+", suffix: "", label: "Empresas líderes del sector" },
+  { value: 7, prefix: "+", suffix: "", label: "Empresas líderes del sector" },
   { value: 100, prefix: "", suffix: "%", label: "Compromiso en cada obra" },
 ];
 
@@ -29,12 +30,10 @@ function useScrollReveal<T extends HTMLElement>(threshold = 0.15) {
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-
     const observer = new IntersectionObserver(
       ([entry]) => setInView(entry.isIntersecting),
       { threshold, rootMargin: "-80px 0px -80px 0px" }
     );
-
     observer.observe(el);
     return () => observer.disconnect();
   }, [threshold]);
@@ -159,157 +158,143 @@ function StatItem({
   );
 }
 
-function LogoDesktop({
+// 👇 COMPONENTE MARQUEE INFALIBLE (USA JAVASCRIPT)
+function Marquee({ children, speed = 1 }: { children: React.ReactNode; speed?: number }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [isPaused, setIsPaused] = useState(false);
+
+  useEffect(() => {
+    let animationId: number;
+    let x = 0;
+
+    const scroll = () => {
+      if (!isPaused && contentRef.current && containerRef.current) {
+        x -= speed;
+        // Si el contenido ya se movió la mitad (porque está duplicado), reiniciamos
+        if (Math.abs(x) >= contentRef.current.scrollWidth / 2) {
+          x = 0;
+        }
+        contentRef.current.style.transform = `translateX(${x}px)`;
+      }
+      animationId = requestAnimationFrame(scroll);
+    };
+
+    animationId = requestAnimationFrame(scroll);
+
+    return () => cancelAnimationFrame(animationId);
+  }, [isPaused, speed]);
+
+  return (
+    <div
+      ref={containerRef}
+      className="overflow-hidden w-full relative"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+    >
+      <div ref={contentRef} className="flex w-max">
+        {children}
+        {children} {/* Duplicado para efecto infinito */}
+      </div>
+    </div>
+  );
+}
+
+function LogoItem({
   cliente,
+  isMobile,
   index,
-  hovered,
-  onEnter,
-  onLeave,
-  inView,
 }: {
   cliente: (typeof clientes)[number];
+  isMobile?: boolean;
   index: number;
-  hovered: number | null;
-  onEnter: () => void;
-  onLeave: () => void;
-  inView: boolean;
 }) {
-  const isHovered = hovered === index;
-  const isDimmed = hovered !== null && !isHovered;
+  const [isHovered, setIsHovered] = useState(false);
 
   return (
     <li
-      className="flex shrink-0 flex-col items-center outline-none"
-      tabIndex={0}
-      onMouseEnter={onEnter}
-      onMouseLeave={onLeave}
-      onFocus={onEnter}
-      onBlur={onLeave}
-      style={{
-        opacity: inView ? (isDimmed ? 0.25 : 1) : 0,
-        filter: inView ? "blur(0px)" : "blur(10px)",
-        transform: inView
-          ? "scale(1) translateY(0)"
-          : "scale(0.75) translateY(12px)",
-        transition:
-          "opacity 500ms ease-out, filter 750ms ease-out, transform 750ms cubic-bezier(0.16,1,0.3,1)",
-        transitionDelay: inView ? `${index * 90}ms` : "0ms",
-      }}
+      className={`flex shrink-0 ${
+        isMobile
+          ? "items-center gap-3 pr-8" 
+          : "flex-col items-center px-8 lg:px-12" 
+      } outline-none`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
-      <span className="rounded-sm focus-visible:ring-2 focus-visible:ring-[#FF5A1F] focus-visible:ring-offset-4 focus-visible:ring-offset-[#050505]">
+      {isMobile && (
+        <span
+          className="w-6 shrink-0 text-right text-[10px] font-medium tabular-nums tracking-[0.08em] xs:text-[11px]"
+          style={{
+            fontFamily: FONT_MONO,
+            color: isHovered ? "#FF5A1F" : "#4A4F55",
+            transition: "color 300ms ease-out",
+          }}
+        >
+          {String(index + 1).padStart(2, "0")}
+        </span>
+      )}
+
+      {isMobile && (
+        <span className="relative flex h-8 w-8 shrink-0 items-center justify-center">
+          <span
+            className="absolute h-3.5 w-3.5 rounded-full border transition-all duration-300"
+            style={{
+              borderColor: isHovered ? "#FF5A1F" : "#2C2F34",
+              boxShadow: isHovered ? "0 0 14px 3px rgba(255,90,31,0.35)" : "none",
+            }}
+          />
+          <span
+            className="h-1.5 w-1.5 rounded-full"
+            style={{
+              background: isHovered ? "#FF5A1F" : "#4A4F55",
+              boxShadow: isHovered ? "0 0 12px 2px rgba(255,90,31,0.6)" : "none",
+              transition: "background 300ms ease-out, box-shadow 300ms ease-out",
+            }}
+          />
+        </span>
+      )}
+
+      <span className="rounded-sm">
         <img
           src={cliente.logo}
           alt={cliente.nombre}
           loading="lazy"
           decoding="async"
-          className="h-12 w-auto max-w-[130px] object-contain transition-transform duration-500 ease-out md:h-16 md:max-w-[200px] lg:h-20 lg:max-w-[240px]"
+          className={`${
+            isMobile
+              ? "h-10 w-auto max-w-[140px] xs:h-12 xs:max-w-[160px]"
+              : "h-12 w-auto max-w-[130px] md:h-16 md:max-w-[200px] lg:h-20 lg:max-w-[240px]"
+          } object-contain transition-transform duration-500 ease-out`}
           style={{
             filter: isHovered ? filterActive : filterIdle,
-            transform: isHovered ? "translateY(-6px)" : "translateY(0)",
+            transform: isHovered && !isMobile ? "translateY(-6px)" : "translateY(0)",
             transitionProperty: "filter, transform",
           }}
         />
       </span>
-      <span
-        className="mt-3 w-px md:mt-5"
-        style={{
-          height: 34,
-          background: isHovered
-            ? "linear-gradient(to bottom, rgba(58,63,69,0.6), #FF5A1F)"
-            : "linear-gradient(to bottom, rgba(58,63,69,0.6), rgba(58,63,69,0.6))",
-          transition: "background 400ms ease-out",
-        }}
-      />
-      <span
-        className="h-1.5 w-1.5 rounded-full"
-        style={{
-          background: isHovered ? "#FF5A1F" : "#4A4F55",
-          boxShadow: isHovered ? "0 0 12px 2px rgba(255,90,31,0.6)" : "none",
-          transition: "background 300ms ease-out, box-shadow 300ms ease-out",
-        }}
-      />
-    </li>
-  );
-}
 
-function LogoMobile({
-  cliente,
-  index,
-  hovered,
-  onEnter,
-  onLeave,
-  inView,
-}: {
-  cliente: (typeof clientes)[number];
-  index: number;
-  hovered: number | null;
-  onEnter: () => void;
-  onLeave: () => void;
-  inView: boolean;
-}) {
-  const isHovered = hovered === index;
-  const isDimmed = hovered !== null && !isHovered;
-
-  return (
-    <li
-      className="flex items-center gap-3 outline-none"
-      tabIndex={0}
-      onMouseEnter={onEnter}
-      onMouseLeave={onLeave}
-      onFocus={onEnter}
-      onBlur={onLeave}
-      style={{
-        opacity: inView ? (isDimmed ? 0.3 : 1) : 0,
-        filter: inView ? "blur(0px)" : "blur(8px)",
-        transform: inView ? "translateX(0) scale(1)" : "translateX(-10px) scale(0.85)",
-        transition:
-          "opacity 500ms ease-out, filter 650ms ease-out, transform 650ms cubic-bezier(0.16,1,0.3,1)",
-        transitionDelay: inView ? `${index * 90}ms` : "0ms",
-      }}
-    >
-      {/* Numeración tipo lámina técnica, refuerza la lectura de línea cronológica */}
-      <span
-        className="w-6 shrink-0 text-right text-[10px] font-medium tabular-nums tracking-[0.08em] xs:text-[11px]"
-        style={{
-          fontFamily: FONT_MONO,
-          color: isHovered ? "#FF5A1F" : "#4A4F55",
-          transition: "color 300ms ease-out",
-        }}
-      >
-        {String(index + 1).padStart(2, "0")}
-      </span>
-      {/* Nodo de la línea: anillo + punto, centrado exactamente sobre el riel vertical */}
-      <span className="relative flex h-8 w-8 shrink-0 items-center justify-center">
-        <span
-          className="absolute h-3.5 w-3.5 rounded-full border transition-all duration-300"
-          style={{
-            borderColor: isHovered ? "#FF5A1F" : "#2C2F34",
-            boxShadow: isHovered ? "0 0 14px 3px rgba(255,90,31,0.35)" : "none",
-          }}
-        />
-        <span
-          className="h-1.5 w-1.5 rounded-full"
-          style={{
-            background: isHovered ? "#FF5A1F" : "#4A4F55",
-            boxShadow: isHovered ? "0 0 12px 2px rgba(255,90,31,0.6)" : "none",
-            transition: "background 300ms ease-out, box-shadow 300ms ease-out",
-          }}
-        />
-      </span>
-      <span className="rounded-sm focus-visible:ring-2 focus-visible:ring-[#FF5A1F] focus-visible:ring-offset-4 focus-visible:ring-offset-[#050505]">
-        <img
-          src={cliente.logo}
-          alt={cliente.nombre}
-          loading="lazy"
-          decoding="async"
-          className="h-10 w-auto max-w-[140px] object-contain xs:h-12 xs:max-w-[160px]"
-          style={{
-            filter: isHovered ? filterActive : filterIdle,
-            transitionProperty: "filter",
-            transitionDuration: "400ms",
-          }}
-        />
-      </span>
+      {!isMobile && (
+        <>
+          <span
+            className="mt-3 w-px md:mt-5"
+            style={{
+              height: 34,
+              background: isHovered
+                ? "linear-gradient(to bottom, rgba(58,63,69,0.6), #FF5A1F)"
+                : "linear-gradient(to bottom, rgba(58,63,69,0.6), rgba(58,63,69,0.6))",
+              transition: "background 400ms ease-out",
+            }}
+          />
+          <span
+            className="h-1.5 w-1.5 rounded-full"
+            style={{
+              background: isHovered ? "#FF5A1F" : "#4A4F55",
+              boxShadow: isHovered ? "0 0 12px 2px rgba(255,90,31,0.6)" : "none",
+              transition: "background 300ms ease-out, box-shadow 300ms ease-out",
+            }}
+          />
+        </>
+      )}
     </li>
   );
 }
@@ -317,7 +302,6 @@ function LogoMobile({
 export default function Clientes() {
   const { ref: revealRef, inView } = useScrollReveal<HTMLElement>(0.12);
   const { ref: parallaxRef, offset } = useParallax<HTMLElement>(16);
-  const [hovered, setHovered] = useState<number | null>(null);
 
   return (
     <section
@@ -327,7 +311,6 @@ export default function Clientes() {
       className="relative overflow-hidden bg-[#050505] py-16 sm:py-24 lg:py-28"
       style={{ fontFamily: FONT_BODY }}
     >
-      {/* Grano / textura industrial */}
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.035] mix-blend-overlay"
         style={{
@@ -337,7 +320,6 @@ export default function Clientes() {
         aria-hidden="true"
       />
 
-      {/* Wireframe estructural */}
       <svg
         viewBox="0 0 800 800"
         className="pointer-events-none absolute -right-56 -top-40 w-[85%] max-w-[920px] opacity-[0.035]"
@@ -371,7 +353,6 @@ export default function Clientes() {
         </g>
       </svg>
 
-      {/* Luces radiales */}
       <div
         className="pointer-events-none absolute -left-20 -top-24 h-[520px] w-[520px] rounded-full opacity-[0.05]"
         style={{ background: "radial-gradient(circle, #FF5A1F 0%, transparent 70%)" }}
@@ -384,7 +365,6 @@ export default function Clientes() {
       />
 
       <div className="relative mx-auto max-w-7xl px-5 xs:px-6 sm:px-8 lg:px-12">
-        {/* Eyebrow */}
         <div
           style={{
             opacity: inView ? 1 : 0,
@@ -401,7 +381,6 @@ export default function Clientes() {
           </span>
         </div>
 
-        {/* Headline editorial */}
         <h2
           className="mt-5 max-w-4xl break-words text-[1.9rem] font-semibold leading-[1.15] tracking-tight text-white xs:text-3xl sm:mt-6 sm:text-4xl md:text-5xl lg:text-6xl"
           style={{
@@ -416,7 +395,6 @@ export default function Clientes() {
           <span className="text-[#FF5A1F]">LUDIER.</span>
         </h2>
 
-        {/* Subline - TAMAÑO AJUSTADO PARA COINCIDIR CON SERVICIOS */}
         <p
           className="mt-5 max-w-xl text-[15px] leading-relaxed text-[#9AA0A6] sm:mt-6 sm:text-base md:text-lg"
           style={{
@@ -429,9 +407,9 @@ export default function Clientes() {
           desarrollos inmobiliarios más exigentes del país.
         </p>
 
-        {/* Carrusel de logos con logos GRANDES */}
+        {/* Carrusel DESKTOP */}
         <div className="relative mt-16 hidden md:block lg:mt-20">
-          <div className="pointer-events-none absolute inset-x-0 bottom-[3px] h-px">
+          <div className="pointer-events-none absolute inset-x-0 bottom-[3px] h-px z-10">
             <div className="absolute inset-0 bg-[#26282C]" />
             <div
               className="absolute inset-0 origin-left bg-[#FF5A1F]"
@@ -441,52 +419,29 @@ export default function Clientes() {
                 boxShadow: "0 0 6px rgba(255,90,31,0.55)",
               }}
             />
-            <div
-              className="absolute -top-4 h-8 w-[16%]"
-              style={{
-                background:
-                  "linear-gradient(90deg, transparent, rgba(255,255,255,0.9) 45%, rgba(255,90,31,0.95) 62%, transparent)",
-                filter: "blur(3px)",
-                animation: inView
-                  ? "ludier-weld-x 1.05s cubic-bezier(0.65,0,0.35,1) forwards"
-                  : "none",
-              }}
-            />
           </div>
 
-          <ul
-            className="relative flex items-end justify-between gap-x-8 px-1 lg:gap-x-16"
-            aria-label="Empresas cliente de LUDIER"
-          >
+          <Marquee speed={1.5}>
             {clientes.map((cliente, index) => (
-              <LogoDesktop
-                key={cliente.nombre}
-                cliente={cliente}
-                index={index}
-                hovered={hovered}
-                onEnter={() => setHovered(index)}
-                onLeave={() => setHovered(null)}
-                inView={inView}
-              />
+              <LogoItem key={`desktop-${index}`} cliente={cliente} index={index} />
             ))}
-          </ul>
+          </Marquee>
         </div>
 
-        {/* Carrusel móvil - logos GRANDES */}
-        <div className="relative mt-10 xs:mt-12 md:hidden">
-          {/* Remates tipo línea de cota, arriba y abajo del riel */}
+        {/* Carrusel MÓVIL */}
+        <div className="relative mt-10 xs:mt-12 md:hidden py-4">
           <span
-            className="pointer-events-none absolute top-2 h-px w-3 -translate-x-1/2 bg-[#3A3F45]"
+            className="pointer-events-none absolute top-2 h-px w-3 -translate-x-1/2 bg-[#3A3F45] z-10"
             style={{ left: 52 }}
             aria-hidden="true"
           />
           <span
-            className="pointer-events-none absolute bottom-2 h-px w-3 -translate-x-1/2 bg-[#3A3F45]"
+            className="pointer-events-none absolute bottom-2 h-px w-3 -translate-x-1/2 bg-[#3A3F45] z-10"
             style={{ left: 52 }}
             aria-hidden="true"
           />
 
-          <div className="pointer-events-none absolute bottom-2 top-2 w-px" style={{ left: 52 }}>
+          <div className="pointer-events-none absolute bottom-2 top-2 w-px z-10" style={{ left: 52 }}>
             <div className="absolute inset-0 bg-[#26282C]" />
             <div
               className="absolute inset-0 origin-top bg-[#FF5A1F]"
@@ -496,32 +451,18 @@ export default function Clientes() {
                 boxShadow: "0 0 6px rgba(255,90,31,0.55)",
               }}
             />
-            <div
-              className="absolute -left-4 h-[16%] w-8"
-              style={{
-                background:
-                  "linear-gradient(180deg, transparent, rgba(255,255,255,0.9) 45%, rgba(255,90,31,0.95) 62%, transparent)",
-                filter: "blur(3px)",
-                animation: inView
-                  ? "ludier-weld-y 1.05s cubic-bezier(0.65,0,0.35,1) forwards"
-                  : "none",
-              }}
-            />
           </div>
 
-          <ul className="relative flex flex-col gap-y-6 xs:gap-y-8" aria-label="Empresas cliente de LUDIER">
+          <Marquee speed={1}>
             {clientes.map((cliente, index) => (
-              <LogoMobile
-                key={cliente.nombre}
+              <LogoItem
+                key={`mobile-${index}`}
                 cliente={cliente}
                 index={index}
-                hovered={hovered}
-                onEnter={() => setHovered(index)}
-                onLeave={() => setHovered(null)}
-                inView={inView}
+                isMobile={true}
               />
             ))}
-          </ul>
+          </Marquee>
         </div>
 
         {/* Estadísticas */}
@@ -539,35 +480,6 @@ export default function Clientes() {
           ))}
         </div>
       </div>
-
-      <style jsx>{`
-        @keyframes ludier-weld-x {
-          from {
-            left: -16%;
-            opacity: 1;
-          }
-          to {
-            left: 100%;
-            opacity: 0;
-          }
-        }
-        @keyframes ludier-weld-y {
-          from {
-            top: -16%;
-            opacity: 1;
-          }
-          to {
-            top: 100%;
-            opacity: 0;
-          }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          section * {
-            animation: none !important;
-            transition: none !important;
-          }
-        }
-      `}</style>
     </section>
   );
 }

@@ -45,10 +45,7 @@ export default function LightboxServicio({
   const etapaInfo = ETAPAS_INFO[foto.etapa];
   const etapaColor = ETAPA_COLORS[etapaInfo.color] || ETAPA_COLORS.gray;
 
-<<<<<<< Updated upstream
-=======
   // Montar el portal solo en cliente (evita errores SSR)
->>>>>>> Stashed changes
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -197,20 +194,14 @@ export default function LightboxServicio({
         </div>
       )}
 
-<<<<<<< Updated upstream
-=======
       {/* ─── Panel inferior ─── */}
->>>>>>> Stashed changes
       <div
         className="flex-shrink-0 bg-[#14161A]/95 backdrop-blur-md border-t border-white/10"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="max-w-5xl mx-auto px-6 md:px-10 py-6 md:py-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-<<<<<<< Updated upstream
-=======
             {/* Bloque izquierdo: info del servicio */}
->>>>>>> Stashed changes
             <div className="flex-1 min-w-0 max-w-2xl">
               <div className="flex items-center gap-3 mb-3 flex-wrap">
                 <span
@@ -233,7 +224,6 @@ export default function LightboxServicio({
               </p>
             </div>
 
-<<<<<<< Updated upstream
             <div className="flex-shrink-0 flex flex-col items-stretch md:items-end gap-3">
               <a
                 href={contactHref}
@@ -243,12 +233,6 @@ export default function LightboxServicio({
                     ubicacion: "lightbox_servicio",
                   });
                 }}
-=======
-            {/* Bloque derecho: CTA */}
-            <div className="flex-shrink-0 flex flex-col items-stretch md:items-end gap-3">
-              <a
-                href={contactHref}
->>>>>>> Stashed changes
                 className="group/cta inline-flex items-center justify-center gap-2 bg-[#FF5A1F] hover:bg-[#FF7A44] text-white px-7 py-4 rounded-full text-sm font-bold uppercase tracking-widest transition-all duration-300 shadow-lg shadow-[#FF5A1F]/30 hover:shadow-[#FF5A1F]/60 hover:-translate-y-0.5 whitespace-nowrap"
                 style={{ fontFamily: FONT_MONO }}
               >
@@ -282,9 +266,5 @@ export default function LightboxServicio({
     </div>
   );
 
-<<<<<<< Updated upstream
-=======
-  // 🔥 Portal al body para evitar stacking context issues
->>>>>>> Stashed changes
   return createPortal(content, document.body);
 }

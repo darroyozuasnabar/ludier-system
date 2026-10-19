@@ -479,7 +479,6 @@ export const GALERIAS: Record<string, GaleriaProyecto> = {
       },
     ],
 
-    // 👇 RUTA EXACTA DE TUS 2 VIDEOS
     videos: [
       {
         src: "/img/proyectos/qantua/recorridoQantua.mp4",
@@ -496,6 +495,75 @@ export const GALERIAS: Record<string, GaleriaProyecto> = {
         poster: "/img/proyectos/qantua/28-vistaIntegralQantuaF1&F2.jpeg",
       },
     ],
+  },
+
+  hilton: {
+    servicios: [
+      {
+        id: "chute-metalico-19-pisos",
+        titulo: "Chute metálico para evacuación de residuos - 19 pisos",
+        descripcion:
+          "Fabricación e instalación de sistema de chute metálico para la evacuación de residuos en el proyecto Hotel Hilton MDP. La estructura de 19 pisos fue diseñada para optimizar la gestión de escombros durante la construcción, garantizando seguridad y eficiencia operativa.",
+        tipo: "final",
+        fotos: [
+          {
+            src: "/img/proyectos/Hotel_Hilton/ChuteMetalicoHotelHilton_img1.jpeg",
+            etapa: "final",
+            alt: "Chute metálico instalado en el Hotel Hilton MDP de 19 pisos",
+          },
+        ],
+      },
+    ],
+    fotos: [
+      {
+        src: "/img/proyectos/Hotel_Hilton/ChuteMetalicoHotelHilton_img1.jpeg",
+        titulo: "Chute metálico de 19 pisos para Hotel Hilton MDP",
+        descripcion:
+          "Fabricación e instalación de chute metálico para evacuación de residuos en el proyecto Hotel Hilton MDP, ubicado en Chacarilla, Surco. La estructura de 19 pisos fue diseñada para optimizar la gestión de escombros durante la construcción, garantizando seguridad y eficiencia operativa.",
+        categoria: "estructuras",
+        alt: "Chute metálico instalado en el Hotel Hilton MDP de 19 pisos",
+      },
+    ],
+    videos: [
+      {
+        src: "/img/proyectos/Hotel_Hilton/FuncionamientoChuteVideo.mp4",
+        titulo: "Funcionamiento del chute metálico - Hotel Hilton MDP",
+        descripcion:
+          "Video demostrativo del funcionamiento del chute metálico instalado en el Hotel Hilton MDP. El sistema permite la evacuación eficiente y segura de residuos desde los pisos superiores hasta el punto de acopio en planta baja, optimizando la gestión de escombros durante la construcción.",
+        poster: "/img/proyectos/Hotel_Hilton/ChuteMetalicoHotelHilton_img1.jpeg",
+      },
+    ],
+  },
+
+  // 👇 NUEVO PROYECTO: EDIFICIO ECHENIQUE 355
+  "edificio-echenique-355": {
+    servicios: [
+      {
+        id: "modificacion-cerramiento",
+        titulo: "Modificación y reubicación de puerta y cerramiento metálico",
+        descripcion:
+          "Retiro y desplazamiento de cerco metálico 70 cm hacia la vereda (10 ml). Incluye el traslado e instalación de la puerta pequeña, cierre del espacio libre sobrante con plancha metálica y el cerramiento de los laterales generados por el desplazamiento.",
+        tipo: "final",
+        fotos: [
+          {
+            src: "/img/EDIFICIO ECHENIQUE 355_Proyecto.png",
+            etapa: "final",
+            alt: "Modificación de cerramiento metálico en Edificio Echenique 355",
+          },
+        ],
+      },
+    ],
+    fotos: [
+      {
+        src: "/img/EDIFICIO ECHENIQUE 355_Proyecto.png",
+        titulo: "Modificación de Cerramiento Metálico – Edificio Echenique 355",
+        descripcion:
+          "Trabajo de modificación y reubicación de puerta y cerramiento metálico. Se realizó el retiro y desplazamiento de cerco metálico 70 cm hacia la vereda (10 ml), traslado e instalación de la puerta pequeña, cierre del espacio libre sobrante con plancha metálica y el cerramiento de los laterales generados por el desplazamiento.",
+        categoria: "cercos",
+        alt: "Edificio Echenique 355 - Modificación de cerramiento metálico",
+      },
+    ],
+    videos: [],
   },
 };
 
