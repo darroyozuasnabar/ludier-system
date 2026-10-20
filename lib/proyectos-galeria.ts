@@ -535,7 +535,6 @@ export const GALERIAS: Record<string, GaleriaProyecto> = {
     ],
   },
 
-  // 👇 NUEVO PROYECTO: EDIFICIO ECHENIQUE 355
   "edificio-echenique-355": {
     servicios: [
       {
@@ -561,6 +560,46 @@ export const GALERIAS: Record<string, GaleriaProyecto> = {
           "Trabajo de modificación y reubicación de puerta y cerramiento metálico. Se realizó el retiro y desplazamiento de cerco metálico 70 cm hacia la vereda (10 ml), traslado e instalación de la puerta pequeña, cierre del espacio libre sobrante con plancha metálica y el cerramiento de los laterales generados por el desplazamiento.",
         categoria: "cercos",
         alt: "Edificio Echenique 355 - Modificación de cerramiento metálico",
+      },
+    ],
+    videos: [],
+  },
+
+  // 👇 PROYECTO ELANT FASE 3 (SIN PROCESO CONSTRUCTIVO, SOLO FOTOS)
+  "elant-fase-3": {
+    servicios: [], // 👈 Vacío para que no salga la sección "Proceso Constructivo"
+    fotos: [
+      {
+        src: "/img/proyectos/Elant/puerta-metalica-azul-pasillo-interior.jpg",
+        titulo: "Puerta metálica de seguridad para pasillos interiores",
+        descripcion:
+          "Fabricación e instalación de puerta metálica con acabado azul en pasillo interior. Diseño robusto de herrería que optimiza el control de accesos y brinda seguridad al tránsito peatonal en la obra.",
+        categoria: "instalacion",
+        alt: "Puerta metálica azul instalada en pasillo interior del Proyecto Elant",
+      },
+      {
+        src: "/img/proyectos/Elant/puerta-metalica-azul-con-refuerzos-verticales.png",
+        titulo: "Puerta metálica con refuerzos verticales de alta resistencia",
+        descripcion:
+          "Estructura de puerta metálica reforzada con perfiles verticales para máxima resistencia al impacto. Solución ideal para áreas de alto tráfico que requieren durabilidad y seguridad extrema.",
+        categoria: "estructuras",
+        alt: "Puerta metálica reforzada con perfiles verticales en Elant Fase 3",
+      },
+      {
+        src: "/img/proyectos/Elant/fabricacion-tapa-metalica-abatible-en-puerta.png",
+        titulo: "Fabricación de tapa metálica abatible para pase de tubería",
+        descripcion:
+          "Solución precisa de carpintería metálica diseñada para el pase seguro de mangueras de bombeo de concreto. Incluye fabricación de marco y sistema de cierre abatible para mantener la hermeticidad del área.",
+        categoria: "instalacion",
+        alt: "Tapa metálica abatible fabricada para pase de tubería de concreto",
+      },
+      {
+        src: "/img/proyectos/Elant/fabricacion-tapa-metalica-abatible-acceso-sotano.png",
+        titulo: "Tapa abatible metálica para acceso a sótano",
+        descripcion:
+          "Habilitación de acceso seguro hacia sótano mediante la fabricación e instalación de una tapa metálica abatible de alta resistencia. Diseñada para soportar cargas y facilitar el ingreso del personal de obra.",
+        categoria: "estructuras",
+        alt: "Tapa metálica abatible instalada en acceso a sótano del Proyecto Elant",
       },
     ],
     videos: [],
