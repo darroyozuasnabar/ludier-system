@@ -75,12 +75,12 @@ export const proyectosData: Proyecto[] = [
     imagen: "/img/hilton-lima-miraflores.jpg",
   },
   // 4. EDIFICIO ECHENIQUE 355
-{
+  {
     id: 8,
     slug: "edificio-echenique-355",
     titulo: "Edificio Echenique 355",
     cliente: "Zonum Inmobiliaria",
-    ubicacion: "Lima", 
+    ubicacion: "Jirón Echenique 355, Magdalena del Mar", // 👈 ACTUALIZADO
     categoria: "comercial",
     servicios: [
       "Retiro y desplazamiento de cerco metálico 70 cm hacia la vereda (10 ml)",
