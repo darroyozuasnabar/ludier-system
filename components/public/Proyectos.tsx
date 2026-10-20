@@ -427,7 +427,7 @@ export default function Proyectos({
 
   // ---------- VERSIÓN HOME ----------
   if (isHome) {
-    const homeProjectSlugs = ["qantua", "zendai", "hilton", "elant-fase-3"];
+    const homeProjectSlugs = ["qantua", "zendai", "hilton"];
     const homeProjects = homeProjectSlugs
       .map((slug) => proyectosData.find((p) => p.slug === slug))
       .filter((p): p is Proyecto => p !== undefined);
