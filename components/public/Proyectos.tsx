@@ -119,8 +119,8 @@ const ModalProyecto = ({
   if (!proyecto) return null;
   const CatIcon = categoriaEstilos[proyecto.categoria].icon;
 
-  const clienteURLs: Record<string, string> = {
-    "Grupo LAR": "https://grupolar.pe/proyectos/la-victoria-elant/fase-3/",
+    const clienteURLs: Record<string, string> = {
+    "Grupo LAR": "https://grupolar.pe/proyectos/surquillo-distrito-34/", // 👈 Lo apuntamos a Distrito 34
     "Desarrollo Plaza Grau S.A.C. / Grupo LAR": "https://grupolar.pe/",
     "Desarrollo Inmobiliario FG S.A.C. / Grupo LAR": "https://grupolar.pe/",
     "Desarrollo Inmobiliario FG S.A.C.": "https://grupolar.pe/",

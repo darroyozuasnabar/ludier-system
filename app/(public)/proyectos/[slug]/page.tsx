@@ -1,173 +1,88 @@
-// app/proyectos/[slug]/page.tsx
-"use client";
+// app/(public)/proyectos/[slug]/page.tsx
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { proyectosData } from "@/lib/proyectos-data";
+import ProyectoDetalleClient from "./ProyectoDetalleClient";
 
-import { useParams } from "next/navigation";
-import { proyectosData } from "@/components/public/Proyectos";
-import GaleriaServicios from "@/components/public/GaleriaServicios";
-import GaleriaFotos from "@/components/public/GaleriaFotos";
-import Link from "next/link";
-import {
-  ArrowLeft,
-  Building2,
-  MapPin,
-  Users,
-  CheckCircle,
-  ExternalLink,
-} from "lucide-react";
+const SITE_URL = "https://grupoludier.com";
 
-const FONT_DISPLAY = "var(--font-display, Oswald, sans-serif)";
-const FONT_BODY = "var(--font-body, Inter, sans-serif)";
+// 1. Pre-renderizado estático
+export function generateStaticParams() {
+  return proyectosData.map((proyecto) => ({
+    slug: proyecto.slug,
+  }));
+}
 
-const clienteURLs: Record<string, string> = {
-  "Grupo LAR": "https://grupolar.pe/",
-  "MDP CONSTRUCCIONES S.A.C.": "https://mdpconstrucciones.com.pe/",
-  "Flat Canevaro S.A.C.": "https://flat-peru.com/",
-    "Zonum Inmobiliaria": "https://www.zonum.pe/inmobiliaria/proyecto-edificio-echenique-355/",
-};
-
-export default function ProyectoDetalle() {
-  const { slug } = useParams();
+// 2. SEO Dinámico (Metadata e Inyección Local)
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
   const proyecto = proyectosData.find((p) => p.slug === slug);
 
   if (!proyecto) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F7F7F4]">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-[#1E2126]">
-            Proyecto no encontrado
-          </h1>
-          <Link
-            href="/proyectos"
-            className="mt-4 inline-flex items-center gap-2 text-[#FF5A1F] hover:underline"
-          >
-            <ArrowLeft className="w-4 h-4" /> Volver a proyectos
-          </Link>
-        </div>
-      </div>
-    );
+    return { title: "Proyecto no encontrado | LUDIER" };
   }
 
-  const clienteURL = clienteURLs[proyecto.cliente] || null;
+  const url = `${SITE_URL}/proyectos/${proyecto.slug}`;
+  
+  // Extraemos el distrito principal para el SEO
+  const distrito = proyecto.ubicacion.split(",")[0]; 
+
+  return {
+    title: `${proyecto.titulo} en ${distrito} | LUDIER`,
+    description: `Conoce el proyecto ${proyecto.titulo} ejecutado por LUDIER en ${proyecto.ubicacion}. ${proyecto.resultado.substring(0, 120)}...`,
+    alternates: { canonical: url },
+    openGraph: {
+      title: `${proyecto.titulo} en ${distrito} | LUDIER`,
+      description: `Proyecto de carpintería metálica ejecutado para ${proyecto.cliente} en ${proyecto.ubicacion}.`,
+      url,
+      type: "article",
+      images: [{ url: proyecto.imagen, width: 1200, height: 630, alt: proyecto.titulo }],
+    },
+  };
+}
+
+// 3. Renderizado del Componente
+export default async function ProyectoDetallePage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const proyecto = proyectosData.find((p) => p.slug === slug);
+
+  if (!proyecto) {
+    notFound();
+  }
+
+  // Inyección de JSON-LD (Datos estructurados para Google)
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CreativeWork",
+    name: proyecto.titulo,
+    description: proyecto.resultado,
+    image: `${SITE_URL}${proyecto.imagen}`,
+    locationCreated: {
+      "@type": "Place",
+      name: proyecto.ubicacion,
+    },
+    creator: {
+      "@type": "Organization",
+      name: "Construcciones Generales LUDIER E.I.R.L.",
+      url: SITE_URL,
+    },
+  };
 
   return (
-    <div className="min-h-screen bg-[#F7F7F4]" style={{ fontFamily: FONT_BODY }}>
-      {/* ═══════════════════════════════════════════════════════════════
-          SECCIÓN 1 — INTRO DEL PROYECTO (max-w-4xl)
-          ═══════════════════════════════════════════════════════════════ */}
-      <div className="max-w-4xl mx-auto px-4 py-16">
-        <Link
-          href="/proyectos"
-          className="inline-flex items-center gap-2 text-[#FF5A1F] hover:underline mb-8"
-        >
-          <ArrowLeft className="w-4 h-4" /> Volver a proyectos
-        </Link>
-
-        <h1
-          className="text-4xl font-bold text-[#1E2126] mb-4"
-          style={{ fontFamily: FONT_DISPLAY }}
-        >
-          {proyecto.titulo}
-        </h1>
-
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
-          <div className="flex items-start gap-3">
-            <Users className="w-5 h-5 text-[#FF5A1F] mt-0.5" />
-            <div>
-              <p className="text-xs text-[#8B8F86] uppercase tracking-wider">
-                Cliente
-              </p>
-              <p className="font-medium text-[#1E2126]">{proyecto.cliente}</p>
-              {clienteURL && (
-                <a
-                  href={clienteURL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 mt-1 text-sm text-[#FF5A1F] hover:underline transition-colors"
-                >
-                  Visitar sitio web <ExternalLink className="w-3 h-3" />
-                </a>
-              )}
-            </div>
-          </div>
-          <div className="flex items-start gap-3">
-            <MapPin className="w-5 h-5 text-[#FF5A1F] mt-0.5" />
-            <div>
-              <p className="text-xs text-[#8B8F86] uppercase tracking-wider">
-                Ubicación
-              </p>
-              <p className="font-medium text-[#1E2126]">{proyecto.ubicacion}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="relative h-96 rounded-sm overflow-hidden border border-[#E3E1D8] mb-8">
-          <img
-            src={proyecto.imagen}
-            alt={proyecto.titulo}
-            className="w-full h-full object-cover"
-          />
-        </div>
-
-        <div className="bg-white p-6 rounded-sm border border-[#E3E1D8]">
-          <h2
-            className="text-xl font-semibold mb-3 text-[#1E2126]"
-            style={{ fontFamily: FONT_DISPLAY }}
-          >
-            Servicios ejecutados
-          </h2>
-          <ul className="grid sm:grid-cols-2 gap-2">
-            {proyecto.servicios.map((s, i) => (
-              <li
-                key={i}
-                className="flex items-start gap-2 text-sm text-[#1E2126]"
-              >
-                <CheckCircle className="w-4 h-4 text-[#FF5A1F] shrink-0 mt-0.5" />
-                <span>{s}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-
-      {/* ═══════════════════════════════════════════════════════════════
-          SECCIÓN 2 — PROCESO CONSTRUCTIVO (servicios con carrusel)
-          ═══════════════════════════════════════════════════════════════ */}
-      <GaleriaServicios slug={String(slug)} />
-
-      {/* ═══════════════════════════════════════════════════════════════
-          SECCIÓN 3 — GALERÍA COMPLETA (grid plano)
-          ═══════════════════════════════════════════════════════════════ */}
-      <GaleriaFotos slug={String(slug)} />
-
-      {/* ═══════════════════════════════════════════════════════════════
-          SECCIÓN 4 — RESULTADO + CTA (max-w-4xl)
-          ═══════════════════════════════════════════════════════════════ */}
-      <div className="max-w-4xl mx-auto px-4 pb-16">
-        <div className="bg-[#FF5A1F]/5 p-6 rounded-sm border border-[#FF5A1F]/20">
-          <h2
-            className="text-xl font-semibold mb-2 text-[#1E2126]"
-            style={{ fontFamily: FONT_DISPLAY }}
-          >
-            Resultado
-          </h2>
-          <p className="text-[#1E2126]">{proyecto.resultado}</p>
-        </div>
-
-        {clienteURL && (
-          <div className="mt-8 pt-6 border-t border-[#E3E1D8] text-center">
-            <a
-              href={clienteURL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 bg-[#FF5A1F] px-6 py-3 text-sm font-semibold uppercase tracking-wide text-white shadow-lg shadow-[#FF5A1F]/20 transition-all hover:bg-[#FF7A44] hover:shadow-[#FF5A1F]/40 hover:-translate-y-1"
-            >
-              <Building2 className="w-4 h-4" />
-              Visitar sitio del cliente
-              <ExternalLink className="w-4 h-4" />
-            </a>
-          </div>
-        )}
-      </div>
-    </div>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <ProyectoDetalleClient proyecto={proyecto} />
+    </>
   );
 }

@@ -92,7 +92,7 @@ export const proyectosData: Proyecto[] = [
       "Modificación integral del cerramiento metálico para optimizar el acceso y la seguridad del edificio. Esta intervención técnica demostró nuestra precisión y agilidad para resolver adecuaciones en obra. El trabajo culminó con éxito, dejando a LUDIER posicionado como un proveedor confiable y con disponibilidad total para colaborar en futuros requerimientos de herrería y soluciones metalmecánicas de Zonum Inmobiliaria.",
     imagen: "/img/EDIFICIO ECHENIQUE 355_Proyecto.png",
   },
-  // 5. PROYECTO ELANT FASE 3
+   // 5. PROYECTO ELANT FASE 3
   {
     id: 9,
     slug: "elant-fase-3",
@@ -105,11 +105,33 @@ export const proyectosData: Proyecto[] = [
       "Apertura de acceso hacia sótano: corte y habilitación de espacio en escalera (Piso 1) para ingreso seguro.",
       "Fabricación de ventana metálica abatible para pase de tubería de bombeo de concreto.",
       "Servicio integral de cerrajería: instalación de chapas nuevas y soldadura de bisagras en puertas de acceso.",
-      "Retiro y desmontaje de cerco metálico existente."
+      "Retiro y desmontaje de cerco metálico existente.",
+      "Fabricación de 34 estructuras metálicas para pedestales de señalización (bases, postes y marcos de 60x40 cm) con pintura epóxica y gloss negro.",
+      "Perforación e instalación de pedestales con pernos de expansión mecánicos sobre piso de concreto en el estacionamiento."
     ],
     resultado:
-      "Ejecución de trabajos complementarios de alta precisión. LUDIER demostró agilidad técnica para resolver requerimientos de cerrajería y habilitación de accesos en la Fase 3. Esta intervención puntual refuerza nuestra confiabilidad como proveedor operativo de Grupo LAR, garantizando nuestra disponibilidad para los futuros trabajos y adecuaciones que requiera el proyecto.",
+      "Ejecución de trabajos complementarios de alta precisión. LUDIER demostró agilidad técnica para resolver requerimientos de cerrajería, habilitación de accesos y fabricación de estructuras de señalización. Esta intervención puntual refuerza nuestra confiabilidad como proveedor operativo de Grupo LAR, garantizando nuestra disponibilidad para los futuros trabajos y adecuaciones que requiera el proyecto.",
     imagen: "/img/ProyectoElant.jpg",
+  },
+    // 10. PROYECTO DISTRITO 34
+  {
+    id: 10,
+    slug: "distrito-34",
+    titulo: "Proyecto Distrito 34",
+    cliente: "Grupo LAR",
+    ubicacion: "Surquillo, Lima",
+    categoria: "residencial",
+    servicios: [
+      "Habilitación de portón abatible mediante corte de hoja de cerco metálico existente.",
+      "Fabricación e instalación de puerta peatonal de seguridad con cerradura de alta resistencia.",
+      "Suministro y anclaje de postes estructurales para soporte de nuevos accesos.",
+      "Fabricación de estructuras metálicas para pedestales de señalización (bases, postes y marcos).",
+      "Aplicación de pintura base epóxica y acabado final en gloss negro.",
+      "Perforación e instalación de pedestales con pernos de expansión mecánicos sobre concreto."
+    ],
+    resultado:
+      "Ejecución de trabajos de herrería y adecuación de accesos en la obra. LUDIER demostró su capacidad para resolver requerimientos de cerrajería estructural y fabricación de elementos de señalización con precisión. Esta intervención en Distrito 34 refuerza nuestra alianza comercial con Grupo LAR, posicionándonos como el proveedor de confianza para el equipamiento y la seguridad de sus proyectos.",
+    imagen: "/img/Distrito34.jpg",
   },
   // 6. CERCO LINCE
   {
