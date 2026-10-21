@@ -604,6 +604,38 @@ export const GALERIAS: Record<string, GaleriaProyecto> = {
     ],
     videos: [],
   },
+
+    // 👇 PROYECTO DISTRITO 34 (SOLO FOTOS DE DETALLE)
+  "distrito-34": {
+    servicios: [], // Sin carrusel antes/después, solo galería
+    fotos: [
+      {
+        src: "/img/proyectos/Distrito34/PuertaInstaladaDistrito34.png",
+        titulo: "Puerta peatonal metálica instalada con chapa de seguridad",
+        descripcion:
+          "Fabricación e instalación de puerta peatonal metálica en el Proyecto Distrito 34. Incluye refuerzos estructurales, bisagras de alta resistencia y cerradura de seguridad para garantizar el control de accesos en la obra.",
+        categoria: "instalacion",
+        alt: "Puerta peatonal metálica instalada con chapa de seguridad en Distrito 34",
+      },
+      {
+        src: "/img/proyectos/Distrito34/puertaMetalicaDistrito34.jpg",
+        titulo: "Puerta metálica abatible para acceso principal",
+        descripcion:
+          "Detalle de la puerta metálica abatible fabricada a medida e instalada en el acceso principal del Proyecto Distrito 34. Acabado anticorrosivo y diseño robusto para alto tránsito.",
+        categoria: "instalacion",
+        alt: "Puerta metálica abatible instalada en acceso principal de Distrito 34",
+      },
+      {
+        src: "/img/proyectos/Distrito34/RetirodeCercoDistrito34.png",
+        titulo: "Retiro y corte de cerco metálico para habilitación de portón",
+        descripcion:
+          "Trabajos de corte y retiro de la hoja de cerco metálico existente para habilitar el espacio del nuevo portón abatible, cumpliendo con los protocolos de seguridad en obra y el posterior cerramiento de la estructura.",
+        categoria: "estructuras",
+        alt: "Retiro y corte de cerco metálico en el Proyecto Distrito 34",
+      },
+    ],
+    videos: [],
+  },
 };
 
 /** Retorna la galería de un proyecto o null si no existe. */
