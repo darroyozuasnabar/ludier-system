@@ -273,9 +273,11 @@ function CategoriaCard({ categoria, index }: { categoria: typeof categorias[0]; 
           {categoria.description}
         </p>
 
-        <div className="flex items-center gap-1 text-sm font-medium text-[#FF5A1F]">
-          <span>Ver todos los servicios</span>
-          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-1 text-sm font-medium text-[#FF5A1F]">
+            <span>Ver todos los servicios</span>
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+          </div>
         </div>
       </div>
 

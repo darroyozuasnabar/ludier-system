@@ -31,6 +31,10 @@ const FONT_DISPLAY = 'var(--font-display, Oswald, ui-sans-serif, sans-serif)';
 const FONT_BODY = 'var(--font-body, Inter, ui-sans-serif, system-ui, sans-serif)';
 const FONT_MONO = 'var(--font-mono, "JetBrains Mono", ui-monospace, monospace)';
 
+const WHATSAPP_INOX_URL = `https://wa.me/51965391256?text=${encodeURIComponent(
+  "Hola LUDIER, vengo de la web y quiero cotizar barandas de acero inoxidable para mi obra. ¿Me pueden ayudar?"
+)}`;
+
 // ============================================================
 // TIPOS
 // ============================================================
@@ -191,7 +195,7 @@ function ImageCarousel({
 }
 
 // ============================================================
-// DATOS DE CATEGORÍAS - OPTIMIZADOS PARA SEO
+// DATOS DE CATEGORÍAS
 // ============================================================
 
 const categorias: Categoria[] = [
@@ -287,9 +291,9 @@ const categorias: Categoria[] = [
   },
 
   // ==========================================================
-  // 2. BARANDAS Y PASAMANOS (Optimizado con "Acero Inoxidable")
+  // 2. BARANDAS Y PASAMANOS
   // ==========================================================
-    {
+  {
     slug: "barandas-pasamanos",
     icon: Shield,
     title: "Barandas y Pasamanos",
@@ -304,7 +308,7 @@ const categorias: Categoria[] = [
       "Cumplimiento de normas de seguridad",
     ],
     subServicios: [
-      // 👇 NUEVO SUB-SERVICIO DESTACADO (SEO B2B - Acero Inoxidable)
+      // Sub-servicio destacado (SEO B2B): se muestra con la tarjeta InoxFeaturedCard
       {
         nombre: "Barandas de Acero Inoxidable (Grado 304)",
         descripcion:
@@ -412,19 +416,13 @@ const categorias: Categoria[] = [
         nombre: "Plataformas con escaleras",
         descripcion:
           "Plataformas de acceso con escaleras integradas, ideales para mantenimiento de equipos y áreas elevadas.",
-        imagenes: [
-          "/img/PlataformasEscaleras_img1.png",
-          "/img/PlataformasEscaleras_img2.png",
-        ],
+        imagenes: ["/img/PlataformasEscaleras_img1.png", "/img/PlataformasEscaleras_img2.png"],
       },
       {
         nombre: "Accesos técnicos",
         descripcion:
           "Soluciones de acceso para espacios técnicos, cuartos de máquinas y áreas de servicio.",
-        imagenes: [
-          "/img/Escotillas_AccesoDirecto.jpg",
-          "/img/Compuertas_AccesoDirecto_img2.webp",
-        ],
+        imagenes: ["/img/Escotillas_AccesoDirecto.jpg", "/img/Compuertas_AccesoDirecto_img2.webp"],
       },
     ],
   },
@@ -493,13 +491,13 @@ const categorias: Categoria[] = [
   },
 
   // ==========================================================
-  // 5. SOLUCIONES PARA CONSTRUCTORAS (Optimizado con "Prefabricado")
+  // 5. SOLUCIONES PARA CONSTRUCTORAS
   // ==========================================================
   {
     slug: "cercos-cerramientos",
     icon: HardHat,
     title: "Soluciones para Constructoras",
-        description:
+    description:
       "Especialistas en cerco perimetral para obra y cercos prefabricados. Ofrecemos cerramientos temporales, chutes metálicos y soluciones ágiles para constructoras que buscan cumplir plazos y normativas.",
     image: "/img/cercosPerimetricos.jpg",
     tag: "8 servicios",
@@ -835,35 +833,120 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {isRichSubServicios ? (
-              (categoria.subServicios as SubServicio[]).map((sub, index) => (
-                <div
-                  key={index}
-                  className="group relative bg-white border border-[#E3E1D8] rounded-sm overflow-hidden transition-all duration-500 hover:border-[#FF5A1F]/30 hover:shadow-xl hover:-translate-y-2"
-                  style={{
-                    opacity: gridInView ? 1 : 0,
-                    transform: gridInView ? "translateY(0)" : "translateY(30px)",
-                    transition: `opacity 600ms cubic-bezier(0.16,1,0.3,1) ${index * 100}ms, transform 600ms cubic-bezier(0.16,1,0.3,1) ${index * 100}ms`,
-                  }}
-                >
-                  <CornerMarks />
-                  <ImageCarousel 
-                    imagenes={sub.imagenes} 
-                    nombre={sub.nombre}
-                    autoplayDelay={4500}
-                  />
-                  <div className="p-5">
-                    <h3
-                      className="text-base font-semibold text-[#1E2126]"
-                      style={{ fontFamily: FONT_DISPLAY }}
+              (categoria.subServicios as SubServicio[]).map((sub, index) => {
+                // Detección robusta: sin importar mayúsculas/minúsculas
+                const esInoxidable = /inoxidable/i.test(sub.nombre);
+
+                // Contenido interno de la tarjeta (reutilizable)
+                const CardContent = (
+                  <>
+                    <CornerMarks active={esInoxidable} />
+
+                    {esInoxidable && (
+                      <div className="absolute top-3 left-3 z-20 inline-flex items-center gap-1.5 bg-[#FF5A1F] text-white text-[10px] font-bold uppercase tracking-[0.12em] px-2.5 py-1 rounded-sm shadow-lg shadow-[#FF5A1F]/30">
+                        <Zap className="h-3 w-3" />
+                        Alta Rotación B2B
+                      </div>
+                    )}
+
+                    <ImageCarousel
+                      imagenes={sub.imagenes}
+                      nombre={sub.nombre}
+                      autoplayDelay={4500}
+                    />
+
+                    <div className="flex flex-1 flex-col p-5">
+                      <h3
+                        className="text-lg font-bold text-[#1E2126] leading-tight"
+                        style={{ fontFamily: FONT_DISPLAY }}
+                      >
+                        {esInoxidable ? (
+                          <Link
+                            href="/servicios/barandas-acero-inoxidable"
+                            className="hover:text-[#FF5A1F] transition-colors"
+                          >
+                            {sub.nombre}
+                          </Link>
+                        ) : (
+                          sub.nombre
+                        )}
+                      </h3>
+                      <p className={`mt-2 text-sm text-[#565C63] leading-relaxed flex-grow ${esInoxidable ? "line-clamp-4" : ""}`}>
+                        {sub.descripcion}
+                      </p>
+
+                      {esInoxidable ? (
+                        <div className="mt-5 pt-5 border-t-2 border-[#FF5A1F]/30">
+                          {/* BOTÓN PRINCIPAL → landing con la información */}
+                          <Link
+                            href="/servicios/barandas-acero-inoxidable"
+                            className="group/btn flex items-center justify-center gap-2 w-full py-3.5 px-4 bg-[#FF5A1F] text-white text-sm font-bold uppercase tracking-wide rounded-sm shadow-md shadow-[#FF5A1F]/25 transition-all hover:bg-[#FF7A44] hover:shadow-lg hover:shadow-[#FF5A1F]/40"
+                          >
+                            Ver ficha técnica B2B y cotizar
+                            <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover/btn:translate-x-1" />
+                          </Link>
+                          <p className="mt-2 text-center text-xs text-[#565C63]">
+                            Acero 304 vs 316 · Obras reales · Cotización en 24 h
+                          </p>
+
+                          {/* BOTÓN SECUNDARIO → WhatsApp con tu logo */}
+                          <a
+                            href={WHATSAPP_INOX_URL}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-center gap-2 w-full mt-3 py-2.5 px-4 border border-[#E3E1D8] text-[#1E2126] hover:bg-[#F7F7F4] text-sm font-semibold rounded-sm transition-colors"
+                          >
+                            <Image
+                              src="/img/WhatsAppLogo.jpg"
+                              alt=""
+                              width={22}
+                              height={22}
+                              aria-hidden
+                              className="rounded-full"
+                            />
+                            Cotizar por WhatsApp
+                          </a>
+                        </div>
+                      ) : (
+                        <div className="mt-4 h-1 w-10 bg-[#E3E1D8] rounded-full transition-all duration-300 group-hover:w-16 group-hover:bg-[#FF5A1F]/40" />
+                      )}
+                    </div>
+                  </>
+                );
+
+                // Acero Inoxidable → tarjeta normal (div) con sus propios enlaces:
+                // así no hay <a> dentro de <a>, que es HTML inválido.
+                if (esInoxidable) {
+                  return (
+                    <div
+                      key={index}
+                      className="group relative flex flex-col bg-white border-2 border-[#FF5A1F]/50 rounded-sm overflow-hidden transition-all duration-500 hover:border-[#FF5A1F] hover:shadow-2xl hover:shadow-[#FF5A1F]/20 hover:-translate-y-2"
+                      style={{
+                        opacity: gridInView ? 1 : 0,
+                        transform: gridInView ? "translateY(0)" : "translateY(30px)",
+                        transition: `opacity 600ms cubic-bezier(0.16,1,0.3,1) ${index * 100}ms, transform 600ms cubic-bezier(0.16,1,0.3,1) ${index * 100}ms, border-color 300ms, box-shadow 300ms`,
+                      }}
                     >
-                      {sub.nombre}
-                    </h3>
-                    <p className="mt-2 text-sm text-[#565C63] leading-relaxed">
-                      {sub.descripcion}
-                    </p>
+                      {CardContent}
+                    </div>
+                  );
+                }
+
+                // Resto de tarjetas → div normal (no clickeable)
+                return (
+                  <div
+                    key={index}
+                    className="group relative flex flex-col bg-white border border-[#E3E1D8] rounded-sm overflow-hidden transition-all duration-500 hover:border-[#FF5A1F]/40 hover:shadow-xl hover:-translate-y-2"
+                    style={{
+                      opacity: gridInView ? 1 : 0,
+                      transform: gridInView ? "translateY(0)" : "translateY(30px)",
+                      transition: `opacity 600ms cubic-bezier(0.16,1,0.3,1) ${index * 100}ms, transform 600ms cubic-bezier(0.16,1,0.3,1) ${index * 100}ms`,
+                    }}
+                  >
+                    {CardContent}
                   </div>
-                </div>
-              ))
+                );
+              })
             ) : (
               (categoria.subServicios as any[]).map((sub, index) => (
                 <div
@@ -880,15 +963,33 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
                     <CheckCircle className="h-4 w-4 text-[#FF5A1F]" />
                   </div>
                   <div>
-                    <h3
-                      className="text-sm font-semibold text-[#1E2126]"
-                      style={{ fontFamily: FONT_DISPLAY }}
-                    >
-                      {typeof sub === 'string' ? sub : sub.nombre}
-                    </h3>
-                    <p className="text-xs text-[#8B8F86] mt-0.5">
-                      Solución metalmecánica profesional
-                    </p>
+                    {(() => {
+                      const nombre = typeof sub === 'string' ? sub : sub.nombre;
+                      const esInoxidable = /inoxidable/i.test(nombre);
+
+                      return (
+                        <>
+                          <h3
+                            className="text-sm font-semibold text-[#1E2126]"
+                            style={{ fontFamily: FONT_DISPLAY }}
+                          >
+                            {esInoxidable ? (
+                              <Link
+                                href="/servicios/barandas-acero-inoxidable"
+                                className="text-[#FF5A1F] hover:underline"
+                              >
+                                {nombre}
+                              </Link>
+                            ) : (
+                              nombre
+                            )}
+                          </h3>
+                          <p className="text-xs text-[#8B8F86] mt-0.5">
+                            {esInoxidable ? "Ver ficha técnica B2B y cotizar" : "Solución metalmecánica profesional"}
+                          </p>
+                        </>
+                      );
+                    })()}
                   </div>
                 </div>
               ))
@@ -896,73 +997,7 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
           </div>
         </div>
       </section>
-
-      {/* BENEFICIOS */}
-      <section className="bg-[#14161A] py-20 lg:py-28 relative overflow-hidden">
-        <div className="pointer-events-none absolute inset-0 opacity-[0.03] bg-[url('/img/grid-pattern.svg')] bg-repeat" />
-        <div
-          className="pointer-events-none absolute -right-32 top-1/2 h-[500px] w-[500px] -translate-y-1/2 rounded-full opacity-[0.04]"
-          style={{ background: "radial-gradient(circle, #FF5A1F 0%, transparent 70%)" }}
-        />
-
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-14">
-            <span
-              className="inline-block text-xs font-medium uppercase tracking-[0.2em] text-[#8A8F96] px-3 py-1 border border-[#3A3F45]"
-              style={{ fontFamily: FONT_MONO }}
-            >
-              Ventajas competitivas
-            </span>
-            <h2
-              className="mt-4 text-3xl font-semibold text-white sm:text-4xl"
-              style={{ fontFamily: FONT_DISPLAY }}
-            >
-              ¿Por qué elegirnos para{" "}
-              <span className="text-[#FF5A1F]">{categoria.title.toLowerCase()}</span>?
-            </h2>
-            <p className="mt-3 text-[#9AA0A6] max-w-2xl mx-auto">
-              Estas son las razones por las que las principales constructoras
-              confían en LUDIER.
-            </p>
-          </div>
-
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {categoria.beneficios.map((beneficio, index) => {
-              const iconMap = {
-                0: ShieldCheck,
-                1: Truck,
-                2: Users,
-                3: Zap,
-              };
-              const IconComp = iconMap[index as keyof typeof iconMap] || ShieldCheck;
-              return (
-                <div
-                  key={index}
-                  className="group relative bg-[#1D2024] border border-[#3A3F45] p-6 rounded-sm transition-all duration-500 hover:border-[#FF5A1F]/40 hover:-translate-y-2 hover:shadow-2xl hover:shadow-[#FF5A1F]/5"
-                  style={{
-                    opacity: gridInView ? 1 : 0,
-                    transform: gridInView ? "translateY(0)" : "translateY(30px)",
-                    transition: `opacity 600ms cubic-bezier(0.16,1,0.3,1) ${(index + 1) * 150}ms, transform 600ms cubic-bezier(0.16,1,0.3,1) ${(index + 1) * 150}ms`,
-                  }}
-                >
-                  <CornerMarks />
-                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-sm bg-[#FF5A1F]/10 border border-[#FF5A1F]/20">
-                    <IconComp className="h-6 w-6 text-[#FF5A1F]" />
-                  </div>
-                  <h3
-                    className="text-base font-semibold text-white"
-                    style={{ fontFamily: FONT_DISPLAY }}
-                  >
-                    {beneficio}
-                  </h3>
-                  <p className="mt-2 text-xs text-[#8A8F96]">Garantizado en cada proyecto</p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
+      
       {/* CTA */}
       <section className="bg-white py-20 lg:py-28">
         <div
