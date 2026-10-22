@@ -18,7 +18,7 @@ export function generateStaticParams() {
 }
 
 // ============================================================
-// METADATA DINÁMICA POR SERVICIO (Optimizada con Keyword Surfer)
+// METADATA DINÁMICA POR SERVICIO
 // ============================================================
 export async function generateMetadata({
   params,
@@ -27,7 +27,6 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
 
-  // Diccionario SEO Estratégico
   const seoMap: Record<
     string,
     { title: string; description: string; keywords: string[]; image: string }
@@ -159,7 +158,7 @@ export async function generateMetadata({
 }
 
 // ============================================================
-// PAGE (Server Component)
+// COMPONENTE PAGE (CON INYECCIÓN DE JSON-LD)
 // ============================================================
 export default async function Page({
   params,
@@ -168,5 +167,65 @@ export default async function Page({
 }) {
   const { slug } = await params;
 
-  return <ServicioDetalleClient slug={slug} />;
+  // Volvemos a definir el diccionario aquí para tener acceso a los datos
+  // (Es un poco redundante, pero asegura que el Server Component tenga la info)
+  const seoMap: Record<string, any> = {
+    "estructuras-metalicas": { title: "Fabricante de Estructuras Metálicas en Lima | LUDIER", description: "Diseño, fabricación e instalación de estructuras metálicas para techos, coberturas y azoteas en Lima." },
+    "barandas-pasamanos": { title: "Barandas Metálicas y de Acero Inoxidable en Lima | LUDIER", description: "Fabricación de barandas de acero inoxidable y metálicas para balcones, escaleras y terrazas." },
+    "escaleras-metalicas": { title: "Escaleras Metálicas de Emergencia e Industriales | LUDIER", description: "Fabricación de escaleras metálicas de emergencia, marineras e industriales en Lima." },
+    "puertas-portones": { title: "Portones y Puertas Metálicas en Lima | LUDIER", description: "Fabricación e instalación de portones metálicos, puertas cortafuego y cerramientos industriales." },
+    "cercos-cerramientos": { title: "Cercos Perimetrales y Prefabricados para Obras | LUDIER", description: "Especialistas en cercos perimetrales prefabricados y cerramientos temporales para constructoras." },
+    "fabricacion-medida": { title: "Fabricación Metálica a Medida en Lima | LUDIER", description: "Fabricación de rejillas metálicas, tapas, sumideros y estructuras personalizadas según planos." },
+  };
+
+  const meta = seoMap[slug] || { title: "Servicios | LUDIER", description: "Soluciones metalmecánicas en Lima." };
+
+  // 1. JSON-LD para el SERVICIO
+  const serviceJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name: meta.title.split("|")[0].trim(),
+    description: meta.description,
+    provider: {
+      "@type": "LocalBusiness",
+      name: "CONSTRUCCIONES GENERALES LUDIER E.I.R.L.",
+      url: SITE_URL,
+      telephone: "+51 965 391 256",
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: "San Juan de Miraflores",
+        addressRegion: "Lima",
+        addressCountry: "PE",
+      },
+    },
+    areaServed: { "@type": "City", name: "Lima" },
+    url: `${SITE_URL}/servicios/${slug}`,
+  };
+
+  // 2. JSON-LD para el BREADCRUMB
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Inicio", item: SITE_URL },
+      { "@type": "ListItem", position: 2, name: "Servicios", item: `${SITE_URL}/servicios` },
+      { "@type": "ListItem", position: 3, name: meta.title.split("|")[0].trim(), item: `${SITE_URL}/servicios/${slug}` },
+    ],
+  };
+
+  return (
+    <>
+      {/* Inyección de los datos estructurados */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      
+      <ServicioDetalleClient slug={slug} />
+    </>
+  );
 }
