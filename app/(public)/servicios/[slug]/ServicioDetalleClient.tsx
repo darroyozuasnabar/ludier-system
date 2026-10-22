@@ -191,7 +191,7 @@ function ImageCarousel({
 }
 
 // ============================================================
-// DATOS DE CATEGORÍAS - TODAS LAS 6 LÍNEAS DE NEGOCIO
+// DATOS DE CATEGORÍAS - OPTIMIZADOS PARA SEO
 // ============================================================
 
 const categorias: Categoria[] = [
@@ -203,7 +203,7 @@ const categorias: Categoria[] = [
     icon: Building2,
     title: "Estructuras Metálicas",
     description:
-      "Diseñamos, fabricamos e instalamos estructuras metálicas para proyectos residenciales, comerciales e industriales, garantizando resistencia, precisión y cumplimiento de los estándares de construcción.",
+      "Como fabricante de estructuras metálicas en Lima, diseñamos e instalamos estructuras para techos, coberturas y azoteas con los más altos estándares de calidad.",
     image: "/img/estructurasMetalicas.png",
     tag: "11 servicios",
     beneficios: [
@@ -287,14 +287,14 @@ const categorias: Categoria[] = [
   },
 
   // ==========================================================
-  // 2. BARANDAS Y PASAMANOS
+  // 2. BARANDAS Y PASAMANOS (Optimizado con "Acero Inoxidable")
   // ==========================================================
   {
     slug: "barandas-pasamanos",
     icon: Shield,
     title: "Barandas y Pasamanos",
     description:
-      "Fabricación e instalación de sistemas de protección y circulación metálica para edificios, condominios, centros comerciales e industrias.",
+      "Fabricación e instalación de barandas metálicas y barandas de acero inoxidable para balcones, escaleras y terrazas. Resistencia a la intemperie y diseño a medida.",
     image: "/img/Barandasmetálicas.png",
     tag: "8 servicios",
     beneficios: [
@@ -481,20 +481,19 @@ const categorias: Categoria[] = [
         descripcion:
           "Mallas de acero para protección de espacios abiertos, escaleras y áreas de alto riesgo.",
         imagenes: ["/img/mallasSeguridad.webp"],
-  
       },
     ],
   },
 
   // ==========================================================
-  // 5. SOLUCIONES PARA CONSTRUCTORAS
+  // 5. SOLUCIONES PARA CONSTRUCTORAS (Optimizado con "Prefabricado")
   // ==========================================================
   {
     slug: "cercos-cerramientos",
     icon: HardHat,
     title: "Soluciones para Constructoras",
     description:
-      "Especialistas en fabricación e instalación de soluciones metalmecánicas para obras de construcción vertical.",
+      "Especialistas en cerco perimetral para obra y cercos prefabricados. Ofrecemos cerramientos temporales, chutes metálicos y soluciones ágiles para constructoras.",
     image: "/img/cercosPerimetricos.jpg",
     tag: "8 servicios",
     beneficios: [
@@ -578,7 +577,6 @@ const categorias: Categoria[] = [
         descripcion:
           "Rejillas de acero para pisos, pasarelas y áreas de drenaje, fabricadas con perfiles de alta resistencia.",
         imagenes: ["/img/rejillasMetalicas.jpg", "/img/rejillasMetalicas_img2.jpg"],
-        
       },
       {
         nombre: "Sumideros metálicos",
@@ -617,10 +615,11 @@ const categorias: Categoria[] = [
         imagenes: ["/img/elementosPersonalizados.png"],
       },
       {
-  nombre: "Fabricación según planos",
-  descripcion: "Servicio de fabricación exacta a partir de planos proporcionados por el cliente, con control de calidad riguroso.",
-  imagenes: ["/img/modificacionesObra.jpg"],
-},
+        nombre: "Fabricación según planos",
+        descripcion:
+          "Servicio de fabricación exacta a partir de planos proporcionados por el cliente, con control de calidad riguroso.",
+        imagenes: ["/img/modificacionesObra.jpg"],
+      },
     ],
   },
 ];
