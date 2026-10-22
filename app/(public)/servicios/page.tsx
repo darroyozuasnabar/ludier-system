@@ -58,7 +58,7 @@ const categorias = [
     icon: Shield,
     title: "Barandas y Pasamanos",
     description:
-      "Fabricación e instalación de sistemas de protección y circulación metálica para edificios, condominios, centros comerciales e industrias.",
+      "Fabricación e instalación de barandas metálicas y de acero inoxidable para balcones, escaleras y terrazas. Resistencia a la intemperie y diseño a medida.",
     subServicios: [
       "Barandas metálicas",
       "Barandas para balcones",
@@ -112,7 +112,7 @@ const categorias = [
     icon: HardHat,
     title: "Soluciones para Constructoras",
     description:
-      "Especialistas en fabricación e instalación de soluciones metalmecánicas para obras de construcción vertical.",
+      "Especialistas en cerco perimetral para obra y cercos prefabricados. Ofrecemos cerramientos temporales, chutes metálicos y soluciones ágiles para constructoras.",
     subServicios: [
       "Chutes metálicos",
       "Cerramientos temporales",
@@ -222,7 +222,6 @@ function useScrollReveal<T extends HTMLElement>(threshold = 0.12) {
 
 function CategoriaCard({ categoria, index }: { categoria: typeof categorias[0]; index: number }) {
   const Icon = categoria.icon;
-  // 🔥 CORRECCIÓN: Usamos HTMLAnchorElement en lugar de HTMLDivElement
   const { ref, inView } = useScrollReveal<HTMLAnchorElement>(0.1);
 
   return (

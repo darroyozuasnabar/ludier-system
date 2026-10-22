@@ -289,14 +289,14 @@ const categorias: Categoria[] = [
   // ==========================================================
   // 2. BARANDAS Y PASAMANOS (Optimizado con "Acero Inoxidable")
   // ==========================================================
-  {
+    {
     slug: "barandas-pasamanos",
     icon: Shield,
     title: "Barandas y Pasamanos",
     description:
-      "Fabricación e instalación de barandas metálicas y barandas de acero inoxidable para balcones, escaleras y terrazas. Resistencia a la intemperie y diseño a medida.",
+      "Fabricación e instalación de barandas metálicas y de acero inoxidable para balcones, escaleras y terrazas. Resistencia a la intemperie y diseño a medida para proyectos residenciales y comerciales.",
     image: "/img/Barandasmetálicas.png",
-    tag: "8 servicios",
+    tag: "9 servicios",
     beneficios: [
       "Diseño personalizado según proyecto",
       "Acabados gloss mate, epóxicos y electrostáticos",
@@ -304,6 +304,13 @@ const categorias: Categoria[] = [
       "Cumplimiento de normas de seguridad",
     ],
     subServicios: [
+      // 👇 NUEVO SUB-SERVICIO DESTACADO (SEO B2B - Acero Inoxidable)
+      {
+        nombre: "Barandas de Acero Inoxidable (Grado 304)",
+        descripcion:
+          "Fabricación e instalación de barandas de acero inoxidable para proyectos de alta exigencia. Ideales para balcones costeros y zonas de alta humedad. Resistencia superior a la corrosión, acabados brillantes o satinados y cumplimiento de normativas de seguridad. Proveedor para constructoras.",
+        imagenes: ["/img/barandaBalcones.jpg"],
+      },
       {
         nombre: "Barandas metálicas",
         descripcion:
@@ -492,8 +499,8 @@ const categorias: Categoria[] = [
     slug: "cercos-cerramientos",
     icon: HardHat,
     title: "Soluciones para Constructoras",
-    description:
-      "Especialistas en cerco perimetral para obra y cercos prefabricados. Ofrecemos cerramientos temporales, chutes metálicos y soluciones ágiles para constructoras.",
+        description:
+      "Especialistas en cerco perimetral para obra y cercos prefabricados. Ofrecemos cerramientos temporales, chutes metálicos y soluciones ágiles para constructoras que buscan cumplir plazos y normativas.",
     image: "/img/cercosPerimetricos.jpg",
     tag: "8 servicios",
     beneficios: [
