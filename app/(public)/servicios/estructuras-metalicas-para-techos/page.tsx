@@ -62,7 +62,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/img/coberturasMetalicas.jpg", // Ajusta si tienes otra foto
+        url: "/img/coberturasMetalicas.jpg",
         width: 1200,
         height: 630,
         alt: "Estructura metálica para techos instalada por LUDIER",
@@ -125,20 +125,21 @@ const QUOTE_CHECKLIST = [
   "Si necesitas aislación térmica y/o acústica",
 ];
 
+// 👇 SOLO PROYECTOS REALES CON COBERTURA/TECHOS METÁLICOS
 const PROJECTS = [
   {
     href: "/proyectos/qantua",
     img: "/img/proyectos/qantua/25-cobertura-policarbonato-ducto-gas-qantua.png",
-    alt: "Estructura metálica con cobertura de policarbonato instalada en Qantua",
+    alt: "Estructura metálica con cobertura de policarbonato instalada en el Proyecto Qantua por LUDIER",
     title: "Proyecto Qantua · Cercado de Lima",
     text: "Fabricación e instalación de estructura metálica con cobertura de policarbonato para protección de ducto técnico en azotea.",
   },
   {
-    href: "/proyectos/elant-fase-3",
-    img: "/img/proyectos/Elant/fabricacion-tapa-metalica-abatible-acceso-sotano.png",
-    alt: "Estructura metálica para tapa abatible de acceso a sótano en Elant Fase 3",
-    title: "Proyecto Elant · La Victoria",
-    text: "Fabricación de estructuras metálicas para accesos seguros y protección de ductos técnicos en edificio multifamiliar.",
+    href: "/proyectos/zendai",
+    img: "/img/zendai.png",
+    alt: "Estructura metálica y techos instalados en el Edificio Zendai por LUDIER",
+    title: "Edificio Zendai · La Victoria",
+    text: "Fabricación e instalación de estructuras metálicas complementarias y coberturas técnicas en edificio de 28 pisos.",
   },
 ];
 
@@ -288,7 +289,7 @@ export default function TechosMetalicosPage() {
 
               <figure className="relative aspect-[4/3] overflow-hidden rounded-sm border border-[#3A3F45] shadow-2xl">
                 <Image
-                  src="/img/coberturasMetalicas.jpg" // Ajusta si tienes otra foto
+                  src="/img/coberturasMetalicas.jpg"
                   alt="Estructura metálica para techos instalada por LUDIER"
                   fill
                   sizes="(min-width: 1024px) 560px, 100vw"
