@@ -477,6 +477,31 @@ export const GALERIAS: Record<string, GaleriaProyecto> = {
         categoria: "barandas",
         alt: "Barandas metálicas terminadas en azotea de Qantua Fase 2",
       },
+      // 👇 NUEVAS FOTOS — CHUTE METÁLICO QANTUA FASE 3
+      {
+        src: "/img/proyectos/qantua/29-chute-residuos-qantua-fase-3.png",
+        titulo: "Chute metálico para evacuación de residuos en Qantua Fase 3",
+        descripcion:
+          "Vista inferior del chute metálico para evacuación de residuos instalado en Qantua Fase 3. La estructura vertical se extiende desde la azotea hasta los niveles inferiores del edificio, permitiendo la recolección y conducción segura de residuos generados en los distintos pisos. La solución incorpora soportes metálicos de fijación y elementos diseñados para garantizar estabilidad, durabilidad y correcto funcionamiento dentro de la infraestructura del proyecto.",
+        categoria: "estructuras",
+        alt: "Chute metálico para evacuación de residuos instalado en Qantua Fase 3",
+      },
+      {
+        src: "/img/proyectos/qantua/30-instalacion-chute-residuos-qantua-fase-3.png",
+        titulo: "Instalación de chute metálico de residuos en edificio multifamiliar",
+        descripcion:
+          "Vista exterior de los trabajos de instalación de un chute metálico para evacuación de residuos en Qantua Fase 3. La imagen muestra el sistema vertical durante la etapa constructiva del edificio, evidenciando su integración con la estructura de concreto armado y los puntos de fijación que garantizan estabilidad a lo largo de los distintos niveles. El sistema permitirá la conducción segura de residuos desde los pisos superiores hasta el área de recolección del proyecto.",
+        categoria: "instalacion",
+        alt: "Instalación de chute metálico para evacuación de residuos en Qantua Fase 3",
+      },
+      {
+        src: "/img/proyectos/qantua/32-boca-descarga-chute-residuos-qantua-fase-3.png",
+        titulo: "Boca de descarga de chute metálico en Qantua Fase 3",
+        descripcion:
+          "Boca de descarga del chute metálico instalado en Qantua Fase 3, diseñada para recibir y canalizar los residuos y materiales de obra provenientes de los niveles superiores del edificio. El sistema permite una evacuación controlada de escombros y desperdicios de construcción, contribuyendo a mantener el orden, la seguridad y la eficiencia operativa durante la ejecución del proyecto.",
+        categoria: "instalacion",
+        alt: "Boca de descarga de chute metálico para residuos en Qantua Fase 3",
+      },
     ],
 
     videos: [
@@ -493,6 +518,14 @@ export const GALERIAS: Record<string, GaleriaProyecto> = {
         descripcion:
           "Vista panorámica en video del conjunto residencial, apreciando la integración arquitectónica de las torres y los elementos metálicos fabricados e instalados por LUDIER.",
         poster: "/img/proyectos/qantua/28-vistaIntegralQantuaF1&F2.jpeg",
+      },
+      // 👇 NUEVO VIDEO — FABRICACIÓN DE SOPORTES PARA CHUTE QANTUA FASE 3
+      {
+        src: "/img/proyectos/qantua/31-fabricacion-soportes-chute-residuos-qantua-fase-3.mp4",
+        titulo: "Fabricación de soportes metálicos para chute de residuos - Qantua Fase 3",
+        descripcion:
+          "Video del proceso de fabricación y soldadura de los soportes metálicos que fijan los tramos del chute de residuos a la estructura del edificio en Qantua Fase 3. Los elementos mostrados garantizan estabilidad, alineación y resistencia durante la operación del sistema de evacuación de escombros.",
+        poster: "/img/proyectos/qantua/32-boca-descarga-chute-residuos-qantua-fase-3.png",
       },
     ],
   },
