@@ -152,6 +152,13 @@ export const POSTS: BlogPost[] = [
 
       <h3>¿Trabajan en toda Lima o solo en algunos distritos?</h3>
       <p>Cubrimos toda Lima Metropolitana: San Juan de Miraflores, Cercado, La Victoria, Surco, Miraflores, San Isidro, San Borja, Chorrillos, Lince y más. También atendemos provincias para proyectos grandes.</p>
+
+      <!-- 👇 LINK BUILDING INTERNO: Blog → Landing B2B -->
+      <div style="margin-top: 40px; padding: 24px; background-color: #FFF3EC; border-left: 4px solid #FF5A1F;">
+        <p style="margin: 0 0 12px 0; font-weight: 600; color: #1E2126;">¿Necesitas cotizar estructuras metálicas para tu obra?</p>
+        <p style="margin: 0 0 16px 0; color: #565C63;">Visita nuestra ficha técnica completa con materiales, normativas y casos de éxito.</p>
+        <a href="/servicios/estructuras-metalicas" style="display: inline-block; padding: 12px 24px; background-color: #FF5A1F; color: white; text-decoration: none; font-weight: 600; border-radius: 2px;">Ver ficha técnica de estructuras metálicas →</a>
+      </div>
     `,
     fecha: "15 de Octubre, 2026",
     fechaISO: "2026-10-15",
@@ -312,6 +319,13 @@ export const POSTS: BlogPost[] = [
 
       <h3>¿Trabajan en toda Lima o solo en algunos distritos?</h3>
       <p>Cubrimos toda Lima Metropolitana. También atendemos proyectos en provincias para obras grandes (más de 15 pisos).</p>
+
+      <!-- 👇 LINK BUILDING INTERNO: Blog → Landing B2B (Chutes) -->
+      <div style="margin-top: 40px; padding: 24px; background-color: #FFF3EC; border-left: 4px solid #FF5A1F;">
+        <p style="margin: 0 0 12px 0; font-weight: 600; color: #1E2126;">¿Necesitas cotizar chutes metálicos para tu obra?</p>
+        <p style="margin: 0 0 16px 0; color: #565C63;">Visita nuestra ficha técnica completa con tipos de chutes, casos de éxito (Hilton MDP, Qantua Fase 3) y proceso de montaje.</p>
+        <a href="/servicios/chutes-metalicos-para-construccion" style="display: inline-block; padding: 12px 24px; background-color: #FF5A1F; color: white; text-decoration: none; font-weight: 600; border-radius: 2px;">Ver ficha técnica de chutes metálicos →</a>
+      </div>
     `,
     fecha: "14 de Octubre, 2026",
     fechaISO: "2026-10-14",
@@ -468,6 +482,13 @@ export const POSTS: BlogPost[] = [
 
       <h3>¿Ofrecen garantía?</h3>
       <p>Sí. Ofrecemos garantía escrita de 2 años sobre estructura y acabados, y ofrecemos planes de mantenimiento opcional.</p>
+
+      <!-- 👇 LINK BUILDING INTERNO: Blog → Landing B2B (Acero Inoxidable) -->
+      <div style="margin-top: 40px; padding: 24px; background-color: #FFF3EC; border-left: 4px solid #FF5A1F;">
+        <p style="margin: 0 0 12px 0; font-weight: 600; color: #1E2126;">¿Buscas barandas de acero inoxidable para tu obra?</p>
+        <p style="margin: 0 0 16px 0; color: #565C63;">Conoce nuestra ficha técnica completa con comparativa de materiales (304 vs 316), casos de éxito (Zendai, Qantua) y proceso de instalación.</p>
+        <a href="/servicios/barandas-acero-inoxidable" style="display: inline-block; padding: 12px 24px; background-color: #FF5A1F; color: white; text-decoration: none; font-weight: 600; border-radius: 2px;">Ver ficha técnica de barandas inoxidable →</a>
+      </div>
     `,
     fecha: "13 de Octubre, 2026",
     fechaISO: "2026-10-13",
@@ -846,6 +867,13 @@ export const POSTS: BlogPost[] = [
 
       <h3>¿Ofrecen garantía?</h3>
       <p>Sí. Ofrecemos garantía escrita de 1-2 años según el tipo de pieza y acabado.</p>
+
+      <!-- 👇 LINK BUILDING INTERNO: Blog → Landing B2B (Fabricación a medida) -->
+      <div style="margin-top: 40px; padding: 24px; background-color: #FFF3EC; border-left: 4px solid #FF5A1F;">
+        <p style="margin: 0 0 12px 0; font-weight: 600; color: #1E2126;">¿Tienes un plano o pieza especial que fabricar?</p>
+        <p style="margin: 0 0 16px 0; color: #565C63;">Conoce nuestra ficha técnica de fabricación metálica a medida: rejillas, sumideros, tapas, bastidores, racks y elementos arquitectónicos personalizados.</p>
+        <a href="/servicios/fabricacion-medida" style="display: inline-block; padding: 12px 24px; background-color: #FF5A1F; color: white; text-decoration: none; font-weight: 600; border-radius: 2px;">Ver ficha técnica de fabricación a medida →</a>
+      </div>
     `,
     fecha: "10 de Septiembre, 2026",
     fechaISO: "2026-09-10",
@@ -1209,6 +1237,13 @@ export const POSTS: BlogPost[] = [
 
       <h3>¿Ofrecen garantía?</h3>
       <p>Sí. Ofrecemos garantía escrita de 2 años sobre estructura y acabados, y ofrecemos planes de mantenimiento opcional.</p>
+
+      <!-- 👇 LINK BUILDING INTERNO: Blog → Landing B2B (Escaleras metálicas) -->
+      <div style="margin-top: 40px; padding: 24px; background-color: #FFF3EC; border-left: 4px solid #FF5A1F;">
+        <p style="margin: 0 0 12px 0; font-weight: 600; color: #1E2126;">¿Necesitas cotizar escaleras metálicas para tu obra?</p>
+        <p style="margin: 0 0 16px 0; color: #565C63;">Visita nuestra ficha técnica de escaleras metálicas: de emergencia, marineras, industriales y de acceso a azotea.</p>
+        <a href="/servicios/escaleras-metalicas" style="display: inline-block; padding: 12px 24px; background-color: #FF5A1F; color: white; text-decoration: none; font-weight: 600; border-radius: 2px;">Ver ficha técnica de escaleras metálicas →</a>
+      </div>
     `,
     fecha: "12 de Octubre, 2026",
     fechaISO: "2026-10-12",
@@ -1390,6 +1425,13 @@ export const POSTS: BlogPost[] = [
 
       <h3>¿Trabajan con empresas, edificios o solo residencial?</h3>
       <p>Los tres. Fabricamos portones residenciales, comerciales (locales, oficinas) e industriales (plantas, almacenes, naves).</p>
+
+      <!-- 👇 LINK BUILDING INTERNO: Blog → Landing B2B (Puertas y Portones) -->
+      <div style="margin-top: 40px; padding: 24px; background-color: #FFF3EC; border-left: 4px solid #FF5A1F;">
+        <p style="margin: 0 0 12px 0; font-weight: 600; color: #1E2126;">¿Necesitas cotizar portones metálicos para tu obra?</p>
+        <p style="margin: 0 0 16px 0; color: #565C63;">Visita nuestra ficha técnica de puertas, portones y cerramientos: tipos, automatización y precios.</p>
+        <a href="/servicios/puertas-portones" style="display: inline-block; padding: 12px 24px; background-color: #FF5A1F; color: white; text-decoration: none; font-weight: 600; border-radius: 2px;">Ver ficha técnica de portones metálicos →</a>
+      </div>
     `,
     fecha: "11 de Octubre, 2026",
     fechaISO: "2026-10-11",
@@ -1569,6 +1611,13 @@ export const POSTS: BlogPost[] = [
 
       <h3>¿Pueden instalar un cerco perimetral con portón incluido?</h3>
       <p>Sí. Fabricamos cerco + portón como solución integral. El portón puede ser manual o automatizado según necesidad.</p>
+
+      <!-- 👇 LINK BUILDING INTERNO: Blog → Landing B2B (Cercos y cerramientos) -->
+      <div style="margin-top: 40px; padding: 24px; background-color: #FFF3EC; border-left: 4px solid #FF5A1F;">
+        <p style="margin: 0 0 12px 0; font-weight: 600; color: #1E2126;">¿Necesitas cercos perimetrales para tu obra o industria?</p>
+        <p style="margin: 0 0 16px 0; color: #565C63;">Visita nuestra ficha técnica de cercos, cerramientos y soluciones para constructoras.</p>
+        <a href="/servicios/cercos-cerramientos" style="display: inline-block; padding: 12px 24px; background-color: #FF5A1F; color: white; text-decoration: none; font-weight: 600; border-radius: 2px;">Ver ficha técnica de cercos perimetrales →</a>
+      </div>
     `,
     fecha: "10 de Octubre, 2026",
     fechaISO: "2026-10-10",
