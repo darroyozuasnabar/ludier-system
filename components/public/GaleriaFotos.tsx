@@ -232,7 +232,8 @@ export default function GaleriaFotos({ slug }: { slug: string }) {
                     poster={video.poster}
                     controls
                     preload="metadata"
-                    className="w-full h-full object-cover"
+                    playsInline
+                    className="w-full h-full object-contain"
                   >
                     Tu navegador no soporta video HTML5.
                   </video>
