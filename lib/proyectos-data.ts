@@ -133,6 +133,27 @@ export const proyectosData: Proyecto[] = [
       "Ejecución de trabajos de herrería y adecuación de accesos en la obra. LUDIER demostró su capacidad para resolver requerimientos de cerrajería estructural y fabricación de elementos de señalización con precisión. Esta intervención en Distrito 34 refuerza nuestra alianza comercial con Grupo LAR, posicionándonos como el proveedor de confianza para el equipamiento y la seguridad de sus proyectos.",
     imagen: "/img/Distrito34.jpg",
   },
+
+    // 11. CATALINA TOWER
+  {
+    id: 11,
+    slug: "catalina-tower",
+    titulo: "Edificio Catalina Tower",
+    cliente: "Constructoría Inmobiliaria M&J S.A.C.",
+    ubicacion: "Jr. Carlos Ernesto Krumdieck 295, Urb. Santa Catalina, La Victoria, Lima",
+    categoria: "residencial",
+    servicios: [
+      "Servicio integral de instalación y desmontaje de chute metálico para evacuación de residuos.",
+      "Suministro de materiales: cilindros/ductos metálicos, tolvas y soportes estructurales.",
+      "Mano de obra de instalación desde el piso 1 al piso 10 del edificio.",
+      "Desmontaje final del sistema al terminar la obra.",
+      "Incluye mano de obra calificada, consumibles de soldadura, equipos de soldar, EPP completos y SCTR vigente de todo el personal asignado.",
+    ],
+    resultado:
+      "Instalación exitosa del sistema de chute metálico para evacuación de residuos en el Edificio Catalina Tower. LUDIER demostró su capacidad operativa para ejecutar la instalación y el desmontaje en un edificio de 10 pisos, cumpliendo con los plazos acordados (15 días calendario) y los protocolos de seguridad. La obra se entregó sin observaciones, consolidando la confianza del cliente en nuestras soluciones metalmecánicas.",
+    imagen: "/img/CatalinaTower.png",
+  },  
+  
   // 6. CERCO LINCE
   {
     id: 2,
@@ -211,24 +232,5 @@ export const proyectosData: Proyecto[] = [
     resultado:
       "Soluciones orientadas a la seguridad, operatividad y productividad en un entorno urbano de alta exigencia.",
     imagen: "/img/Edificacion_CentroLima.png",
-  },
-    // 11. CATALINA TOWER
-  {
-    id: 11,
-    slug: "catalina-tower",
-    titulo: "Edificio Catalina Tower",
-    cliente: "Constructoría Inmobiliaria M&J S.A.C.",
-    ubicacion: "Jr. Carlos Ernesto Krumdieck 295, Urb. Santa Catalina, La Victoria, Lima",
-    categoria: "residencial",
-    servicios: [
-      "Servicio integral de instalación y desmontaje de chute metálico para evacuación de residuos.",
-      "Suministro de materiales: cilindros/ductos metálicos, tolvas y soportes estructurales.",
-      "Mano de obra de instalación desde el piso 1 al piso 10 del edificio.",
-      "Desmontaje final del sistema al terminar la obra.",
-      "Incluye mano de obra calificada, consumibles de soldadura, equipos de soldar, EPP completos y SCTR vigente de todo el personal asignado.",
-    ],
-    resultado:
-      "Instalación exitosa del sistema de chute metálico para evacuación de residuos en el Edificio Catalina Tower. LUDIER demostró su capacidad operativa para ejecutar la instalación y el desmontaje en un edificio de 10 pisos, cumpliendo con los plazos acordados (15 días calendario) y los protocolos de seguridad. La obra se entregó sin observaciones, consolidando la confianza del cliente en nuestras soluciones metalmecánicas.",
-    imagen: "/img/CatalinaTower.png",
   },
 ];
