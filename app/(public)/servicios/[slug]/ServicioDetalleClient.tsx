@@ -840,16 +840,21 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
               (categoria.subServicios as SubServicio[]).map((sub, index) => {
                 // Detección robusta: sin importar mayúsculas/minúsculas
                 const esInoxidable = /inoxidable/i.test(sub.nombre);
-                const esChute = /chute/i.test(sub.nombre);
-                const esDestacado = esInoxidable || esChute;
+const esChute = /chute/i.test(sub.nombre);
+const esTechos = /techo/i.test(sub.nombre);
+const esDestacado = esInoxidable || esChute || esTechos;
 
                 const landingUrl = esInoxidable 
-                  ? "/servicios/barandas-acero-inoxidable" 
-                  : "/servicios/chutes-metalicos-para-construccion";
+  ? "/servicios/barandas-acero-inoxidable" 
+  : esChute 
+  ? "/servicios/chutes-metalicos-para-construccion"
+  : "/servicios/estructuras-metalicas-para-techos";
 
-                const whatsappUrl = esInoxidable 
-                  ? WHATSAPP_INOX_URL 
-                  : WHATSAPP_CHUTES_URL;
+const whatsappUrl = esInoxidable 
+  ? WHATSAPP_INOX_URL 
+  : esChute 
+  ? WHATSAPP_CHUTES_URL
+  : `https://wa.me/51965391256?text=${encodeURIComponent("Hola LUDIER, quiero cotizar techos metálicos para mi obra.")}`;
 
                 // Contenido interno de la tarjeta (reutilizable)
                 const CardContent = (
