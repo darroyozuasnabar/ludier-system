@@ -157,7 +157,7 @@ export const POSTS: BlogPost[] = [
       <div style="margin-top: 40px; padding: 24px; background-color: #FFF3EC; border-left: 4px solid #FF5A1F;">
         <p style="margin: 0 0 12px 0; font-weight: 600; color: #1E2126;">¿Necesitas cotizar estructuras metálicas para tu obra?</p>
         <p style="margin: 0 0 16px 0; color: #565C63;">Visita nuestra ficha técnica completa con materiales, normativas y casos de éxito.</p>
-        <a href="/servicios/estructuras-metalicas" style="display: inline-block; padding: 12px 24px; background-color: #FF5A1F; color: white; text-decoration: none; font-weight: 600; border-radius: 2px;">Ver ficha técnica de estructuras metálicas →</a>
+        <a href="/servicios/estructuras-metalicas" style="display: inline-block; padding: 12px 24px; background-color: #FF5A1F; color: #ffffff !important; text-decoration: none; font-weight: 600; border-radius: 2px;">Ver ficha técnica de estructuras metálicas →</a>
       </div>
     `,
     fecha: "15 de Octubre, 2026",
@@ -324,7 +324,7 @@ export const POSTS: BlogPost[] = [
       <div style="margin-top: 40px; padding: 24px; background-color: #FFF3EC; border-left: 4px solid #FF5A1F;">
         <p style="margin: 0 0 12px 0; font-weight: 600; color: #1E2126;">¿Necesitas cotizar chutes metálicos para tu obra?</p>
         <p style="margin: 0 0 16px 0; color: #565C63;">Visita nuestra ficha técnica completa con tipos de chutes, casos de éxito (Hilton MDP, Qantua Fase 3) y proceso de montaje.</p>
-        <a href="/servicios/chutes-metalicos-para-construccion" style="display: inline-block; padding: 12px 24px; background-color: #FF5A1F; color: white; text-decoration: none; font-weight: 600; border-radius: 2px;">Ver ficha técnica de chutes metálicos →</a>
+        <a href="/servicios/chutes-metalicos-para-construccion" style="display: inline-block; padding: 12px 24px; background-color: #FF5A1F; color: #ffffff !important; text-decoration: none; font-weight: 600; border-radius: 2px;">Ver ficha técnica de chutes metálicos →</a>
       </div>
     `,
     fecha: "14 de Octubre, 2026",
@@ -487,7 +487,7 @@ export const POSTS: BlogPost[] = [
       <div style="margin-top: 40px; padding: 24px; background-color: #FFF3EC; border-left: 4px solid #FF5A1F;">
         <p style="margin: 0 0 12px 0; font-weight: 600; color: #1E2126;">¿Buscas barandas de acero inoxidable para tu obra?</p>
         <p style="margin: 0 0 16px 0; color: #565C63;">Conoce nuestra ficha técnica completa con comparativa de materiales (304 vs 316), casos de éxito (Zendai, Qantua) y proceso de instalación.</p>
-        <a href="/servicios/barandas-acero-inoxidable" style="display: inline-block; padding: 12px 24px; background-color: #FF5A1F; color: white; text-decoration: none; font-weight: 600; border-radius: 2px;">Ver ficha técnica de barandas inoxidable →</a>
+        <a href="/servicios/barandas-acero-inoxidable" style="display: inline-block; padding: 12px 24px; background-color: #FF5A1F; color: #ffffff !important; text-decoration: none; font-weight: 600; border-radius: 2px;">Ver ficha técnica de barandas inoxidable →</a>
       </div>
     `,
     fecha: "13 de Octubre, 2026",
@@ -667,6 +667,13 @@ export const POSTS: BlogPost[] = [
 
       <h3>¿Trabajan con constructoras que tienen sus propios protocolos?</h3>
       <p>Sí. Nos adaptamos a los protocolos específicos de cada constructora (Cosapi, Graña y Montero, Besalco, etc.) y cumplimos con sus auditorías.</p>
+
+      <!-- 👇 LINK BUILDING INTERNO: Blog → Contacto General (No hay ficha específica) -->
+      <div style="margin-top: 40px; padding: 24px; background-color: #FFF3EC; border-left: 4px solid #FF5A1F;">
+        <p style="margin: 0 0 12px 0; font-weight: 600; color: #1E2126;">¿Necesitas implementar protocolos de seguridad o cotizar una obra?</p>
+        <p style="margin: 0 0 16px 0; color: #565C63;">Cuéntanos los requerimientos de tu proyecto y te asesoramos sin compromiso.</p>
+        <a href="/contacto" style="display: inline-block; padding: 12px 24px; background-color: #FF5A1F; color: #ffffff !important; text-decoration: none; font-weight: 600; border-radius: 2px;">Contactar a un asesor →</a>
+      </div>
     `,
     fecha: "20 de Septiembre, 2026",
     fechaISO: "2026-09-20",
@@ -872,7 +879,7 @@ export const POSTS: BlogPost[] = [
       <div style="margin-top: 40px; padding: 24px; background-color: #FFF3EC; border-left: 4px solid #FF5A1F;">
         <p style="margin: 0 0 12px 0; font-weight: 600; color: #1E2126;">¿Tienes un plano o pieza especial que fabricar?</p>
         <p style="margin: 0 0 16px 0; color: #565C63;">Conoce nuestra ficha técnica de fabricación metálica a medida: rejillas, sumideros, tapas, bastidores, racks y elementos arquitectónicos personalizados.</p>
-        <a href="/servicios/fabricacion-medida" style="display: inline-block; padding: 12px 24px; background-color: #FF5A1F; color: white; text-decoration: none; font-weight: 600; border-radius: 2px;">Ver ficha técnica de fabricación a medida →</a>
+        <a href="/servicios/fabricacion-medida" style="display: inline-block; padding: 12px 24px; background-color: #FF5A1F; color: #ffffff !important; text-decoration: none; font-weight: 600; border-radius: 2px;">Ver ficha técnica de fabricación a medida →</a>
       </div>
     `,
     fecha: "10 de Septiembre, 2026",
@@ -1056,6 +1063,13 @@ export const POSTS: BlogPost[] = [
 
       <h3>¿Ofrecen asesoría en normativas?</h3>
       <p>Sí. Nuestro equipo de ingeniería puede asesorarte sobre qué normativas aplican a tu proyecto y cómo cumplirlas.</p>
+
+      <!-- 👇 LINK BUILDING INTERNO: Blog → Contacto General (No hay ficha específica) -->
+      <div style="margin-top: 40px; padding: 24px; background-color: #FFF3EC; border-left: 4px solid #FF5A1F;">
+        <p style="margin: 0 0 12px 0; font-weight: 600; color: #1E2126;">¿Necesitas asesoría en normativas para tu proyecto?</p>
+        <p style="margin: 0 0 16px 0; color: #565C63;">Nuestro equipo de ingeniería puede ayudarte a cumplir con todas las exigencias del RNE.</p>
+        <a href="/contacto" style="display: inline-block; padding: 12px 24px; background-color: #FF5A1F; color: #ffffff !important; text-decoration: none; font-weight: 600; border-radius: 2px;">Contactar a un asesor →</a>
+      </div>
     `,
     fecha: "1 de Septiembre, 2026",
     fechaISO: "2026-09-01",
@@ -1242,7 +1256,7 @@ export const POSTS: BlogPost[] = [
       <div style="margin-top: 40px; padding: 24px; background-color: #FFF3EC; border-left: 4px solid #FF5A1F;">
         <p style="margin: 0 0 12px 0; font-weight: 600; color: #1E2126;">¿Necesitas cotizar escaleras metálicas para tu obra?</p>
         <p style="margin: 0 0 16px 0; color: #565C63;">Visita nuestra ficha técnica de escaleras metálicas: de emergencia, marineras, industriales y de acceso a azotea.</p>
-        <a href="/servicios/escaleras-metalicas" style="display: inline-block; padding: 12px 24px; background-color: #FF5A1F; color: white; text-decoration: none; font-weight: 600; border-radius: 2px;">Ver ficha técnica de escaleras metálicas →</a>
+        <a href="/servicios/escaleras-metalicas" style="display: inline-block; padding: 12px 24px; background-color: #FF5A1F; color: #ffffff !important; text-decoration: none; font-weight: 600; border-radius: 2px;">Ver ficha técnica de escaleras metálicas →</a>
       </div>
     `,
     fecha: "12 de Octubre, 2026",
@@ -1430,7 +1444,7 @@ export const POSTS: BlogPost[] = [
       <div style="margin-top: 40px; padding: 24px; background-color: #FFF3EC; border-left: 4px solid #FF5A1F;">
         <p style="margin: 0 0 12px 0; font-weight: 600; color: #1E2126;">¿Necesitas cotizar portones metálicos para tu obra?</p>
         <p style="margin: 0 0 16px 0; color: #565C63;">Visita nuestra ficha técnica de puertas, portones y cerramientos: tipos, automatización y precios.</p>
-        <a href="/servicios/puertas-portones" style="display: inline-block; padding: 12px 24px; background-color: #FF5A1F; color: white; text-decoration: none; font-weight: 600; border-radius: 2px;">Ver ficha técnica de portones metálicos →</a>
+        <a href="/servicios/puertas-portones" style="display: inline-block; padding: 12px 24px; background-color: #FF5A1F; color: #ffffff !important; text-decoration: none; font-weight: 600; border-radius: 2px;">Ver ficha técnica de portones metálicos →</a>
       </div>
     `,
     fecha: "11 de Octubre, 2026",
@@ -1616,7 +1630,7 @@ export const POSTS: BlogPost[] = [
       <div style="margin-top: 40px; padding: 24px; background-color: #FFF3EC; border-left: 4px solid #FF5A1F;">
         <p style="margin: 0 0 12px 0; font-weight: 600; color: #1E2126;">¿Necesitas cercos perimetrales para tu obra o industria?</p>
         <p style="margin: 0 0 16px 0; color: #565C63;">Visita nuestra ficha técnica de cercos, cerramientos y soluciones para constructoras.</p>
-        <a href="/servicios/cercos-cerramientos" style="display: inline-block; padding: 12px 24px; background-color: #FF5A1F; color: white; text-decoration: none; font-weight: 600; border-radius: 2px;">Ver ficha técnica de cercos perimetrales →</a>
+        <a href="/servicios/cercos-cerramientos" style="display: inline-block; padding: 12px 24px; background-color: #FF5A1F; color: #ffffff !important; text-decoration: none; font-weight: 600; border-radius: 2px;">Ver ficha técnica de cercos perimetrales →</a>
       </div>
     `,
     fecha: "10 de Octubre, 2026",
@@ -1637,7 +1651,6 @@ export const POSTS: BlogPost[] = [
     metaDescription:
       "Guía completa sobre cercos perimetrales para industrias y constructoras: tipos, materiales, normativas y precios en Lima 2026. Por LUDIER.",
   },
-
 ];
 
 // ============================================================
