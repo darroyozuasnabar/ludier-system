@@ -59,7 +59,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/img/proyectos/qantua/Qantua_foto1.jpg",
+        url: "/img/chutesMetalicos.webp",
         width: 1200,
         height: 630,
         alt: "Chutes metálicos instalados en obra por LUDIER",
@@ -70,7 +70,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Chutes Metálicos para Construcción | LUDIER",
     description: "Evacuación segura de escombros para constructoras en Lima.",
-    images: ["/img/proyectos/qantua/Qantua_foto1.jpg"],
+    images: ["/img/chutesMetalicos.webp"],
   },
 };
 
@@ -123,18 +123,18 @@ const QUOTE_CHECKLIST = [
 
 const PROJECTS = [
   {
-    href: "/proyectos/qantua",
-    img: "/img/Qantua.jpg",
-    alt: "Chutes metálicos y soluciones de evacuación en el proyecto Qantua",
-    title: "Proyecto Qantua · Cercado de Lima",
-    text: "Soluciones metálicas y evacuación de residuos para las Torres de la Fase 1 y Fase 2.",
+    href: "/proyectos/hilton",
+    img: "/img/hilton-lima-miraflores.jpg",
+    alt: "Chute metálico instalado en el Hotel Hilton por LUDIER",
+    title: "Hotel Hilton · Surco",
+    text: "Fabricación e instalación de chute metálico para evacuación de escombros en 19 pisos y sótano.",
   },
   {
-    href: "/proyectos/zendai",
-    img: "/img/zendai.png",
-    alt: "Chutes metálicos y barandas en el proyecto Zendai",
-    title: "Proyecto Zendai · La Victoria",
-    text: "Suministro e instalación de barandas y soluciones de evacuación en un edificio de 28 pisos.",
+    href: "/proyectos/qantua",
+    img: "/img/Qantua.jpg",
+    alt: "Chutes metálicos instalados en el Proyecto Qantua por LUDIER",
+    title: "Proyecto Qantua · Cercado de Lima",
+    text: "Fabricación, instalación, mantenimiento y desmontaje de chutes de escombros para las 6 torres del proyecto.",
   },
 ];
 
@@ -165,7 +165,15 @@ function CtaButtons({ className = "" }: { className?: string }) {
         rel="noopener noreferrer"
         className="inline-flex items-center gap-2 border border-white/30 px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:border-white hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
       >
-        <MessageCircle className="h-4 w-4" aria-hidden /> Escribir por WhatsApp
+        <Image
+          src="/img/WhatsAppLogo.jpg"
+          alt=""
+          width={20}
+          height={20}
+          aria-hidden
+          className="rounded-full"
+        />
+        Escribir por WhatsApp
       </a>
     </div>
   );
@@ -183,7 +191,7 @@ export default function ChutesMetalicosPage() {
     description:
       "Fabricación y montaje en obra de chutes metálicos galvanizados para evacuación de escombros en proyectos de construcción en Lima.",
     url: PAGE_URL,
-    image: `${SITE_URL}/img/proyectos/qantua/Qantua_foto1.jpg`,
+    image: `${SITE_URL}/img/chutesMetalicos.webp`,
     provider: {
       "@type": "LocalBusiness",
       "@id": `${SITE_URL}/#business`,
@@ -276,7 +284,7 @@ export default function ChutesMetalicosPage() {
 
               <figure className="relative aspect-[4/3] overflow-hidden rounded-sm border border-[#3A3F45] shadow-2xl">
                 <Image
-                  src="/img/proyectos/qantua/Qantua_foto1.jpg"
+                  src="/img/chutesMetalicos.webp"
                   alt="Chutes metálicos instalados para evacuación de escombros en obra"
                   fill
                   sizes="(min-width: 1024px) 560px, 100vw"
@@ -285,8 +293,8 @@ export default function ChutesMetalicosPage() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
                 <figcaption className="absolute bottom-4 left-4 right-4">
-                  <p className="text-sm font-semibold">Proyecto Qantua, Cercado de Lima</p>
-                  <p className="text-xs text-white/70">Evacuación de residuos en obra</p>
+                  <p className="text-sm font-semibold">Chute metálico en obra</p>
+                  <p className="text-xs text-white/70">Evacuación de residuos en edificio multifamiliar</p>
                 </figcaption>
               </figure>
             </div>
@@ -398,7 +406,7 @@ export default function ChutesMetalicosPage() {
                 Obras donde ya instalamos
               </h2>
               <p className="mt-4 max-w-2xl leading-relaxed text-[#565C63]">
-                Somos una empresa especializada en soluciones metalmecánicas para proyectos de construcción. Estos son dos de nuestros proyectos.
+                Somos una empresa especializada en soluciones metalmecánicas para proyectos de construcción. Estos son dos de nuestros proyectos donde instalamos chutes metálicos.
               </p>
               <div className="mt-6 grid gap-6 sm:grid-cols-2">
                 {PROJECTS.map((p) => (
@@ -479,7 +487,15 @@ export default function ChutesMetalicosPage() {
                 rel="noopener noreferrer"
                 className="mt-3 flex items-center justify-center gap-2 border border-white/60 px-4 py-3 text-sm font-semibold transition-colors hover:bg-white/10"
               >
-                <MessageCircle className="h-4 w-4" aria-hidden /> WhatsApp
+                <Image
+                  src="/img/WhatsAppLogo.jpg"
+                  alt=""
+                  width={20}
+                  height={20}
+                  aria-hidden
+                  className="rounded-full"
+                />
+                WhatsApp
               </a>
             </div>
 
@@ -515,7 +531,15 @@ export default function ChutesMetalicosPage() {
             rel="noopener noreferrer"
             className="flex items-center justify-center gap-2 py-3.5 text-sm font-semibold text-white"
           >
-            <MessageCircle className="h-4 w-4" aria-hidden /> WhatsApp
+            <Image
+              src="/img/WhatsAppLogo.jpg"
+              alt=""
+              width={20}
+              height={20}
+              aria-hidden
+              className="rounded-full"
+            />
+            WhatsApp
           </a>
           <Link
             href={QUOTE_URL}
