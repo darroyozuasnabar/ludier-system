@@ -20,6 +20,7 @@ import {
   Sun,
   Droplets,
   Thermometer,
+  ArrowRight,
 } from "lucide-react";
 
 const SITE_URL = "https://grupoludier.com";
@@ -125,7 +126,7 @@ const QUOTE_CHECKLIST = [
   "Si necesitas aislación térmica y/o acústica",
 ];
 
-// 👇 SOLO PROYECTOS REALES CON COBERTURA/TECHOS METÁLICOS
+// 👇 SOLO PROYECTO REAL (QANTUA) + CTA AL PORTAFOLIO
 const PROJECTS = [
   {
     href: "/proyectos/qantua",
@@ -133,13 +134,15 @@ const PROJECTS = [
     alt: "Estructura metálica con cobertura de policarbonato instalada en el Proyecto Qantua por LUDIER",
     title: "Proyecto Qantua · Cercado de Lima",
     text: "Fabricación e instalación de estructura metálica con cobertura de policarbonato para protección de ducto técnico en azotea.",
+    isCta: false,
   },
   {
-    href: "/proyectos/zendai",
-    img: "/img/zendai.png",
-    alt: "Estructura metálica y techos instalados en el Edificio Zendai por LUDIER",
-    title: "Edificio Zendai · La Victoria",
-    text: "Fabricación e instalación de estructuras metálicas complementarias y coberturas técnicas en edificio de 28 pisos.",
+    href: "/proyectos",
+    img: "/img/coberturasMetalicas.jpg",
+    alt: "Ver todos los proyectos de estructuras metálicas de LUDIER",
+    title: "Ver portafolio completo",
+    text: "Explora todas nuestras obras de estructuras metálicas, techos, coberturas y soluciones para constructoras en Lima.",
+    isCta: true,
   },
 ];
 
@@ -405,7 +408,7 @@ export default function TechosMetalicosPage() {
               </ol>
             </section>
 
-            {/* Proyectos */}
+            {/* Proyectos (SOLO QANTUA + CTA PORTAFOLIO) */}
             <section aria-labelledby="proyectos">
               <h2 id="proyectos" className="text-2xl font-semibold md:text-3xl" style={{ fontFamily: FONT_DISPLAY }}>
                 Obras donde ya instalamos
@@ -418,16 +421,25 @@ export default function TechosMetalicosPage() {
                   <Link
                     key={p.href}
                     href={p.href}
-                    className="group block overflow-hidden border border-[#E3E1D8] bg-white transition-shadow hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#FF5A1F]"
+                    className={`group block overflow-hidden border bg-white transition-shadow hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#FF5A1F] ${
+                      p.isCta ? "border-[#FF5A1F]/30 hover:border-[#FF5A1F]" : "border-[#E3E1D8]"
+                    }`}
                   >
                     <div className="relative h-44 bg-[#14161A]">
                       <Image src={p.img} alt={p.alt} fill sizes="(min-width: 640px) 320px, 100vw" className="object-cover" />
+                      {p.isCta && (
+                        <div className="absolute inset-0 bg-[#14161A]/60 flex items-center justify-center">
+                          <span className="text-white font-semibold text-lg flex items-center gap-2" style={{ fontFamily: FONT_DISPLAY }}>
+                            Ver todos <ArrowRight className="h-5 w-5" />
+                          </span>
+                        </div>
+                      )}
                     </div>
                     <div className="p-4">
                       <p className="text-sm font-semibold">{p.title}</p>
                       <p className="mt-1 text-sm text-[#565C63]">{p.text}</p>
                       <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-[#FF5A1F]">
-                        Ver proyecto <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" aria-hidden />
+                        {p.isCta ? "Ver portafolio" : "Ver proyecto"} <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" aria-hidden />
                       </span>
                     </div>
                   </Link>
