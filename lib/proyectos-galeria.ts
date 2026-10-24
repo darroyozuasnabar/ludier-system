@@ -638,6 +638,60 @@ export const GALERIAS: Record<string, GaleriaProyecto> = {
     videos: [],
   },
 
+      "catalina-tower": {
+    servicios: [
+      {
+        id: "chute-metalico-10-pisos",
+        titulo: "Chute metálico para evacuación de residuos - 10 pisos",
+        descripcion:
+          "Fabricación e instalación de sistema de chute metálico para evacuación de residuos en el Edificio Catalina Tower. La estructura vertical de 10 pisos fue diseñada para optimizar la gestión de escombros durante la construcción, incluyendo suministro de materiales, mano de obra especializada y desmontaje final. El proyecto, desarrollado por Constructoría Inmobiliaria M&J S.A.C. en La Victoria, demandó una solución eficiente y segura para un edificio multifamiliar de 10 niveles.",
+        tipo: "final",
+        fotos: [
+          {
+            src: "/img/proyectos/catalina-tower/chute-metalico-evacuacion-escombros-catalina-tower-lima.jpg",
+            etapa: "final",
+            alt: "Vista superior del chute metálico para evacuación de escombros instalado por LUDIER en el proyecto Catalina Tower de La Victoria, Lima.",
+          },
+        ],
+      },
+    ],
+    fotos: [
+      {
+        src: "/img/proyectos/catalina-tower/chute-metalico-evacuacion-escombros-catalina-tower-lima.jpg",
+        titulo: "Chute metálico para evacuación de escombros en Catalina Tower",
+        descripcion:
+          "Vista desde los niveles superiores del sistema de chute metálico instalado por LUDIER en el proyecto Catalina Tower, diseñado para la evacuación segura y eficiente de residuos de construcción en edificios de altura, optimizando la productividad y seguridad en obra. La estructura vertical recorre los 10 pisos del edificio, permitiendo una gestión ordenada de los escombros desde los niveles superiores hasta el punto de acopio en planta baja.",
+        categoria: "estructuras",
+        alt: "Vista superior del chute metálico para evacuación de escombros en el proyecto Catalina Tower",
+      },
+      {
+        src: "/img/proyectos/catalina-tower/tolva-chute-metalico-evacuacion-escombros-catalina-tower.jpg",
+        titulo: "Tolva de carga del chute metálico en Catalina Tower",
+        descripcion:
+          "Detalle de la tolva de alimentación del chute metálico fabricado e instalado por LUDIER para el proyecto Catalina Tower. Diseñada para facilitar la descarga controlada de escombros desde los diferentes pisos del edificio, mejorando la seguridad del personal y la eficiencia en la gestión de residuos de construcción. Su diseño permite una evacuación rápida y sin riesgos operativos, cumpliendo con los estándares exigidos en edificaciones multifamiliares.",
+        categoria: "instalacion",
+        alt: "Tolva de carga del chute metálico instalada en nivel de obra para la evacuación segura de escombros en el proyecto Catalina Tower",
+      },
+      {
+        src: "/img/proyectos/catalina-tower/catalina-tower-chute-metalico-lima-ludier.jpg",
+        titulo: "Chute metálico instalado en obra - Catalina Tower",
+        descripcion:
+          "Vista integral del sistema de chute metálico instalado por LUDIER en el Edificio Catalina Tower, en el distrito de La Victoria, Lima. La imagen muestra la estructura vertical completa del chute, diseñada para la evacuación controlada de residuos de construcción en un edificio multifamiliar de 10 pisos. El sistema incluye ductos metálicos, tolvas y soportes estructurales, garantizando seguridad, eficiencia operativa y cumplimiento de los protocolos de obra.",
+        categoria: "instalacion",
+        alt: "Chute metálico instalado en el proyecto Catalina Tower de La Victoria, Lima",
+      },
+    ],
+    videos: [
+      {
+        src: "/img/proyectos/catalina-tower/evacuacion-escombros-chute-metalico-edificio-catalina-tower.mp4",
+        titulo: "Funcionamiento del chute metálico - Catalina Tower",
+        descripcion:
+          "Demostración operativa del chute metálico fabricado e instalado por LUDIER para el proyecto Catalina Tower. El video muestra el proceso de evacuación de residuos de construcción mediante un sistema diseñado para trabajos en altura, garantizando seguridad, eficiencia operativa y cumplimiento de los estándares exigidos en edificaciones multifamiliares. La solución permite una descarga controlada de escombros desde los 10 pisos del edificio hasta el punto de acopio, reduciendo riesgos para el personal y optimizando la productividad en obra.",
+        poster: "/img/proyectos/catalina-tower/chute-metalico-evacuacion-escombros-catalina-tower-lima.jpg",
+      },
+    ],
+  },
+
     // 👇 PROYECTO DISTRITO 34 (SOLO FOTOS DE DETALLE)
   "distrito-34": {
     servicios: [], // Sin carrusel antes/después, solo galería
