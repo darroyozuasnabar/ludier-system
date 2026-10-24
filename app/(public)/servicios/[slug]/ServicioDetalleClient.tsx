@@ -35,6 +35,10 @@ const WHATSAPP_INOX_URL = `https://wa.me/51965391256?text=${encodeURIComponent(
   "Hola LUDIER, vengo de la web y quiero cotizar barandas de acero inoxidable para mi obra. ¿Me pueden ayudar?"
 )}`;
 
+const WHATSAPP_CHUTES_URL = `https://wa.me/51965391256?text=${encodeURIComponent(
+  "Hola LUDIER, vengo de la web y quiero cotizar chutes metálicos para mi obra. ¿Me pueden ayudar?"
+)}`;
+
 // ============================================================
 // TIPOS
 // ============================================================
@@ -836,13 +840,23 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
               (categoria.subServicios as SubServicio[]).map((sub, index) => {
                 // Detección robusta: sin importar mayúsculas/minúsculas
                 const esInoxidable = /inoxidable/i.test(sub.nombre);
+                const esChute = /chute/i.test(sub.nombre);
+                const esDestacado = esInoxidable || esChute;
+
+                const landingUrl = esInoxidable 
+                  ? "/servicios/barandas-acero-inoxidable" 
+                  : "/servicios/chutes-metalicos-para-construccion";
+
+                const whatsappUrl = esInoxidable 
+                  ? WHATSAPP_INOX_URL 
+                  : WHATSAPP_CHUTES_URL;
 
                 // Contenido interno de la tarjeta (reutilizable)
                 const CardContent = (
                   <>
-                    <CornerMarks active={esInoxidable} />
+                    <CornerMarks active={esDestacado} />
 
-                    {esInoxidable && (
+                    {esDestacado && (
                       <div className="absolute top-3 left-3 z-20 inline-flex items-center gap-1.5 bg-[#FF5A1F] text-white text-[10px] font-bold uppercase tracking-[0.12em] px-2.5 py-1 rounded-sm shadow-lg shadow-[#FF5A1F]/30">
                         <Zap className="h-3 w-3" />
                         Alta Rotación B2B
@@ -860,9 +874,9 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
                         className="text-lg font-bold text-[#1E2126] leading-tight"
                         style={{ fontFamily: FONT_DISPLAY }}
                       >
-                        {esInoxidable ? (
+                        {esDestacado ? (
                           <Link
-                            href="/servicios/barandas-acero-inoxidable"
+                            href={landingUrl}
                             className="hover:text-[#FF5A1F] transition-colors"
                           >
                             {sub.nombre}
@@ -871,27 +885,29 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
                           sub.nombre
                         )}
                       </h3>
-                      <p className={`mt-2 text-sm text-[#565C63] leading-relaxed flex-grow ${esInoxidable ? "line-clamp-4" : ""}`}>
+                      <p className={`mt-2 text-sm text-[#565C63] leading-relaxed flex-grow ${esDestacado ? "line-clamp-4" : ""}`}>
                         {sub.descripcion}
                       </p>
 
-                      {esInoxidable ? (
+                      {esDestacado ? (
                         <div className="mt-5 pt-5 border-t-2 border-[#FF5A1F]/30">
                           {/* BOTÓN PRINCIPAL → landing con la información */}
                           <Link
-                            href="/servicios/barandas-acero-inoxidable"
+                            href={landingUrl}
                             className="group/btn flex items-center justify-center gap-2 w-full py-3.5 px-4 bg-[#FF5A1F] text-white text-sm font-bold uppercase tracking-wide rounded-sm shadow-md shadow-[#FF5A1F]/25 transition-all hover:bg-[#FF7A44] hover:shadow-lg hover:shadow-[#FF5A1F]/40"
                           >
                             Ver ficha técnica B2B y cotizar
                             <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover/btn:translate-x-1" />
                           </Link>
                           <p className="mt-2 text-center text-xs text-[#565C63]">
-                            Acero 304 vs 316 · Obras reales · Cotización en 24 h
+                            {esInoxidable 
+                              ? "Acero 304 vs 316 · Obras reales · Cotización en 24 h" 
+                              : "Evacuación de escombros · Cumplimiento G.050 · Cotización en 24 h"}
                           </p>
 
                           {/* BOTÓN SECUNDARIO → WhatsApp con tu logo */}
                           <a
-                            href={WHATSAPP_INOX_URL}
+                            href={whatsappUrl}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center justify-center gap-2 w-full mt-3 py-2.5 px-4 border border-[#E3E1D8] text-[#1E2126] hover:bg-[#F7F7F4] text-sm font-semibold rounded-sm transition-colors"
@@ -914,9 +930,8 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
                   </>
                 );
 
-                // Acero Inoxidable → tarjeta normal (div) con sus propios enlaces:
-                // así no hay <a> dentro de <a>, que es HTML inválido.
-                if (esInoxidable) {
+                // Destacados (Inoxidable o Chute) → tarjeta normal (div) con sus propios enlaces
+                if (esDestacado) {
                   return (
                     <div
                       key={index}
@@ -966,6 +981,11 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
                     {(() => {
                       const nombre = typeof sub === 'string' ? sub : sub.nombre;
                       const esInoxidable = /inoxidable/i.test(nombre);
+                      const esChute = /chute/i.test(nombre);
+                      const esDestacado = esInoxidable || esChute;
+                      const landingUrl = esInoxidable 
+                        ? "/servicios/barandas-acero-inoxidable" 
+                        : "/servicios/chutes-metalicos-para-construccion";
 
                       return (
                         <>
@@ -973,9 +993,9 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
                             className="text-sm font-semibold text-[#1E2126]"
                             style={{ fontFamily: FONT_DISPLAY }}
                           >
-                            {esInoxidable ? (
+                            {esDestacado ? (
                               <Link
-                                href="/servicios/barandas-acero-inoxidable"
+                                href={landingUrl}
                                 className="text-[#FF5A1F] hover:underline"
                               >
                                 {nombre}
@@ -985,7 +1005,7 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
                             )}
                           </h3>
                           <p className="text-xs text-[#8B8F86] mt-0.5">
-                            {esInoxidable ? "Ver ficha técnica B2B y cotizar" : "Solución metalmecánica profesional"}
+                            {esDestacado ? "Ver ficha técnica B2B y cotizar" : "Solución metalmecánica profesional"}
                           </p>
                         </>
                       );
