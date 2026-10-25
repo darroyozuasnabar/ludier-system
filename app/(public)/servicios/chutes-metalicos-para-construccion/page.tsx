@@ -121,6 +121,7 @@ const QUOTE_CHECKLIST = [
   "Si tienes un proveedor anterior, el detalle del sistema que usaban",
 ];
 
+// 👇 3 PROYECTOS REALES CON CHUTES METÁLICOS
 const PROJECTS = [
   {
     href: "/proyectos/hilton",
@@ -135,6 +136,13 @@ const PROJECTS = [
     alt: "Chutes metálicos instalados en el Proyecto Qantua por LUDIER",
     title: "Proyecto Qantua · Cercado de Lima",
     text: "Fabricación, instalación, mantenimiento y desmontaje de chutes de escombros para las 6 torres del proyecto.",
+  },
+  {
+    href: "/proyectos/catalina-tower",
+    img: "/img/CatalinaTower.png",
+    alt: "Chute metálico instalado en el Edificio Catalina Tower por LUDIER",
+    title: "Edificio Catalina Tower · La Victoria",
+    text: "Servicio integral de instalación y desmontaje de chute metálico para evacuación de residuos en 10 pisos.",
   },
 ];
 
@@ -400,15 +408,15 @@ export default function ChutesMetalicosPage() {
               </ol>
             </section>
 
-            {/* Proyectos */}
+            {/* Proyectos (3 columnas en desktop) */}
             <section aria-labelledby="proyectos">
               <h2 id="proyectos" className="text-2xl font-semibold md:text-3xl" style={{ fontFamily: FONT_DISPLAY }}>
                 Obras donde ya instalamos
               </h2>
               <p className="mt-4 max-w-2xl leading-relaxed text-[#565C63]">
-                Somos una empresa especializada en soluciones metalmecánicas para proyectos de construcción. Estos son dos de nuestros proyectos donde instalamos chutes metálicos.
+                Somos una empresa especializada en soluciones metalmecánicas para proyectos de construcción. Estas son tres de nuestras obras donde instalamos chutes metálicos.
               </p>
-              <div className="mt-6 grid gap-6 sm:grid-cols-2">
+              <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {PROJECTS.map((p) => (
                   <Link
                     key={p.href}
