@@ -92,7 +92,7 @@ export const proyectosData: Proyecto[] = [
       "Modificación integral del cerramiento metálico para optimizar el acceso y la seguridad del edificio. Esta intervención técnica demostró nuestra precisión y agilidad para resolver adecuaciones en obra. El trabajo culminó con éxito, dejando a LUDIER posicionado como un proveedor confiable y con disponibilidad total para colaborar en futuros requerimientos de herrería y soluciones metalmecánicas de Zonum Inmobiliaria.",
     imagen: "/img/EDIFICIO ECHENIQUE 355_Proyecto.png",
   },
-   // 5. PROYECTO ELANT FASE 3
+    // 5. PROYECTO ELANT FASE 3
   {
     id: 9,
     slug: "elant-fase-3",
@@ -107,10 +107,10 @@ export const proyectosData: Proyecto[] = [
       "Servicio integral de cerrajería: instalación de chapas nuevas y soldadura de bisagras en puertas de acceso.",
       "Retiro y desmontaje de cerco metálico existente.",
       "Fabricación de 34 estructuras metálicas para pedestales de señalización (bases, postes y marcos de 60x40 cm) con pintura epóxica y gloss negro.",
-      "Perforación e instalación de pedestales con pernos de expansión mecánicos sobre piso de concreto en el estacionamiento."
+      "Perforación e instalación de pedestales con pernos de expansión mecánicos sobre piso de concreto en el estacionamiento.",
     ],
     resultado:
-      "Ejecución de trabajos complementarios de alta precisión. LUDIER demostró agilidad técnica para resolver requerimientos de cerrajería, habilitación de accesos y fabricación de estructuras de señalización. Esta intervención puntual refuerza nuestra confiabilidad como proveedor operativo de Grupo LAR, garantizando nuestra disponibilidad para los futuros trabajos y adecuaciones que requiera el proyecto.",
+      "Ejecución de trabajos complementarios de alta precisión en el Proyecto Elant Fase 3, un desarrollo residencial de Grupo LAR en La Victoria. LUDIER demostró agilidad técnica para resolver requerimientos de cerrajería, habilitación de accesos, fabricación de estructuras de señalización y montaje de pedestales con pernos de expansión sobre concreto. La intervención puntual refuerza nuestra confiabilidad como proveedor operativo de Grupo LAR, garantizando nuestra disponibilidad para los futuros trabajos y adecuaciones que requiera el proyecto. Los 34 pedestales fabricados con pintura epóxica y gloss negro cumplieron con los estándares de señalización y seguridad exigidos por la constructora.",
     imagen: "/img/ProyectoElant.jpg",
   },
     // 10. PROYECTO DISTRITO 34
