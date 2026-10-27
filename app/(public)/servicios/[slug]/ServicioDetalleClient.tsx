@@ -912,6 +912,12 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
                         </div>
                       )}
 
+                      {/* Badge de tarjeta seleccionada — solo visible con :target */}
+                      <div className="subcat-selected-badge">
+                        <CheckCircle className="h-3 w-3" aria-hidden />
+                        Estás viendo este servicio
+                      </div>
+
                       <ImageCarousel
                         imagenes={sub.imagenes}
                         nombre={sub.nombre}
@@ -987,7 +993,7 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
                       <div
                         key={index}
                         id={slugifySubcategoria(sub.nombre)}
-                        className="scroll-mt-28 group relative flex flex-col bg-white border-2 border-[#FF5A1F]/50 rounded-sm overflow-hidden transition-all duration-500 hover:border-[#FF5A1F] hover:shadow-2xl hover:shadow-[#FF5A1F]/20 hover:-translate-y-2"
+                        className="subcat-card scroll-mt-28 group relative flex flex-col bg-white border-2 border-[#FF5A1F]/50 rounded-sm overflow-hidden transition-all duration-500 hover:border-[#FF5A1F] hover:shadow-2xl hover:shadow-[#FF5A1F]/20 hover:-translate-y-2"
                         style={{
                           opacity: gridInView ? 1 : 0,
                           transform: gridInView
@@ -1006,7 +1012,7 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
                     <div
                       key={index}
                       id={slugifySubcategoria(sub.nombre)}
-                      className="scroll-mt-28 group relative flex flex-col bg-white border border-[#E3E1D8] rounded-sm overflow-hidden transition-all duration-500 hover:border-[#FF5A1F]/40 hover:shadow-xl hover:-translate-y-2"
+                      className="subcat-card scroll-mt-28 group relative flex flex-col bg-white border border-[#E3E1D8] rounded-sm overflow-hidden transition-all duration-500 hover:border-[#FF5A1F]/40 hover:shadow-xl hover:-translate-y-2"
                       style={{
                         opacity: gridInView ? 1 : 0,
                         transform: gridInView
@@ -1023,7 +1029,7 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
                   <div
                     key={index}
                     id={slugifySubcategoria(typeof sub === "string" ? sub : sub.nombre)}
-                    className="scroll-mt-28 group relative flex items-start gap-4 p-4 bg-white border border-[#E3E1D8] rounded-sm transition-all hover:border-[#FF5A1F]/30 hover:shadow-md"
+                    className="subcat-card scroll-mt-28 group relative flex items-start gap-4 p-4 bg-white border border-[#E3E1D8] rounded-sm transition-all hover:border-[#FF5A1F]/30 hover:shadow-md"
                     style={{
                       opacity: gridInView ? 1 : 0,
                       transform: gridInView
@@ -1033,6 +1039,13 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
                     }}
                   >
                     <CornerMarks />
+
+                    {/* Badge de tarjeta seleccionada */}
+                    <div className="subcat-selected-badge">
+                      <CheckCircle className="h-3 w-3" aria-hidden />
+                      Estás viendo este servicio
+                    </div>
+
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm bg-[#FF5A1F]/10 border border-[#FF5A1F]/20">
                       <CheckCircle className="h-4 w-4 text-[#FF5A1F]" />
                     </div>
@@ -1148,10 +1161,98 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
       </section>
 
       <style jsx>{`
+        /* ============================================================
+           TARJETA SELECCIONADA POR ANCLA (:target)
+           ============================================================ */
+
+        /* Animación de destello inicial */
+        @keyframes subcat-flash {
+          0% {
+            box-shadow: 0 0 0 0 rgba(255, 90, 31, 0);
+          }
+          20% {
+            box-shadow:
+              0 0 0 8px rgba(255, 90, 31, 0.4),
+              0 20px 40px rgba(255, 90, 31, 0.2);
+          }
+          50% {
+            box-shadow:
+              0 0 0 12px rgba(255, 90, 31, 0.15),
+              0 20px 40px rgba(255, 90, 31, 0.1);
+          }
+          100% {
+            box-shadow: 0 0 0 0 rgba(255, 90, 31, 0);
+          }
+        }
+
+        /* Estado base del badge (oculto) */
+        .subcat-selected-badge {
+          display: none;
+          position: absolute;
+          top: 0.75rem;
+          right: 0.75rem;
+          z-index: 30;
+          align-items: center;
+          gap: 0.25rem;
+          padding: 0.25rem 0.5rem;
+          border-radius: 2px;
+          background: #14161A;
+          color: #fff;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+          pointer-events: none;
+        }
+
+        .subcat-selected-badge svg {
+          color: #FF5A1F;
+          flex-shrink: 0;
+        }
+
+        /* Tarjeta cuando ES el target */
+        .subcat-card:target {
+          animation: subcat-flash 1.8s ease-out 1;
+          border-color: #FF5A1F !important;
+          background-color: #FFF8F3;
+          scroll-margin-top: 7rem;
+        }
+
+        /* Badge visible solo cuando es target */
+        .subcat-card:target .subcat-selected-badge {
+          display: inline-flex;
+          animation: subcat-badge-in 0.4s ease-out 1;
+        }
+
+        @keyframes subcat-badge-in {
+          0% {
+            opacity: 0;
+            transform: translateY(-4px);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        /* ============================================================
+           ACCESIBILIDAD: sin animación si el usuario lo prefiere
+           ============================================================ */
         @media (prefers-reduced-motion: reduce) {
           section * {
             animation: none !important;
             transition: none !important;
+          }
+
+          .subcat-card:target {
+            animation: none;
+            border-color: #FF5A1F !important;
+            background-color: #FFF8F3;
+          }
+
+          .subcat-card:target .subcat-selected-badge {
+            animation: none;
           }
         }
       `}</style>
