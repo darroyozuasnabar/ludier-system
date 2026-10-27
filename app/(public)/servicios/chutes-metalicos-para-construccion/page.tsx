@@ -169,10 +169,10 @@ function CtaButtons({ className = "" }: { className?: string }) {
       >
         <ClipboardList className="h-4 w-4" aria-hidden /> Cotizar mi proyecto
       </Link>
-      <a
+      <WhatsAppLink
         href={WHATSAPP_URL}
-        target="_blank"
-        rel="noopener noreferrer"
+        location="hero"
+        page="chutes"
         className="inline-flex items-center gap-2 border border-white/30 px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:border-white hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
       >
         <Image
@@ -184,7 +184,7 @@ function CtaButtons({ className = "" }: { className?: string }) {
           className="rounded-full"
         />
         Escribir por WhatsApp
-      </a>
+      </WhatsAppLink>
     </div>
   );
 }
@@ -491,10 +491,10 @@ export default function ChutesMetalicosPage() {
               >
                 Solicitar cotización
               </Link>
-              <a
+              <WhatsAppLink
                 href={WHATSAPP_URL}
-                target="_blank"
-                rel="noopener noreferrer"
+                location="sidebar"
+                page="chutes"
                 className="mt-3 flex items-center justify-center gap-2 border border-white/60 px-4 py-3 text-sm font-semibold transition-colors hover:bg-white/10"
               >
                 <Image
@@ -506,7 +506,7 @@ export default function ChutesMetalicosPage() {
                   className="rounded-full"
                 />
                 WhatsApp
-              </a>
+              </WhatsAppLink>
             </div>
 
             <div className="border border-[#E3E1D8] bg-white p-6">
@@ -535,10 +535,10 @@ export default function ChutesMetalicosPage() {
 
         {/* BARRA FIJA MÓVIL */}
         <div className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-2 border-t border-[#3A3F45] bg-[#14161A] lg:hidden">
-          <a
+          <WhatsAppLink
             href={WHATSAPP_URL}
-            target="_blank"
-            rel="noopener noreferrer"
+            location="mobile_bar"
+            page="chutes"
             className="flex items-center justify-center gap-2 py-3.5 text-sm font-semibold text-white"
           >
             <Image
@@ -550,7 +550,7 @@ export default function ChutesMetalicosPage() {
               className="rounded-full"
             />
             WhatsApp
-          </a>
+          </WhatsAppLink>
           <Link
             href={QUOTE_URL}
             className="flex items-center justify-center gap-2 bg-[#FF5A1F] py-3.5 text-sm font-semibold text-white"
