@@ -30,9 +30,21 @@ const FONT_MONO = 'var(--font-mono, "JetBrains Mono", ui-monospace, monospace)';
 // DATOS DE CATEGORÍAS DE SERVICIOS (6 LÍNEAS DE NEGOCIO)
 // ============================================================
 
-const categorias = [
+type Categoria = {
+  slug: string;
+  b2bSlug?: string; // <-- NUEVO: Slug de la landing B2B si existe
+  icon: any;
+  title: string;
+  description: string;
+  subServicios: string[];
+  image: string;
+  tag: string;
+};
+
+const categorias: Categoria[] = [
   {
     slug: "estructuras-metalicas",
+    b2bSlug: "estructuras-metalicas-para-techos", // <-- Enlaza a la landing B2B
     icon: Building2,
     title: "Estructuras Metálicas",
     description:
@@ -55,6 +67,7 @@ const categorias = [
   },
   {
     slug: "barandas-pasamanos",
+    b2bSlug: "barandas-acero-inoxidable", // <-- Enlaza a la landing B2B
     icon: Shield,
     title: "Barandas y Pasamanos",
     description:
@@ -74,6 +87,7 @@ const categorias = [
   },
   {
     slug: "escaleras-metalicas",
+    // Sin b2bSlug: enlaza a la categoría general
     icon: Gauge,
     title: "Escaleras Metálicas",
     description:
@@ -91,6 +105,7 @@ const categorias = [
   },
   {
     slug: "puertas-portones",
+    // Sin b2bSlug: enlaza a la categoría general
     icon: DoorOpen,
     title: "Puertas, Portones y Cerramientos",
     description:
@@ -109,6 +124,7 @@ const categorias = [
   },
   {
     slug: "cercos-cerramientos",
+    b2bSlug: "chutes-metalicos-para-construccion", // <-- Enlaza a la landing B2B
     icon: HardHat,
     title: "Soluciones para Constructoras",
     description:
@@ -128,6 +144,7 @@ const categorias = [
   },
   {
     slug: "fabricacion-medida",
+    // Sin b2bSlug: enlaza a la categoría general
     icon: Wrench,
     title: "Fabricación a Medida",
     description:
@@ -220,13 +237,18 @@ function useScrollReveal<T extends HTMLElement>(threshold = 0.12) {
   return { ref, inView };
 }
 
-function CategoriaCard({ categoria, index }: { categoria: typeof categorias[0]; index: number }) {
+function CategoriaCard({ categoria, index }: { categoria: Categoria; index: number }) {
   const Icon = categoria.icon;
   const { ref, inView } = useScrollReveal<HTMLAnchorElement>(0.1);
 
+  // Estrategia: Si tiene b2bSlug, el enlace principal va a la landing B2B.
+  const href = categoria.b2bSlug
+    ? `/servicios/${categoria.b2bSlug}`
+    : `/servicios/${categoria.slug}`;
+
   return (
     <Link
-      href={`/servicios/${categoria.slug}`}
+      href={href}
       ref={ref}
       className="group relative block bg-white border border-[#E3E1D8] rounded-sm overflow-hidden transition-all hover:border-[#FF5A1F]/40 hover:shadow-xl hover:-translate-y-2"
       style={{
@@ -235,7 +257,7 @@ function CategoriaCard({ categoria, index }: { categoria: typeof categorias[0]; 
         transition: `opacity 700ms cubic-bezier(0.16,1,0.3,1) ${index * 100}ms, transform 700ms cubic-bezier(0.16,1,0.3,1) ${index * 100}ms`,
       }}
     >
-      <CornerMarks />
+      <CornerMarks active={!!categoria.b2bSlug} />
 
       {/* Imagen de fondo */}
       <div className="relative h-48 overflow-hidden bg-[#14161A]">
@@ -253,6 +275,13 @@ function CategoriaCard({ categoria, index }: { categoria: typeof categorias[0]; 
             {categoria.tag}
           </span>
         </div>
+        {categoria.b2bSlug && (
+          <div className="absolute top-3 right-3">
+            <span className="text-[9px] font-bold text-white bg-[#FF5A1F] px-2 py-1 rounded-sm uppercase tracking-wider shadow-lg">
+              Ficha B2B
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Contenido */}
@@ -273,11 +302,16 @@ function CategoriaCard({ categoria, index }: { categoria: typeof categorias[0]; 
           {categoria.description}
         </p>
 
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-1">
           <div className="flex items-center gap-1 text-sm font-medium text-[#FF5A1F]">
-            <span>Ver todos los servicios</span>
+            <span>{categoria.b2bSlug ? "Ver ficha técnica B2B" : "Ver todos los servicios"}</span>
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </div>
+          {categoria.b2bSlug && (
+            <span className="text-[10px] text-[#8B8F86]">
+              Incluye todas las subcategorías
+            </span>
+          )}
         </div>
       </div>
 
