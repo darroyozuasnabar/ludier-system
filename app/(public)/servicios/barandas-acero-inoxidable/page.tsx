@@ -17,6 +17,7 @@ import {
   Factory,
   Wrench,
 } from "lucide-react";
+import WhatsAppLink from "@/components/public/WhatsAppLink";
 
 const SITE_URL = "https://grupoludier.com";
 const PAGE_URL = `${SITE_URL}/servicios/barandas-acero-inoxidable`;
@@ -158,14 +159,14 @@ function CtaButtons({ className = "" }: { className?: string }) {
       >
         <ClipboardList className="h-4 w-4" aria-hidden /> Cotizar mi proyecto
       </Link>
-      <a
+      <WhatsAppLink
         href={WHATSAPP_URL}
-        target="_blank"
-        rel="noopener noreferrer"
+        location="hero"
+        page="barandas-inoxidable"
         className="inline-flex items-center gap-2 border border-white/30 px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:border-white hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
       >
         <MessageCircle className="h-4 w-4" aria-hidden /> Escribir por WhatsApp
-      </a>
+      </WhatsAppLink>
     </div>
   );
 }
@@ -501,14 +502,14 @@ export default function BarandasInoxidablePage() {
               >
                 Solicitar cotización
               </Link>
-              <a
+              <WhatsAppLink
                 href={WHATSAPP_URL}
-                target="_blank"
-                rel="noopener noreferrer"
+                location="sidebar"
+                page="barandas-inoxidable"
                 className="mt-3 flex items-center justify-center gap-2 border border-white/60 px-4 py-3 text-sm font-semibold transition-colors hover:bg-white/10"
               >
                 <MessageCircle className="h-4 w-4" aria-hidden /> WhatsApp
-              </a>
+              </WhatsAppLink>
             </div>
 
             <div className="border border-[#E3E1D8] bg-white p-6">
@@ -537,14 +538,14 @@ export default function BarandasInoxidablePage() {
 
         {/* BARRA FIJA MÓVIL */}
         <div className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-2 border-t border-[#3A3F45] bg-[#14161A] lg:hidden">
-          <a
+          <WhatsAppLink
             href={WHATSAPP_URL}
-            target="_blank"
-            rel="noopener noreferrer"
+            location="mobile_bar"
+            page="barandas-inoxidable"
             className="flex items-center justify-center gap-2 py-3.5 text-sm font-semibold text-white"
           >
             <MessageCircle className="h-4 w-4" aria-hidden /> WhatsApp
-          </a>
+          </WhatsAppLink>
           <Link
             href={QUOTE_URL}
             className="flex items-center justify-center gap-2 bg-[#FF5A1F] py-3.5 text-sm font-semibold text-white"

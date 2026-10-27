@@ -18,6 +18,8 @@ import {
   Wrench,
   AlertTriangle,
 } from "lucide-react";
+import WhatsAppLink from "@/components/public/WhatsAppLink";
+
 
 const SITE_URL = "https://grupoludier.com";
 const PAGE_URL = `${SITE_URL}/servicios/chutes-metalicos-para-construccion`;
