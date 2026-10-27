@@ -730,6 +730,57 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
     typeof categoria.subServicios[0] === "object" &&
     "imagenes" in categoria.subServicios[0];
 
+  // ============================================================
+  // DETECCIÓN DE TARJETA ACTIVA POR ANCLA (funciona con SPA)
+  // ============================================================
+  const [activeId, setActiveId] = useState<string>("");
+
+  useEffect(() => {
+    const syncFromHash = () => {
+      const raw = window.location.hash.replace("#", "");
+      setActiveId(decodeURIComponent(raw));
+    };
+
+    // Sincroniza al montar y en cada cambio de hash (clicks en SPA)
+    syncFromHash();
+    window.addEventListener("hashchange", syncFromHash);
+
+    // Fallback: algunos routers no disparan hashchange; escuchamos clicks en <a href="#...">
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      const anchor = target?.closest('a[href*="#"]') as HTMLAnchorElement | null;
+      if (!anchor) return;
+      const href = anchor.getAttribute("href") || "";
+      const hashIndex = href.indexOf("#");
+      if (hashIndex === -1) return;
+      const id = href.slice(hashIndex + 1);
+      if (id) {
+        // Esperamos al siguiente frame para que Next termine la navegación
+        requestAnimationFrame(() => setActiveId(decodeURIComponent(id)));
+      }
+    };
+    document.addEventListener("click", handleClick);
+
+    // Si ya venimos con hash en la URL, hacemos scroll suave tras montar
+    const initialHash = window.location.hash.replace("#", "");
+    let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
+    if (initialHash) {
+      const el = document.getElementById(decodeURIComponent(initialHash));
+      if (el) {
+        // Pequeño delay para que el layout (imágenes) se estabilice
+        scrollTimeout = setTimeout(() => {
+          el.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 120);
+      }
+    }
+
+    return () => {
+      window.removeEventListener("hashchange", syncFromHash);
+      document.removeEventListener("click", handleClick);
+      if (scrollTimeout) clearTimeout(scrollTimeout);
+    };
+  }, []);
+
   return (
     <div
       className="min-h-screen bg-[#F7F7F4]"
@@ -900,6 +951,10 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
                       ? WHATSAPP_CHUTES_URL
                       : `https://wa.me/51965391256?text=${encodeURIComponent("Hola LUDIER, quiero cotizar techos metálicos para mi obra.")}`;
 
+                  // ID y estado activo de esta tarjeta
+                  const subId = slugifySubcategoria(sub.nombre);
+                  const isActive = activeId === subId;
+
                   // Contenido interno de la tarjeta (reutilizable)
                   const CardContent = (
                     <>
@@ -912,7 +967,7 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
                         </div>
                       )}
 
-                      {/* Badge de tarjeta seleccionada — solo visible con :target */}
+                      {/* Badge de tarjeta seleccionada */}
                       <div className="subcat-selected-badge">
                         <CheckCircle className="h-3 w-3" aria-hidden />
                         Estás viendo este servicio
@@ -992,8 +1047,10 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
                     return (
                       <div
                         key={index}
-                        id={slugifySubcategoria(sub.nombre)}
-                        className="subcat-card scroll-mt-28 group relative flex flex-col bg-white border-2 border-[#FF5A1F]/50 rounded-sm overflow-hidden transition-all duration-500 hover:border-[#FF5A1F] hover:shadow-2xl hover:shadow-[#FF5A1F]/20 hover:-translate-y-2"
+                        id={subId}
+                        className={`subcat-card scroll-mt-28 group relative flex flex-col bg-white border-2 border-[#FF5A1F]/50 rounded-sm overflow-hidden transition-all duration-500 hover:border-[#FF5A1F] hover:shadow-2xl hover:shadow-[#FF5A1F]/20 hover:-translate-y-2 ${
+                          isActive ? "subcat-card--active" : ""
+                        }`}
                         style={{
                           opacity: gridInView ? 1 : 0,
                           transform: gridInView
@@ -1011,8 +1068,10 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
                   return (
                     <div
                       key={index}
-                      id={slugifySubcategoria(sub.nombre)}
-                      className="subcat-card scroll-mt-28 group relative flex flex-col bg-white border border-[#E3E1D8] rounded-sm overflow-hidden transition-all duration-500 hover:border-[#FF5A1F]/40 hover:shadow-xl hover:-translate-y-2"
+                      id={subId}
+                      className={`subcat-card scroll-mt-28 group relative flex flex-col bg-white border border-[#E3E1D8] rounded-sm overflow-hidden transition-all duration-500 hover:border-[#FF5A1F]/40 hover:shadow-xl hover:-translate-y-2 ${
+                        isActive ? "subcat-card--active" : ""
+                      }`}
                       style={{
                         opacity: gridInView ? 1 : 0,
                         transform: gridInView
@@ -1025,69 +1084,77 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
                     </div>
                   );
                 })
-              : (categoria.subServicios as any[]).map((sub, index) => (
-                  <div
-                    key={index}
-                    id={slugifySubcategoria(typeof sub === "string" ? sub : sub.nombre)}
-                    className="subcat-card scroll-mt-28 group relative flex items-start gap-4 p-4 bg-white border border-[#E3E1D8] rounded-sm transition-all hover:border-[#FF5A1F]/30 hover:shadow-md"
-                    style={{
-                      opacity: gridInView ? 1 : 0,
-                      transform: gridInView
-                        ? "translateY(0)"
-                        : "translateY(30px)",
-                      transition: `opacity 600ms cubic-bezier(0.16,1,0.3,1) ${index * 100}ms, transform 600ms cubic-bezier(0.16,1,0.3,1) ${index * 100}ms`,
-                    }}
-                  >
-                    <CornerMarks />
+              : (categoria.subServicios as any[]).map((sub, index) => {
+                  const subNombre =
+                    typeof sub === "string" ? sub : sub.nombre;
+                  const subId = slugifySubcategoria(subNombre);
+                  const isActive = activeId === subId;
 
-                    {/* Badge de tarjeta seleccionada */}
-                    <div className="subcat-selected-badge">
-                      <CheckCircle className="h-3 w-3" aria-hidden />
-                      Estás viendo este servicio
-                    </div>
+                  return (
+                    <div
+                      key={index}
+                      id={subId}
+                      className={`subcat-card scroll-mt-28 group relative flex items-start gap-4 p-4 bg-white border border-[#E3E1D8] rounded-sm transition-all hover:border-[#FF5A1F]/30 hover:shadow-md ${
+                        isActive ? "subcat-card--active" : ""
+                      }`}
+                      style={{
+                        opacity: gridInView ? 1 : 0,
+                        transform: gridInView
+                          ? "translateY(0)"
+                          : "translateY(30px)",
+                        transition: `opacity 600ms cubic-bezier(0.16,1,0.3,1) ${index * 100}ms, transform 600ms cubic-bezier(0.16,1,0.3,1) ${index * 100}ms`,
+                      }}
+                    >
+                      <CornerMarks />
 
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm bg-[#FF5A1F]/10 border border-[#FF5A1F]/20">
-                      <CheckCircle className="h-4 w-4 text-[#FF5A1F]" />
-                    </div>
-                    <div>
-                      {(() => {
-                        const nombre =
-                          typeof sub === "string" ? sub : sub.nombre;
-                        const esInoxidable = /inoxidable/i.test(nombre);
-                        const esChute = /chute/i.test(nombre);
-                        const esDestacado = esInoxidable || esChute;
-                        const landingUrl = esInoxidable
-                          ? "/servicios/barandas-acero-inoxidable"
-                          : "/servicios/chutes-metalicos-para-construccion";
+                      {/* Badge de tarjeta seleccionada */}
+                      <div className="subcat-selected-badge">
+                        <CheckCircle className="h-3 w-3" aria-hidden />
+                        Estás viendo este servicio
+                      </div>
 
-                        return (
-                          <>
-                            <h3
-                              className="text-sm font-semibold text-[#1E2126]"
-                              style={{ fontFamily: FONT_DISPLAY }}
-                            >
-                              {esDestacado ? (
-                                <Link
-                                  href={landingUrl}
-                                  className="text-[#FF5A1F] hover:underline"
-                                >
-                                  {nombre}
-                                </Link>
-                              ) : (
-                                nombre
-                              )}
-                            </h3>
-                            <p className="text-xs text-[#8B8F86] mt-0.5">
-                              {esDestacado
-                                ? "Ver ficha técnica B2B y cotizar"
-                                : "Solución metalmecánica profesional"}
-                            </p>
-                          </>
-                        );
-                      })()}
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm bg-[#FF5A1F]/10 border border-[#FF5A1F]/20">
+                        <CheckCircle className="h-4 w-4 text-[#FF5A1F]" />
+                      </div>
+                      <div>
+                        {(() => {
+                          const nombre = subNombre;
+                          const esInoxidable = /inoxidable/i.test(nombre);
+                          const esChute = /chute/i.test(nombre);
+                          const esDestacado = esInoxidable || esChute;
+                          const landingUrl = esInoxidable
+                            ? "/servicios/barandas-acero-inoxidable"
+                            : "/servicios/chutes-metalicos-para-construccion";
+
+                          return (
+                            <>
+                              <h3
+                                className="text-sm font-semibold text-[#1E2126]"
+                                style={{ fontFamily: FONT_DISPLAY }}
+                              >
+                                {esDestacado ? (
+                                  <Link
+                                    href={landingUrl}
+                                    className="text-[#FF5A1F] hover:underline"
+                                  >
+                                    {nombre}
+                                  </Link>
+                                ) : (
+                                  nombre
+                                )}
+                              </h3>
+                              <p className="text-xs text-[#8B8F86] mt-0.5">
+                                {esDestacado
+                                  ? "Ver ficha técnica B2B y cotizar"
+                                  : "Solución metalmecánica profesional"}
+                              </p>
+                            </>
+                          );
+                        })()}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
           </div>
         </div>
       </section>
@@ -1162,26 +1229,51 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
 
       <style jsx>{`
         /* ============================================================
-           TARJETA SELECCIONADA POR ANCLA (:target)
+           TARJETA ACTIVA POR ANCLA — latido continuo
            ============================================================ */
 
-        /* Animación de destello inicial */
-        @keyframes subcat-flash {
+        /* Latido: 3 pulsos rápidos + pausa, en bucle */
+        @keyframes subcat-heartbeat {
           0% {
-            box-shadow: 0 0 0 0 rgba(255, 90, 31, 0);
-          }
-          20% {
             box-shadow:
-              0 0 0 8px rgba(255, 90, 31, 0.4),
-              0 20px 40px rgba(255, 90, 31, 0.2);
+              0 0 0 0 rgba(255, 90, 31, 0.55),
+              0 20px 40px rgba(255, 90, 31, 0.15);
           }
-          50% {
+          14% {
             box-shadow:
-              0 0 0 12px rgba(255, 90, 31, 0.15),
-              0 20px 40px rgba(255, 90, 31, 0.1);
+              0 0 0 14px rgba(255, 90, 31, 0.18),
+              0 20px 40px rgba(255, 90, 31, 0.25);
+          }
+          28% {
+            box-shadow:
+              0 0 0 0 rgba(255, 90, 31, 0.55),
+              0 20px 40px rgba(255, 90, 31, 0.15);
+          }
+          42% {
+            box-shadow:
+              0 0 0 10px rgba(255, 90, 31, 0.22),
+              0 20px 40px rgba(255, 90, 31, 0.22);
+          }
+          56% {
+            box-shadow:
+              0 0 0 0 rgba(255, 90, 31, 0.55),
+              0 20px 40px rgba(255, 90, 31, 0.15);
           }
           100% {
-            box-shadow: 0 0 0 0 rgba(255, 90, 31, 0);
+            box-shadow:
+              0 0 0 0 rgba(255, 90, 31, 0),
+              0 20px 40px rgba(255, 90, 31, 0);
+          }
+        }
+
+        /* Balanceo sutil del borde para reforzar el "latido" */
+        @keyframes subcat-border-pulse {
+          0%,
+          100% {
+            border-color: #ff5a1f;
+          }
+          50% {
+            border-color: #ff8a5f;
           }
         }
 
@@ -1196,7 +1288,7 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
           gap: 0.25rem;
           padding: 0.25rem 0.5rem;
           border-radius: 2px;
-          background: #14161A;
+          background: #14161a;
           color: #fff;
           font-size: 10px;
           font-weight: 700;
@@ -1207,20 +1299,20 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
         }
 
         .subcat-selected-badge svg {
-          color: #FF5A1F;
+          color: #ff5a1f;
           flex-shrink: 0;
         }
 
-        /* Tarjeta cuando ES el target */
-        .subcat-card:target {
-          animation: subcat-flash 1.8s ease-out 1;
-          border-color: #FF5A1F !important;
-          background-color: #FFF8F3;
-          scroll-margin-top: 7rem;
+        /* Tarjeta activa (controlada por React, no por :target) */
+        .subcat-card--active {
+          background-color: #fff8f3;
+          border-color: #ff5a1f !important;
+          animation:
+            subcat-heartbeat 2.4s ease-in-out infinite,
+            subcat-border-pulse 1.2s ease-in-out infinite;
         }
 
-        /* Badge visible solo cuando es target */
-        .subcat-card:target .subcat-selected-badge {
+        .subcat-card--active .subcat-selected-badge {
           display: inline-flex;
           animation: subcat-badge-in 0.4s ease-out 1;
         }
@@ -1245,13 +1337,13 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
             transition: none !important;
           }
 
-          .subcat-card:target {
+          .subcat-card--active {
             animation: none;
-            border-color: #FF5A1F !important;
-            background-color: #FFF8F3;
+            border-color: #ff5a1f !important;
+            background-color: #fff8f3;
           }
 
-          .subcat-card:target .subcat-selected-badge {
+          .subcat-card--active .subcat-selected-badge {
             animation: none;
           }
         }
