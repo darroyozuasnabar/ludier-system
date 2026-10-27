@@ -10,8 +10,10 @@ import {
   Share2,
   ArrowRight,
   PhoneCall,
+  MessageCircle,
 } from "lucide-react";
 import type { BlogPost } from "@/lib/blog-posts";
+import WhatsAppLink from "@/components/public/WhatsAppLink";
 
 const FONT_DISPLAY = 'var(--font-display, Oswald, ui-sans-serif, sans-serif)';
 const FONT_BODY = 'var(--font-body, Inter, ui-sans-serif, system-ui, sans-serif)';
@@ -24,6 +26,11 @@ export default function BlogPostClient({
   post: BlogPost;
   relacionados: BlogPost[];
 }) {
+  // URL de WhatsApp con mensaje contextual según el artículo
+  const whatsappUrl = `https://wa.me/51965391256?text=${encodeURIComponent(
+    `Hola LUDIER, leí el artículo "${post.titulo}" y quiero cotizar un proyecto similar.`
+  )}`;
+
   return (
     <div className="min-h-screen bg-[#F7F7F4]" style={{ fontFamily: FONT_BODY }}>
       {/* HERO */}
@@ -104,6 +111,28 @@ export default function BlogPostClient({
             dangerouslySetInnerHTML={{ __html: post.contenido }}
             style={{ fontFamily: FONT_BODY }}
           />
+
+          {/* CTA INLINE - WhatsApp */}
+          <div className="mt-10 p-6 bg-[#FFF3EC] border-l-4 border-[#FF5A1F] rounded-r-lg shadow-sm">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <div className="flex-1">
+                <p className="text-[#1E2126] font-semibold text-lg" style={{ fontFamily: FONT_DISPLAY }}>
+                  ¿Necesitas cotizar un proyecto similar?
+                </p>
+                <p className="text-sm text-[#565C63] mt-1">
+                  Habla con un asesor por WhatsApp y recibe una cotización en menos de 24 horas.
+                </p>
+              </div>
+              <WhatsAppLink
+                href={whatsappUrl}
+                location="inline_cta"
+                page={`blog-${post.slug}`}
+                className="inline-flex items-center justify-center gap-2 bg-[#25D366] text-white px-6 py-3 rounded-lg font-semibold text-sm hover:bg-[#1FB855] transition-colors whitespace-nowrap shadow-md shadow-[#25D366]/20"
+              >
+                <MessageCircle className="h-4 w-4" /> Cotizar por WhatsApp
+              </WhatsAppLink>
+            </div>
+          </div>
 
           {/* Compartir */}
           <div className="my-12 flex flex-wrap items-center gap-4 border-t border-[#E3E1D8] pt-8">
@@ -202,14 +231,25 @@ export default function BlogPostClient({
               <p className="mt-3 text-[#565C63] max-w-xl mx-auto">
                 Cuéntanos tu idea y te ayudaremos a encontrar la mejor solución metalmecánica.
               </p>
-              <Link
-                href="/contacto"
-                className="mt-6 inline-flex items-center gap-2 bg-[#FF5A1F] px-8 py-4 text-sm font-semibold uppercase tracking-wide text-white shadow-lg shadow-[#FF5A1F]/20 transition-all hover:bg-[#FF7A44] hover:shadow-[#FF5A1F]/40 hover:-translate-y-1 rounded-lg"
-              >
-                <PhoneCall className="h-4 w-4" />
-                Cotizar ahora
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </Link>
+              <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
+                <Link
+                  href="/contacto"
+                  className="inline-flex items-center gap-2 bg-[#FF5A1F] px-8 py-4 text-sm font-semibold uppercase tracking-wide text-white shadow-lg shadow-[#FF5A1F]/20 transition-all hover:bg-[#FF7A44] hover:shadow-[#FF5A1F]/40 hover:-translate-y-1 rounded-lg w-full sm:w-auto justify-center"
+                >
+                  <PhoneCall className="h-4 w-4" />
+                  Cotizar ahora
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </Link>
+                <WhatsAppLink
+                  href={whatsappUrl}
+                  location="final_cta"
+                  page={`blog-${post.slug}`}
+                  className="inline-flex items-center gap-2 bg-[#25D366] px-8 py-4 text-sm font-semibold uppercase tracking-wide text-white shadow-lg shadow-[#25D366]/20 transition-all hover:bg-[#1FB855] hover:shadow-[#25D366]/40 hover:-translate-y-1 rounded-lg w-full sm:w-auto justify-center"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  WhatsApp
+                </WhatsAppLink>
+              </div>
             </div>
           </div>
         </div>
