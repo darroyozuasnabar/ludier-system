@@ -153,11 +153,12 @@ export const POSTS: BlogPost[] = [
       <h3>¿Trabajan en toda Lima o solo en algunos distritos?</h3>
       <p>Cubrimos toda Lima Metropolitana: San Juan de Miraflores, Cercado, La Victoria, Surco, Miraflores, San Isidro, San Borja, Chorrillos, Lince y más. También atendemos provincias para proyectos grandes.</p>
 
-      <!-- 👇 LINK BUILDING INTERNO: Blog → Landing B2B -->
+      <!-- 👇 LINK BUILDING INTERNO: Blog → Landing B2B + Techos -->
       <div style="margin-top: 40px; padding: 24px; background-color: #FFF3EC; border-left: 4px solid #FF5A1F;">
-        <p style="margin: 0 0 12px 0; font-weight: 600; color: #1E2126;">¿Necesitas cotizar estructuras metálicas para tu obra?</p>
-        <p style="margin: 0 0 16px 0; color: #565C63;">Visita nuestra ficha técnica completa con materiales, normativas y casos de éxito.</p>
-        <a href="/servicios/estructuras-metalicas" style="display: inline-block; padding: 12px 24px; background-color: #FF5A1F; color: #ffffff !important; text-decoration: none; font-weight: 600; border-radius: 2px;">Ver ficha técnica de estructuras metálicas →</a>
+        <p style="margin: 0 0 12px 0; font-weight: 600; color: #1E2126;">¿Necesitas cotizar estructuras metálicas o techos para tu obra?</p>
+        <p style="margin: 0 0 16px 0; color: #565C63;">Visita nuestras fichas técnicas completas con materiales, normativas y casos de éxito.</p>
+        <a href="/servicios/estructuras-metalicas" style="display: inline-block; padding: 12px 24px; background-color: #FF5A1F; color: #ffffff !important; text-decoration: none; font-weight: 600; border-radius: 2px; margin-right: 12px; margin-bottom: 12px;">Ver ficha técnica de estructuras →</a>
+        <a href="/servicios/estructuras-metalicas-para-techos" style="display: inline-block; padding: 12px 24px; background-color: #1E2126; color: #ffffff !important; text-decoration: none; font-weight: 600; border-radius: 2px; margin-bottom: 12px;">Ver ficha técnica de techos →</a>
       </div>
     `,
     fecha: "15 de Octubre, 2026",
@@ -320,11 +321,12 @@ export const POSTS: BlogPost[] = [
       <h3>¿Trabajan en toda Lima o solo en algunos distritos?</h3>
       <p>Cubrimos toda Lima Metropolitana. También atendemos proyectos en provincias para obras grandes (más de 15 pisos).</p>
 
-      <!-- 👇 LINK BUILDING INTERNO: Blog → Landing B2B (Chutes) -->
+      <!-- 👇 LINK BUILDING INTERNO: Blog → Landing B2B (Chutes) + Proyecto -->
       <div style="margin-top: 40px; padding: 24px; background-color: #FFF3EC; border-left: 4px solid #FF5A1F;">
         <p style="margin: 0 0 12px 0; font-weight: 600; color: #1E2126;">¿Necesitas cotizar chutes metálicos para tu obra?</p>
         <p style="margin: 0 0 16px 0; color: #565C63;">Visita nuestra ficha técnica completa con tipos de chutes, casos de éxito (Hilton MDP, Qantua Fase 3) y proceso de montaje.</p>
-        <a href="/servicios/chutes-metalicos-para-construccion" style="display: inline-block; padding: 12px 24px; background-color: #FF5A1F; color: #ffffff !important; text-decoration: none; font-weight: 600; border-radius: 2px;">Ver ficha técnica de chutes metálicos →</a>
+        <a href="/servicios/chutes-metalicos-para-construccion" style="display: inline-block; padding: 12px 24px; background-color: #FF5A1F; color: #ffffff !important; text-decoration: none; font-weight: 600; border-radius: 2px; margin-right: 12px; margin-bottom: 12px;">Ver ficha técnica de chutes →</a>
+        <a href="/proyectos/hilton" style="display: inline-block; padding: 12px 24px; background-color: #1E2126; color: #ffffff !important; text-decoration: none; font-weight: 600; border-radius: 2px; margin-bottom: 12px;">Ver obra en Hilton →</a>
       </div>
     `,
     fecha: "14 de Octubre, 2026",
@@ -483,11 +485,12 @@ export const POSTS: BlogPost[] = [
       <h3>¿Ofrecen garantía?</h3>
       <p>Sí. Ofrecemos garantía escrita de 2 años sobre estructura y acabados, y ofrecemos planes de mantenimiento opcional.</p>
 
-      <!-- 👇 LINK BUILDING INTERNO: Blog → Landing B2B (Acero Inoxidable) -->
+      <!-- 👇 LINK BUILDING INTERNO: Blog → Landing B2B (Acero Inoxidable) + Proyecto -->
       <div style="margin-top: 40px; padding: 24px; background-color: #FFF3EC; border-left: 4px solid #FF5A1F;">
         <p style="margin: 0 0 12px 0; font-weight: 600; color: #1E2126;">¿Buscas barandas de acero inoxidable para tu obra?</p>
         <p style="margin: 0 0 16px 0; color: #565C63;">Conoce nuestra ficha técnica completa con comparativa de materiales (304 vs 316), casos de éxito (Zendai, Qantua) y proceso de instalación.</p>
-        <a href="/servicios/barandas-acero-inoxidable" style="display: inline-block; padding: 12px 24px; background-color: #FF5A1F; color: #ffffff !important; text-decoration: none; font-weight: 600; border-radius: 2px;">Ver ficha técnica de barandas inoxidable →</a>
+        <a href="/servicios/barandas-acero-inoxidable" style="display: inline-block; padding: 12px 24px; background-color: #FF5A1F; color: #ffffff !important; text-decoration: none; font-weight: 600; border-radius: 2px; margin-right: 12px; margin-bottom: 12px;">Ver ficha técnica de barandas inoxidable →</a>
+        <a href="/proyectos/zendai" style="display: inline-block; padding: 12px 24px; background-color: #1E2126; color: #ffffff !important; text-decoration: none; font-weight: 600; border-radius: 2px; margin-bottom: 12px;">Ver obra en Zendai →</a>
       </div>
     `,
     fecha: "13 de Octubre, 2026",
@@ -1090,16 +1093,15 @@ export const POSTS: BlogPost[] = [
       "Guía completa de normativas de construcción en Perú: RNE, E.030, E.020, E.090, G.050 y Ley 29783. Aplicación práctica por LUDIER.",
   },
 
-
-    // ============================================================
-  // 7. ESCALERAS METÁLICAS (SEO target principal)
+  // ============================================================
+  // 7. ESCALERAS METÁLICAS (ACTUALIZADO: Mejor CTR)
   // ============================================================
   {
     id: 7,
     slug: "escaleras-metalicas-edificios-guia",
-    titulo: "Escaleras metálicas para edificios: tipos, normativas y precios (2026)",
+    titulo: "Escaleras Metálicas en Lima: Precios y Cotización en 24h",
     extracto:
-      "Guía completa sobre escaleras metálicas: tipos, materiales, normativas y precios. Fabricación por LUDIER.",
+      "Fabricación e instalación de escaleras metálicas de emergencia, marineras e industriales en Lima. Cotiza con planos y recibe respuesta en 24 horas.",
     contenido: `
       <p>Las escaleras metálicas son uno de los elementos más críticos en cualquier edificio. No solo cumplen una función de circulación vertical, sino que también son componentes clave de los sistemas de evacuación en caso de emergencia. Una escalera mal diseñada o instalada puede poner en riesgo vidas.</p>
 
@@ -1252,11 +1254,12 @@ export const POSTS: BlogPost[] = [
       <h3>¿Ofrecen garantía?</h3>
       <p>Sí. Ofrecemos garantía escrita de 2 años sobre estructura y acabados, y ofrecemos planes de mantenimiento opcional.</p>
 
-      <!-- 👇 LINK BUILDING INTERNO: Blog → Landing B2B (Escaleras metálicas) -->
+      <!-- 👇 LINK BUILDING INTERNO: Blog → Landing B2B (Escaleras metálicas) + Proyecto -->
       <div style="margin-top: 40px; padding: 24px; background-color: #FFF3EC; border-left: 4px solid #FF5A1F;">
         <p style="margin: 0 0 12px 0; font-weight: 600; color: #1E2126;">¿Necesitas cotizar escaleras metálicas para tu obra?</p>
         <p style="margin: 0 0 16px 0; color: #565C63;">Visita nuestra ficha técnica de escaleras metálicas: de emergencia, marineras, industriales y de acceso a azotea.</p>
-        <a href="/servicios/escaleras-metalicas" style="display: inline-block; padding: 12px 24px; background-color: #FF5A1F; color: #ffffff !important; text-decoration: none; font-weight: 600; border-radius: 2px;">Ver ficha técnica de escaleras metálicas →</a>
+        <a href="/servicios/escaleras-metalicas" style="display: inline-block; padding: 12px 24px; background-color: #FF5A1F; color: #ffffff !important; text-decoration: none; font-weight: 600; border-radius: 2px; margin-right: 12px; margin-bottom: 12px;">Ver ficha técnica de escaleras →</a>
+        <a href="/proyectos/zendai" style="display: inline-block; padding: 12px 24px; background-color: #1E2126; color: #ffffff !important; text-decoration: none; font-weight: 600; border-radius: 2px; margin-bottom: 12px;">Ver obra en Zendai →</a>
       </div>
     `,
     fecha: "12 de Octubre, 2026",
@@ -1275,18 +1278,18 @@ export const POSTS: BlogPost[] = [
       "precio escaleras metálicas",
     ],
     metaDescription:
-      "Guía completa sobre escaleras metálicas para edificios: tipos, materiales, normativas y precios en Lima 2026. Fabricación certificada por LUDIER.",
+      "Fabricación e instalación de escaleras metálicas de emergencia, marineras e industriales en Lima. Cotiza con planos y recibe respuesta en 24 horas.",
   },
 
   // ============================================================
-  // 8. PORTONES METÁLICOS (SEO target principal)
+  // 8. PORTONES METÁLICOS (ACTUALIZADO: Mejor CTR)
   // ============================================================
   {
     id: 8,
     slug: "portones-metalicos-tipos-precios-guia",
-    titulo: "Portones metálicos: tipos, precios y cómo elegir el mejor (2026)",
+    titulo: "Portones Metálicos en Lima: Precios 2026 y Cotización 24h",
     extracto:
-      "Todo sobre portones metálicos: tipos, materiales, automatización y precios. Guía técnica por LUDIER.",
+      "Fabricación e instalación de portones metálicos para constructoras e inmobiliarias en Lima. Precio por metro lineal, modelos corredizos y batientes. Cotiza hoy.",
     contenido: `
       <p>El portón es la primera impresión de cualquier propiedad. No solo cumple una función de seguridad, sino que también define la estética de la fachada. Un portón metálico bien diseñado puede transformar la percepción de un edificio o casa.</p>
 
@@ -1463,7 +1466,7 @@ export const POSTS: BlogPost[] = [
       "portones para cochera",
     ],
     metaDescription:
-      "Guía completa sobre portones metálicos: tipos, materiales, automatización y precios en Lima 2026. Fabricación certificada por LUDIER.",
+      "Fabricación e instalación de portones metálicos para constructoras e inmobiliarias en Lima. Precio por metro lineal, modelos corredizos y batientes. Cotiza hoy.",
   },
 
   // ============================================================
@@ -1626,11 +1629,12 @@ export const POSTS: BlogPost[] = [
       <h3>¿Pueden instalar un cerco perimetral con portón incluido?</h3>
       <p>Sí. Fabricamos cerco + portón como solución integral. El portón puede ser manual o automatizado según necesidad.</p>
 
-      <!-- 👇 LINK BUILDING INTERNO: Blog → Landing B2B (Cercos y cerramientos) -->
+      <!-- 👇 LINK BUILDING INTERNO: Blog → Landing B2B (Cercos y cerramientos) + Proyecto -->
       <div style="margin-top: 40px; padding: 24px; background-color: #FFF3EC; border-left: 4px solid #FF5A1F;">
         <p style="margin: 0 0 12px 0; font-weight: 600; color: #1E2126;">¿Necesitas cercos perimetrales para tu obra o industria?</p>
         <p style="margin: 0 0 16px 0; color: #565C63;">Visita nuestra ficha técnica de cercos, cerramientos y soluciones para constructoras.</p>
-        <a href="/servicios/cercos-cerramientos" style="display: inline-block; padding: 12px 24px; background-color: #FF5A1F; color: #ffffff !important; text-decoration: none; font-weight: 600; border-radius: 2px;">Ver ficha técnica de cercos perimetrales →</a>
+        <a href="/servicios/cercos-cerramientos" style="display: inline-block; padding: 12px 24px; background-color: #FF5A1F; color: #ffffff !important; text-decoration: none; font-weight: 600; border-radius: 2px; margin-right: 12px; margin-bottom: 12px;">Ver ficha técnica de cercos →</a>
+        <a href="/proyectos/lince" style="display: inline-block; padding: 12px 24px; background-color: #1E2126; color: #ffffff !important; text-decoration: none; font-weight: 600; border-radius: 2px; margin-bottom: 12px;">Ver obra en Lince →</a>
       </div>
     `,
     fecha: "10 de Octubre, 2026",

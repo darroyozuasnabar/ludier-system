@@ -35,15 +35,16 @@ const FONT_MONO = 'var(--font-mono, "JetBrains Mono", monospace)';
 // SEO
 // ============================================================
 export const metadata: Metadata = {
-  title: "Barandas de Acero Inoxidable para Obras en Lima | LUDIER",
+  title: "Barandas de Acero Inoxidable 304 en Lima | LUDIER",
   description:
     "Fabricamos e instalamos barandas de acero inoxidable 304 para edificios multifamiliares y obras en Lima. Montaje con personal propio. Envía tus planos y recibe cotización en 24 horas.",
   keywords: [
     "barandas de acero inoxidable",
+    "barandas de acero inoxidable 304",
+    "barandas de acero inoxidable lima",
     "barandas para constructoras",
     "barandas metálicas para balcones lima",
     "proveedor de barandas para obras",
-    "barandas acero inoxidable 304",
     "instalación de barandas en obra",
   ],
   alternates: { canonical: PAGE_URL },
@@ -67,7 +68,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Barandas de Acero Inoxidable para Obras en Lima | LUDIER",
+    title: "Barandas de Acero Inoxidable 304 en Lima | LUDIER",
     description: "Fabricación y montaje de barandas de acero inoxidable 304 para constructoras.",
     images: ["/img/proyectos/zendai/zendai_img2.jpg"],
   },
@@ -122,7 +123,7 @@ const QUOTE_CHECKLIST = [
 const PROJECTS = [
   {
     href: "/proyectos/zendai",
-    img: "/img/zendai.png", // 👈 Restaurada
+    img: "/img/zendai.png",
     alt: "Barandas metálicas en balcones del proyecto Zendai, La Victoria",
     title: "Proyecto Zendai · La Victoria",
     text: "Suministro e instalación de barandas metálicas en balcones de un edificio de 28 pisos.",
@@ -226,9 +227,7 @@ export default function BarandasInoxidablePage() {
       <JsonLd data={breadcrumbLd} />
 
       <main className="min-h-screen bg-[#F7F7F4] pb-24 text-[#1E2126] lg:pb-0" style={{ fontFamily: FONT_BODY }}>
-        {/* ============================================================
-            HERO
-            ============================================================ */}
+        {/* HERO */}
         <section className="relative overflow-hidden bg-[#14161A] px-4 py-16 text-white lg:py-24">
           <div
             aria-hidden
@@ -255,8 +254,7 @@ export default function BarandasInoxidablePage() {
                   Barandas de acero inoxidable para obras y constructoras en Lima
                 </h1>
                 <p className="mt-6 max-w-xl text-lg leading-relaxed text-[#B4B9BF]">
-                  Fabricamos y montamos barandas para balcones, escaleras y terrazas. Tú nos envías los planos; nosotros
-                  entregamos la baranda instalada, con el avance que tu obra necesita.
+                  Fabricamos e instalamos <strong className="text-white">barandas de acero inoxidable</strong> 304 y 316 para balcones, escaleras y terrazas en proyectos residenciales y comerciales de Lima. Tú nos envías los planos; nosotros entregamos la baranda instalada, con el avance que tu obra necesita.
                 </p>
 
                 <ul className="mt-6 space-y-2 text-sm text-white/90">
@@ -294,9 +292,7 @@ export default function BarandasInoxidablePage() {
           </div>
         </section>
 
-        {/* ============================================================
-            FRANJA DE CONFIANZA
-            ============================================================ */}
+        {/* FRANJA DE CONFIANZA */}
         <section className="border-b border-[#E3E1D8] bg-white py-5" aria-label="Por qué trabajar con LUDIER">
           <div className="mx-auto grid max-w-6xl grid-cols-2 gap-4 px-4 md:grid-cols-4">
             {[
@@ -313,24 +309,21 @@ export default function BarandasInoxidablePage() {
           </div>
         </section>
 
-        {/* ============================================================
-            CONTENIDO
-            ============================================================ */}
+        {/* CONTENIDO */}
         <div className="mx-auto grid max-w-6xl gap-12 px-4 py-16 lg:grid-cols-3">
           <div className="space-y-16 lg:col-span-2">
             {/* Material */}
             <section aria-labelledby="material">
               <h2 id="material" className="text-2xl font-semibold md:text-3xl" style={{ fontFamily: FONT_DISPLAY }}>
-                Qué material elegir para tu obra
+                ¿Qué material elegir para tus barandas de acero inoxidable?
               </h2>
               <p className="mt-4 max-w-2xl leading-relaxed text-[#565C63]">
-                En Lima la humedad y la brisa marina desgastan el acero convencional. Fabricamos en acero al carbono con
-                pintura epóxica y en acero inoxidable 304 o 316. Esta es la guía rápida para decidir:
+                En Lima la humedad y la brisa marina desgastan el acero convencional. Fabricamos barandas de acero inoxidable en grado 304 o 316, y también en acero al carbono con pintura epóxica como alternativa más económica. Esta es la guía rápida para decidir:
               </p>
 
               <div className="mt-6 overflow-x-auto">
                 <table className="w-full min-w-[560px] border-collapse bg-white text-left text-sm">
-                  <caption className="sr-only">Comparación de materiales para barandas</caption>
+                  <caption className="sr-only">Comparación de materiales para barandas de acero inoxidable</caption>
                   <thead>
                     <tr className="border-b border-[#E3E1D8] bg-[#EFEEE8] text-[#1E2126]">
                       <th scope="col" className="p-3 font-semibold">Material</th>
@@ -375,10 +368,39 @@ export default function BarandasInoxidablePage() {
               </div>
             </section>
 
+            {/* ¿Por qué elegir acero inoxidable? (NUEVO BLOQUE SEO) */}
+            <section aria-labelledby="por-que-inoxidable">
+              <h2 id="por-que-inoxidable" className="text-2xl font-semibold md:text-3xl" style={{ fontFamily: FONT_DISPLAY }}>
+                ¿Por qué elegir barandas de acero inoxidable?
+              </h2>
+              <p className="mt-4 max-w-2xl leading-relaxed text-[#565C63]">
+                Las barandas de acero inoxidable son la solución preferida por constructoras e inmobiliarias para proyectos de alta exigencia. Sus ventajas frente al acero al carbono con pintura o al hierro forjado son claras:
+              </p>
+
+              <ul className="mt-5 max-w-2xl space-y-3 text-[#565C63]">
+                <li className="flex items-start gap-3">
+                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[#FF5A1F]" aria-hidden />
+                  <span><strong className="text-[#1E2126]">Resistencia superior a la corrosión:</strong> el inoxidable 304 resiste la humedad costera de Lima por décadas, sin óxido ni repintados.</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[#FF5A1F]" aria-hidden />
+                  <span><strong className="text-[#1E2126]">Mantenimiento mínimo:</strong> a diferencia del acero pintado, no requiere repintado cada 2-3 años. Solo limpieza periódica.</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[#FF5A1F]" aria-hidden />
+                  <span><strong className="text-[#1E2126]">Estética premium:</strong> el acabado brillante o satinado del acero inoxidable aporta valor arquitectónico a la fachada.</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[#FF5A1F]" aria-hidden />
+                  <span><strong className="text-[#1E2126]">Cumplimiento normativo:</strong> fabricamos según el RNE y las especificaciones técnicas de tu proyecto.</span>
+                </li>
+              </ul>
+            </section>
+
             {/* Proceso */}
             <section aria-labelledby="proceso">
               <h2 id="proceso" className="text-2xl font-semibold md:text-3xl" style={{ fontFamily: FONT_DISPLAY }}>
-                Cómo trabajamos con tu constructora
+                Cómo fabricamos e instalamos tus barandas de acero inoxidable
               </h2>
               <ol className="mt-6 grid gap-4 sm:grid-cols-2">
                 {PROCESS.map(({ icon: Icon, title, text }, i) => (
@@ -401,7 +423,7 @@ export default function BarandasInoxidablePage() {
             {/* Proyectos */}
             <section aria-labelledby="proyectos">
               <h2 id="proyectos" className="text-2xl font-semibold md:text-3xl" style={{ fontFamily: FONT_DISPLAY }}>
-                Obras donde ya instalamos
+                Obras donde ya instalamos barandas de acero inoxidable
               </h2>
               <p className="mt-4 max-w-2xl leading-relaxed text-[#565C63]">
                 Somos una empresa especializada en soluciones metalmecánicas para proyectos de construcción. Contamos con experiencia comprobada en carpintería metálica para edificios multifamiliares. Estos son dos de nuestros proyectos.
@@ -448,7 +470,7 @@ export default function BarandasInoxidablePage() {
             {/* FAQ */}
             <section aria-labelledby="faq">
               <h2 id="faq" className="text-2xl font-semibold md:text-3xl" style={{ fontFamily: FONT_DISPLAY }}>
-                Preguntas frecuentes
+                Preguntas frecuentes sobre barandas de acero inoxidable
               </h2>
               <div className="mt-6 space-y-3">
                 {FAQS.map((f) => (
