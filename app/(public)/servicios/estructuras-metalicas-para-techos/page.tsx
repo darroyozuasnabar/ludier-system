@@ -147,6 +147,72 @@ const PROJECTS = [
   },
 ];
 
+// 👇 SUBCATEGORÍAS HERMANAS DE "ESTRUCTURAS METÁLICAS"
+// (excluye "Techos metálicos", que es esta misma ficha)
+// Los ids coinciden con los que asigna ServicioDetalleClient a cada tarjeta.
+const OTHER_SUBCATEGORIES = [
+  {
+    id: "estructuras-para-azotea",
+    title: "Estructuras para azotea",
+    description: "Estructuras metálicas para tanques, equipos de aire acondicionado, paneles solares y telecomunicaciones.",
+    img: "/img/EstructurasAzotea.png",
+  },
+  {
+    id: "coberturas-metalicas",
+    title: "Coberturas metálicas",
+    description: "Coberturas ligeras y resistentes para techos, estacionamientos, patios y áreas de descanso.",
+    img: "/img/coberturasMetalicas.jpg",
+  },
+  {
+    id: "marquesinas",
+    title: "Marquesinas",
+    description: "Marquesinas metálicas para proteger accesos, entradas de vehículos y zonas de carga.",
+    img: "/img/Marquesinas_Metalicas.jpg",
+  },
+  {
+    id: "plataformas-metalicas",
+    title: "Plataformas metálicas",
+    description: "Plataformas de trabajo y acceso, pasarelas y soporte de equipos con perfiles de alta resistencia.",
+    img: "/img/Plataformas-metalicas.jpg",
+  },
+  {
+    id: "soportes-metalicos",
+    title: "Soportes metálicos",
+    description: "Soportes estructurales para tuberías, ductos, climatización y sistemas de energía.",
+    img: "/img/SoportesMetalicos.jpg",
+  },
+  {
+    id: "vigas-metalicas",
+    title: "Vigas metálicas",
+    description: "Vigas de acero estructural para construcciones de gran altura y grandes luces.",
+    img: "/img/vigasMetalicas.jpg",
+  },
+  {
+    id: "estructuras-especiales",
+    title: "Estructuras especiales",
+    description: "Soluciones estructurales a medida: estadios, puentes, pasarelas, pérgolas y elementos arquitectónicos.",
+    img: "/img/Estructuras_especiales.jpg",
+  },
+  {
+    id: "estructuras-para-paneles-solares",
+    title: "Estructuras para paneles solares",
+    description: "Estructuras metálicas diseñadas para el montaje de paneles solares con inclinación óptima.",
+    img: "/img/estructuraPanelesSolares.png",
+  },
+  {
+    id: "cuartos-metalicos-para-equipos",
+    title: "Cuartos metálicos para equipos",
+    description: "Cuartos modulares metálicos para equipos eléctricos, bombas, generadores y climatización.",
+    img: "/img/cuartosMetalicos.jpg",
+  },
+  {
+    id: "jaulas-metalicas",
+    title: "Jaulas metálicas",
+    description: "Jaulas de seguridad para almacenamiento de materiales y protección de áreas sensibles.",
+    img: "/img/Jaulas_metálicas.jpg",
+  },
+];
+
 // ============================================================
 // COMPONENTES AUXILIARES
 // ============================================================
@@ -257,9 +323,16 @@ export default function TechosMetalicosPage() {
             }}
           />
           <div className="relative mx-auto max-w-6xl">
-            <nav aria-label="Migas de pan" className="mb-8 flex items-center gap-2 text-sm text-[#8A8F96]">
+            <nav aria-label="Migas de pan" className="mb-8 flex flex-wrap items-center gap-2 text-sm text-[#8A8F96]">
               <Link href="/servicios" className="inline-flex items-center gap-2 transition-colors hover:text-[#FF5A1F]">
                 <ArrowLeft className="h-4 w-4" aria-hidden /> Servicios
+              </Link>
+              <ChevronRight className="h-3 w-3" aria-hidden />
+              <Link
+                href="/servicios/estructuras-metalicas"
+                className="transition-colors hover:text-[#FF5A1F]"
+              >
+                Estructuras Metálicas
               </Link>
               <ChevronRight className="h-3 w-3" aria-hidden />
               <span className="text-white/80">Techos Metálicos</span>
@@ -309,6 +382,31 @@ export default function TechosMetalicosPage() {
             </div>
           </div>
         </section>
+
+        {/* CHIPS DE SUBCATEGORÍA */}
+        <nav
+          aria-label="Otras subcategorías de estructuras metálicas"
+          className="border-b border-[#E3E1D8] bg-white"
+        >
+          <div className="mx-auto max-w-6xl px-4 py-4">
+            <p className="mb-2 text-xs font-medium uppercase tracking-[0.16em] text-[#8B8F86]">
+              Otras soluciones de Estructuras Metálicas
+            </p>
+            <ul className="flex flex-wrap gap-2">
+              {OTHER_SUBCATEGORIES.map((sub) => (
+                <li key={sub.id}>
+                  <Link
+                    href={`/servicios/estructuras-metalicas#${sub.id}`}
+                    className="inline-flex items-center gap-1.5 border border-[#E3E1D8] bg-[#F7F7F4] px-3.5 py-2 text-sm font-medium text-[#1E2126] transition-colors hover:border-[#FF5A1F] hover:bg-[#FFF3EC] hover:text-[#FF5A1F] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF5A1F]"
+                  >
+                    {sub.title}
+                    <ChevronRight className="h-3.5 w-3.5" aria-hidden />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </nav>
 
         {/* FRANJA DE CONFIANZA */}
         <section className="border-b border-[#E3E1D8] bg-white py-5" aria-label="Por qué trabajar con LUDIER">
@@ -409,7 +507,7 @@ export default function TechosMetalicosPage() {
               </ol>
             </section>
 
-            {/* Proyectos (SOLO QANTUA + CTA PORTAFOLIO) */}
+            {/* Proyectos */}
             <section aria-labelledby="proyectos">
               <h2 id="proyectos" className="text-2xl font-semibold md:text-3xl" style={{ fontFamily: FONT_DISPLAY }}>
                 Obras donde ya instalamos
@@ -443,6 +541,42 @@ export default function TechosMetalicosPage() {
                         {p.isCta ? "Ver portafolio" : "Ver proyecto"} <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" aria-hidden />
                       </span>
                     </div>
+                  </Link>
+                ))}
+              </div>
+            </section>
+
+            {/* Otras subcategorías */}
+            <section aria-labelledby="otras-subcategorias">
+              <h2 id="otras-subcategorias" className="text-2xl font-semibold md:text-3xl" style={{ fontFamily: FONT_DISPLAY }}>
+                Otras subcategorías de Estructuras Metálicas
+              </h2>
+              <p className="mt-4 max-w-2xl leading-relaxed text-[#565C63]">
+                Además de techos y coberturas, dentro de Estructuras Metálicas fabricamos estas soluciones:
+              </p>
+              <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                {OTHER_SUBCATEGORIES.map((sub) => (
+                  <Link
+                    key={sub.id}
+                    href={`/servicios/estructuras-metalicas#${sub.id}`}
+                    className="group flex items-center gap-4 bg-white border border-[#E3E1D8] p-4 rounded-sm hover:border-[#FF5A1F]/40 hover:shadow-md transition-all"
+                  >
+                    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-sm">
+                      <Image
+                        src={sub.img}
+                        alt={sub.title}
+                        fill
+                        sizes="64px"
+                        className="object-cover transition-transform duration-300 group-hover:scale-110"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-sm font-semibold text-[#1E2126] group-hover:text-[#FF5A1F] transition-colors">
+                        {sub.title}
+                      </h3>
+                      <p className="text-xs text-[#565C63] line-clamp-2 mt-1">{sub.description}</p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-[#8B8F86] transition-transform group-hover:translate-x-1" aria-hidden />
                   </Link>
                 ))}
               </div>

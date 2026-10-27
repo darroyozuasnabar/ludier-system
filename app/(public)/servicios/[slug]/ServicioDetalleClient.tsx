@@ -40,6 +40,17 @@ const WHATSAPP_CHUTES_URL = `https://wa.me/51965391256?text=${encodeURIComponent
   "Hola LUDIER, vengo de la web y quiero cotizar chutes metálicos para mi obra. ¿Me pueden ayudar?",
 )}`;
 
+// Convierte "Estructuras para azotea" → "estructuras-para-azotea"
+// para usarlo como id de ancla desde las fichas B2B.
+function slugifySubcategoria(nombre: string): string {
+  return nombre
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/[()]/g, "");
+}
+
 // ============================================================
 // TIPOS
 // ============================================================
@@ -316,7 +327,6 @@ const categorias: Categoria[] = [
       "Cumplimiento de normas de seguridad",
     ],
     subServicios: [
-      // Sub-servicio destacado (SEO B2B): se muestra con la tarjeta InoxFeaturedCard
       {
         nombre: "Barandas de Acero Inoxidable (Grado 304)",
         descripcion:
@@ -976,7 +986,8 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
                     return (
                       <div
                         key={index}
-                        className="group relative flex flex-col bg-white border-2 border-[#FF5A1F]/50 rounded-sm overflow-hidden transition-all duration-500 hover:border-[#FF5A1F] hover:shadow-2xl hover:shadow-[#FF5A1F]/20 hover:-translate-y-2"
+                        id={slugifySubcategoria(sub.nombre)}
+                        className="scroll-mt-28 group relative flex flex-col bg-white border-2 border-[#FF5A1F]/50 rounded-sm overflow-hidden transition-all duration-500 hover:border-[#FF5A1F] hover:shadow-2xl hover:shadow-[#FF5A1F]/20 hover:-translate-y-2"
                         style={{
                           opacity: gridInView ? 1 : 0,
                           transform: gridInView
@@ -994,7 +1005,8 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
                   return (
                     <div
                       key={index}
-                      className="group relative flex flex-col bg-white border border-[#E3E1D8] rounded-sm overflow-hidden transition-all duration-500 hover:border-[#FF5A1F]/40 hover:shadow-xl hover:-translate-y-2"
+                      id={slugifySubcategoria(sub.nombre)}
+                      className="scroll-mt-28 group relative flex flex-col bg-white border border-[#E3E1D8] rounded-sm overflow-hidden transition-all duration-500 hover:border-[#FF5A1F]/40 hover:shadow-xl hover:-translate-y-2"
                       style={{
                         opacity: gridInView ? 1 : 0,
                         transform: gridInView
@@ -1010,7 +1022,8 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
               : (categoria.subServicios as any[]).map((sub, index) => (
                   <div
                     key={index}
-                    className="group relative flex items-start gap-4 p-4 bg-white border border-[#E3E1D8] rounded-sm transition-all hover:border-[#FF5A1F]/30 hover:shadow-md"
+                    id={slugifySubcategoria(typeof sub === "string" ? sub : sub.nombre)}
+                    className="scroll-mt-28 group relative flex items-start gap-4 p-4 bg-white border border-[#E3E1D8] rounded-sm transition-all hover:border-[#FF5A1F]/30 hover:shadow-md"
                     style={{
                       opacity: gridInView ? 1 : 0,
                       transform: gridInView

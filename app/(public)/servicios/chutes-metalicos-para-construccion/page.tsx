@@ -148,6 +148,28 @@ const PROJECTS = [
   },
 ];
 
+// 👇 OTRAS SUBCATEGORÍAS DE "SOLUCIONES PARA CONSTRUCTORAS"
+const OTHER_SUBCATEGORIES = [
+  {
+    slug: "cercos-cerramientos",
+    title: "Cerramientos temporales",
+    description: "Cerramientos provisionales para obras, con paneles modulares de fácil montaje y desmontaje.",
+    img: "/img/cerramientosTemporales.jpg",
+  },
+  {
+    slug: "cercos-cerramientos",
+    title: "Barandas provisionales",
+    description: "Barandas de seguridad para andamios y áreas de trabajo, con instalación rápida.",
+    img: "/img/barandasProvisionales.jpeg",
+  },
+  {
+    slug: "cercos-cerramientos",
+    title: "Protecciones para obra",
+    description: "Elementos de protección para áreas de riesgo, como cubrimientos de huecos y barandas perimetrales.",
+    img: "/img/proteccionesObra.webp",
+  },
+];
+
 // ============================================================
 // COMPONENTES AUXILIARES
 // ============================================================
@@ -435,6 +457,42 @@ export default function ChutesMetalicosPage() {
                         Ver proyecto <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" aria-hidden />
                       </span>
                     </div>
+                  </Link>
+                ))}
+              </div>
+            </section>
+
+            {/* 👇 NUEVA SECCIÓN: Otras subcategorías */}
+            <section aria-labelledby="otras-subcategorias">
+              <h2 id="otras-subcategorias" className="text-2xl font-semibold md:text-3xl" style={{ fontFamily: FONT_DISPLAY }}>
+                Otras subcategorías de Soluciones para Constructoras
+              </h2>
+              <p className="mt-4 max-w-2xl leading-relaxed text-[#565C63]">
+                ¿Buscas otra solución para tu obra? Estas son las otras alternativas que ofrecemos dentro de esta categoría:
+              </p>
+              <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                {OTHER_SUBCATEGORIES.map((sub, i) => (
+                  <Link
+                    key={i}
+                    href={`/servicios/${sub.slug}`}
+                    className="group flex items-center gap-4 bg-white border border-[#E3E1D8] p-4 rounded-sm hover:border-[#FF5A1F]/40 hover:shadow-md transition-all"
+                  >
+                    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-sm">
+                      <Image
+                        src={sub.img}
+                        alt={sub.title}
+                        fill
+                        sizes="64px"
+                        className="object-cover transition-transform duration-300 group-hover:scale-110"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-sm font-semibold text-[#1E2126] group-hover:text-[#FF5A1F] transition-colors">
+                        {sub.title}
+                      </h3>
+                      <p className="text-xs text-[#565C63] line-clamp-2 mt-1">{sub.description}</p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-[#8B8F86] transition-transform group-hover:translate-x-1" aria-hidden />
                   </Link>
                 ))}
               </div>

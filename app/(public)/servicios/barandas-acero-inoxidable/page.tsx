@@ -138,6 +138,27 @@ const PROJECTS = [
   },
 ];
 
+const OTHER_SUBCATEGORIES = [
+  {
+    slug: "barandas-pasamanos",
+    title: "Barandas metálicas",
+    description: "Barandas de seguridad y decorativas para balcones, escaleras y terrazas.",
+    img: "/img/Barandasmetálicas.png",
+  },
+  {
+    slug: "barandas-pasamanos",
+    title: "Pasamanos metálicos",
+    description: "Pasamanos para escaleras, rampas y pasillos con diseño ergonómico.",
+    img: "/img/PasmanosMetalicos.jpg",
+  },
+  {
+    slug: "barandas-pasamanos",
+    title: "Barandas para balcones",
+    description: "Diseños que combinan seguridad y estética para balcones residenciales.",
+    img: "/img/Qantua1_foto2.jpg",
+  },
+];
+
 // ============================================================
 // COMPONENTES AUXILIARES
 // ============================================================
@@ -446,6 +467,42 @@ export default function BarandasInoxidablePage() {
                         Ver proyecto <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" aria-hidden />
                       </span>
                     </div>
+                  </Link>
+                ))}
+              </div>
+            </section>
+
+            {/* Otras subcategorías */}
+            <section aria-labelledby="otras-subcategorias">
+              <h2 id="otras-subcategorias" className="text-2xl font-semibold md:text-3xl" style={{ fontFamily: FONT_DISPLAY }}>
+                Otras subcategorías de Barandas y Pasamanos
+              </h2>
+              <p className="mt-4 max-w-2xl leading-relaxed text-[#565C63]">
+                ¿Buscas otro tipo de baranda o pasamanos? Estas son las otras soluciones que ofrecemos dentro de esta categoría:
+              </p>
+              <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                {OTHER_SUBCATEGORIES.map((sub, i) => (
+                  <Link
+                    key={i}
+                    href={`/servicios/${sub.slug}`}
+                    className="group flex items-center gap-4 bg-white border border-[#E3E1D8] p-4 rounded-sm hover:border-[#FF5A1F]/40 hover:shadow-md transition-all"
+                  >
+                    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-sm">
+                      <Image
+                        src={sub.img}
+                        alt={sub.title}
+                        fill
+                        sizes="64px"
+                        className="object-cover transition-transform duration-300 group-hover:scale-110"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-sm font-semibold text-[#1E2126] group-hover:text-[#FF5A1F] transition-colors">
+                        {sub.title}
+                      </h3>
+                      <p className="text-xs text-[#565C63] line-clamp-2 mt-1">{sub.description}</p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-[#8B8F86] transition-transform group-hover:translate-x-1" aria-hidden />
                   </Link>
                 ))}
               </div>
