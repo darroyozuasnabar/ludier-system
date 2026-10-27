@@ -193,6 +193,16 @@ function setSecurityHeaders(response: NextResponse): NextResponse {
 
 export async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
+  const host = req.headers.get("host") || "";
+
+  // ─── 0. REDIRECT 301: www.grupoludier.com → grupoludier.com ───
+  // Esto es vital para SEO: evitar contenido duplicado y consolidar autoridad.
+  if (host.startsWith("www.")) {
+    const url = req.nextUrl.clone();
+    url.host = host.replace(/^www\./, "");
+    url.protocol = "https";
+    return NextResponse.redirect(url, 301);
+  }
 
   // ─── API ROUTES: PASAR SIN HEADERS NI AUTH ───
   // Importante: las APIs devuelven JSON, no HTML
@@ -201,7 +211,7 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // ─── 0. IGNORAR ARCHIVOS ESTÁTICOS Y SEO ───
+  // ─── 1. IGNORAR ARCHIVOS ESTÁTICOS Y SEO ───
   if (
     path === "/sitemap.xml" ||
     path === "/robots.txt" ||
@@ -211,7 +221,7 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // ─── 1. VERIFICAR RUTAS PÚBLICAS ───
+  // ─── 2. VERIFICAR RUTAS PÚBLICAS ───
   const isExactPublic = PUBLIC_PREFIXES.some(prefix => path === prefix);
   const isPathPublic = PUBLIC_PATH_PREFIXES.some(prefix => path.startsWith(prefix));
   if (isExactPublic || isPathPublic) {
@@ -219,13 +229,13 @@ export async function middleware(req: NextRequest) {
     return setSecurityHeaders(response);
   }
 
-  // ─── 2. OBTENER TOKEN ───
+  // ─── 3. OBTENER TOKEN ───
   const token = await getToken({
     req,
     secret: process.env.NEXTAUTH_SECRET
   });
 
-  // ─── 3. SI NO HAY TOKEN, REDIRIGIR A LOGIN ───
+  // ─── 4. SI NO HAY TOKEN, REDIRIGIR A LOGIN ───
   if (!token) {
     const isClienteRoute = path.startsWith('/cliente/');
     const loginUrl = new URL('/login', req.url);
@@ -235,27 +245,27 @@ export async function middleware(req: NextRequest) {
     return setSecurityHeaders(response);
   }
 
-  // ─── 4. OBTENER ROL Y PERMISOS ───
+  // ─── 5. OBTENER ROL Y PERMISOS ───
   const role = token.role as string || 'VIEWER';
   const permissions = ROLE_PERMISSIONS[role] || ROLE_PERMISSIONS.VIEWER;
 
-  // ─── 5. VERIFICAR SI EL ROL TIENE ACCESO TOTAL ───
+  // ─── 6. VERIFICAR SI EL ROL TIENE ACCESO TOTAL ───
   if (permissions.allowed.includes('*')) {
     const response = NextResponse.next();
     return setSecurityHeaders(response);
   }
 
-  // ─── 6. VERIFICAR SI LA RUTA ESTÁ PERMITIDA ───
+  // ─── 7. VERIFICAR SI LA RUTA ESTÁ PERMITIDA ───
   const isAllowed = permissions.allowed.some(route => matchesRoute(path, route));
   const isBlocked = permissions.blocked.some(route => matchesRoute(path, route));
 
-  // ─── 7. SI NO ESTÁ PERMITIDA O ESTÁ BLOQUEADA → DENEGAR ───
+  // ─── 8. SI NO ESTÁ PERMITIDA O ESTÁ BLOQUEADA → DENEGAR ───
   if (!isAllowed || isBlocked) {
     const response = NextResponse.redirect(new URL('/unauthorized', req.url));
     return setSecurityHeaders(response);
   }
 
-  // ─── 8. SI TODO ESTÁ BIEN, CONTINUAR ───
+  // ─── 9. SI TODO ESTÁ BIEN, CONTINUAR ───
   const response = NextResponse.next();
   return setSecurityHeaders(response);
 }
