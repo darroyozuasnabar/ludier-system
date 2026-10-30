@@ -1287,7 +1287,8 @@ export const POSTS: BlogPost[] = [
   {
     id: 8,
     slug: "portones-metalicos-tipos-precios-guia",
-    titulo: "Portones Metálicos en Lima: Precios 2026 y Cotización 24h",
+    // FIX SEO PORTONES: priorizar intención informativa y comercial de comparación.
+    titulo: "Portones metálicos: tipos y precios en Lima",
     extracto:
       "Fabricación e instalación de portones metálicos para constructoras e inmobiliarias en Lima. Precio por metro lineal, modelos corredizos y batientes. Cotiza hoy.",
     contenido: `
@@ -1466,7 +1467,7 @@ export const POSTS: BlogPost[] = [
       "portones para cochera",
     ],
     metaDescription:
-      "Fabricación e instalación de portones metálicos para constructoras e inmobiliarias en Lima. Precio por metro lineal, modelos corredizos y batientes. Cotiza hoy.",
+      "Compara tipos de portones metálicos, usos y precios orientativos en Lima. Elige según tu acceso y solicita una cotización con tus medidas.",
   },
 
   // ============================================================
@@ -1660,6 +1661,24 @@ export const POSTS: BlogPost[] = [
 // ============================================================
 // HELPERS
 // ============================================================
+
+// FIX SEO PORTONES: derivar índice y FAQ del HTML existente sin reescribir sus párrafos.
+export function getPortonesGuide(post: BlogPost) {
+  if (post.slug !== "portones-metalicos-tipos-precios-guia") return null;
+  const plainText = (html: string) => html.replace(/<[^>]*>/g, "").trim();
+  const headings: { id: string; title: string }[] = [];
+  const content = post.contenido.replace(/<h2>([\s\S]*?)<\/h2>/g, (_, title: string) => {
+    const id = `portones-seccion-${headings.length + 1}`;
+    headings.push({ id, title: plainText(title) });
+    return `<h2 id="${id}">${title}</h2>`;
+  });
+  const faqHeading = headings.find((heading) => heading.title === "Preguntas frecuentes");
+  const faqContent = faqHeading
+    ? content.slice(content.indexOf(`<h2 id="${faqHeading.id}">`)) : "";
+  const faqs = Array.from(faqContent.matchAll(/<h3>([\s\S]*?)<\/h3>\s*<p>([\s\S]*?)<\/p>/g),
+    ([, question, answer]) => ({ question: plainText(question), answer: plainText(answer) }));
+  return { content, headings, faqs, inlineAnchor: headings[3]?.id };
+}
 
 /** Obtener un post por slug */
 export function getPostBySlug(slug: string): BlogPost | undefined {

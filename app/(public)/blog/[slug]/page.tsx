@@ -2,7 +2,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import BlogPostClient from "@/components/public/BlogPostClient";
-import { getPostBySlug, getAllSlugs, POSTS } from "@/lib/blog-posts";
+import { getPostBySlug, getAllSlugs, getPortonesGuide, POSTS } from "@/lib/blog-posts";
 
 const SITE_URL = "https://grupoludier.com";
 
@@ -34,7 +34,10 @@ export async function generateMetadata({
   const url = `${SITE_URL}/blog/${post.slug}`;
 
   return {
-    title: `${post.titulo} | LUDIER`,
+    // FIX SEO PORTONES: evitar la segunda marca añadida por title.template del layout.
+    title: slug === "portones-metalicos-tipos-precios-guia"
+      ? { absolute: `${post.titulo} | LUDIER` }
+      : `${post.titulo} | LUDIER`,
     description: post.metaDescription,
     keywords: post.keywords,
     authors: [{ name: post.autor }],
@@ -159,11 +162,25 @@ export default async function BlogPostPage({
 
   const articleJsonLd = buildArticleJsonLd(slug);
   const breadcrumbJsonLd = buildBreadcrumbJsonLd(slug);
+  // FIX F4-FAQ: conservar las FAQ visibles y emitir solo Article y BreadcrumbList.
+  const guide = getPortonesGuide(post);
 
   // Posts relacionados (misma categoría, excluyendo el actual)
-  const relacionados = POSTS.filter(
+  let relacionados = POSTS.filter(
     (p) => p.categoria === post.categoria && p.slug !== post.slug
   ).slice(0, 3);
+  // FIX SEO PORTONES: complementar la decisión de compra con contenido relevante.
+  if (guide) {
+    const relatedSlugs = [
+      "cercos-perimetrales-industrial-guia",
+      "fabricacion-metalica-medida-guia",
+      "seguridad-en-obras-construccion",
+    ];
+    relacionados = relatedSlugs.flatMap((relatedSlug) => {
+      const related = getPostBySlug(relatedSlug);
+      return related ? [related] : [];
+    });
+  }
 
   return (
     <>
@@ -179,7 +196,11 @@ export default async function BlogPostPage({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
         />
       )}
-      <BlogPostClient post={post} relacionados={relacionados} />
+      <BlogPostClient
+        post={guide ? { ...post, contenido: guide.content } : post}
+        relacionados={relacionados}
+        portonesGuide={guide ? { headings: guide.headings, inlineAnchor: guide.inlineAnchor } : undefined}
+      />
     </>
   );
 }

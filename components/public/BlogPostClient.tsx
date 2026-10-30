@@ -23,14 +23,30 @@ const FONT_MONO = 'var(--font-mono, "JetBrains Mono", ui-monospace, monospace)';
 export default function BlogPostClient({
   post,
   relacionados,
+  portonesGuide,
 }: {
   post: BlogPost;
   relacionados: BlogPost[];
+  portonesGuide?: {
+    headings: { id: string; title: string }[];
+    inlineAnchor?: string;
+  };
 }) {
   // URL de WhatsApp con mensaje contextual según el artículo
   const whatsappUrl = `https://wa.me/51965391256?text=${encodeURIComponent(
     `Hola LUDIER, leí el artículo "${post.titulo}" y quiero cotizar un proyecto similar.`
   )}`;
+  // FIX SEO PORTONES: dividir solo en un h2 de nivel superior para insertar un CTA React medible.
+  const splitAt = portonesGuide?.inlineAnchor
+    ? post.contenido.indexOf(`<h2 id="${portonesGuide.inlineAnchor}">`) : -1;
+  const comparisonRows = [
+    ["Corredizo estándar", "Deslizamiento lateral", "Revisión anual y pintura", "Desde S/ 380/m²", "Accesos con espacio lateral"],
+    ["Corredizo galvanizado", "Deslizamiento lateral", "Revisión anual", "Desde S/ 520/m²", "Fachadas expuestas a humedad"],
+    ["Basculante", "Apertura vertical", "Revisión anual; semestral con motor", "Desde S/ 450/m²", "Cocheras sin espacio lateral"],
+    ["Abatible", "Apertura de hojas", "Revisión anual; semestral con motor", "Según evaluación", "Accesos con espacio de apertura"],
+    ["Seccional", "Paneles hacia el techo", "Revisión anual; semestral con motor", "Desde S/ 650/m²", "Cocheras y edificios"],
+    ["Automatización (adicional)", "Motor y control de acceso", "Revisión semestral", "Desde S/ 2,500 por motor", "Portones compatibles, previa evaluación"],
+  ];
 
   return (
     <div className="min-h-screen bg-[#F7F7F4]" style={{ fontFamily: FONT_BODY }}>
@@ -94,6 +110,17 @@ export default function BlogPostClient({
                 </span>
               )}
             </div>
+            {/* FIX SEO PORTONES: siguiente paso visible antes de la imagen y del texto largo. */}
+            {portonesGuide && (
+              <div className="mt-6 flex flex-col items-start gap-3 sm:flex-row sm:flex-wrap">
+                <a href="#comparativa-portones" className="inline-flex min-h-11 items-center rounded-sm border border-white/30 px-5 py-3 text-sm font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
+                  Comparar tipos y precios
+                </a>
+                <WhatsAppLink href={whatsappUrl} location="blog-portones-hero" page={`blog-${post.slug}`} className="inline-flex min-h-11 items-center gap-2 rounded-sm bg-[#FF5A1F] px-5 py-3 text-sm font-semibold text-[#14161A] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
+                  <MessageCircle className="h-4 w-4" aria-hidden /> Cotizar con mis medidas
+                </WhatsAppLink>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -102,6 +129,48 @@ export default function BlogPostClient({
       <section className="py-16 lg:py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Imagen destacada */}
+          {/* FIX SEO PORTONES: índice derivado de h2 y resumen comercial antes de la destacada. */}
+          {portonesGuide && (
+            <div className="mb-12 min-w-0 space-y-8">
+              <nav aria-label="Índice del artículo" className="rounded-sm border border-[#E3E1D8] bg-white p-5 sm:p-6">
+                <h2 className="text-xl font-semibold text-[#1E2126]" style={{ fontFamily: FONT_DISPLAY }}>En esta guía de portones metálicos</h2>
+                <ul className="mt-3 grid gap-x-6 sm:grid-cols-2">
+                  {[
+                    ...portonesGuide.headings.filter((h) => /Tipos|Cuánto cuesta/.test(h.title)),
+                    ...portonesGuide.headings.filter((h) => !/Tipos|Cuánto cuesta/.test(h.title)),
+                  ].map((heading) => (
+                    <li key={heading.id} className="min-w-0">
+                      <a href={`#${heading.id}`} className="inline-flex min-h-11 items-center py-2 text-sm text-[#565C63] underline underline-offset-4 hover:text-[#1E2126] focus-visible:outline-2 focus-visible:outline-[#FF5A1F]">{heading.title}</a>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+              <section id="comparativa-portones" aria-labelledby="titulo-comparativa" className="min-w-0 scroll-mt-24">
+                <h2 id="titulo-comparativa" className="text-2xl font-semibold text-[#1E2126]" style={{ fontFamily: FONT_DISPLAY }}>Tipos de portones: comparación rápida</h2>
+                <p id="nota-precios-portones" className="mt-3 text-sm leading-relaxed text-[#565C63]">
+                  Referencias de precios de 2026 recogidas en este artículo; no son un tarifario vigente ni una cotización. La automatización es adicional. El importe final depende de las medidas, el acabado y el montaje.
+                </p>
+                <div className="mt-5 max-w-full overflow-x-auto rounded-sm border border-[#E3E1D8]" role="region" aria-label="Tabla comparativa de portones, desplazamiento horizontal" tabIndex={0}>
+                  <table aria-describedby="nota-precios-portones" className="w-full min-w-[760px] border-collapse bg-white text-left text-sm">
+                    <caption className="sr-only">Comparativa de configuraciones de portones y automatización</caption>
+                    <thead className="bg-[#EFEEE8] text-[#1E2126]">
+                      <tr>{["Tipo o configuración", "Uso", "Mantenimiento", "Precio orientativo", "Ideal para"].map((label) => <th key={label} scope="col" className="border-b border-[#E3E1D8] p-3 font-semibold">{label}</th>)}</tr>
+                    </thead>
+                    <tbody>{comparisonRows.map(([type, ...cells]) => (
+                      <tr key={type} className="border-b border-[#E3E1D8] last:border-b-0">
+                        <th scope="row" className="p-3 font-medium text-[#1E2126]">{type}</th>
+                        {cells.map((cell, i) => <td key={i} className="p-3 text-[#565C63]">{cell}</td>)}
+                      </tr>
+                    ))}</tbody>
+                  </table>
+                </div>
+                <p className="mt-4 text-sm text-[#565C63]">
+                  Para fabricación e instalación, consulta nuestra ficha de{" "}
+                  <Link href="/servicios/puertas-portones" className="font-semibold text-[#1E2126] underline underline-offset-4">portones metálicos en Lima</Link>.
+                </p>
+              </section>
+            </div>
+          )}
           <div className="relative aspect-[16/9] rounded-xl overflow-hidden border border-[#E3E1D8] bg-[#14161A] shadow-xl mb-12">
             {/* FIX MOBILE F3A-AJUSTE: priorizar la destacada situada inmediatamente después del hero. */}
             <Image src={post.imagen} alt={post.titulo} fill priority={true} sizes="(min-width: 1024px) 800px, 100vw" className="w-full h-full object-cover" />
@@ -110,12 +179,28 @@ export default function BlogPostClient({
           {/* Contenido HTML */}
           <div
             className="article-content max-w-none"
-            dangerouslySetInnerHTML={{ __html: post.contenido }}
+            dangerouslySetInnerHTML={{ __html: splitAt >= 0 ? post.contenido.slice(0, splitAt) : post.contenido }}
             style={{ fontFamily: FONT_BODY }}
           />
+          {portonesGuide && splitAt >= 0 && (
+            <>
+              {/* FIX SEO PORTONES: CTA contextual dentro de la lectura, con tracking existente. */}
+              <aside aria-label="Cotizar portón metálico" className="my-10 rounded-sm bg-[#FF5A1F] p-6 text-[#14161A] sm:p-8">
+                <h2 className="text-2xl font-semibold" style={{ fontFamily: FONT_DISPLAY }}>¿Qué portón necesita tu obra?</h2>
+                <p className="mt-3 leading-relaxed">Envíanos el ancho y alto del vano, la ubicación y si necesitas automatización. Te ayudamos a definir la solución para cotizar.</p>
+                <div className="mt-5 flex flex-col items-start gap-3 sm:flex-row sm:flex-wrap">
+                  <WhatsAppLink href={whatsappUrl} location="blog-portones-inline" page={`blog-${post.slug}`} className="inline-flex min-h-11 items-center gap-2 bg-[#14161A] px-5 py-3 text-sm font-semibold text-white">
+                    <MessageCircle className="h-4 w-4" aria-hidden /> Enviar medidas por WhatsApp
+                  </WhatsAppLink>
+                  <Link href="/contacto?servicio=puertas-portones" className="inline-flex min-h-11 items-center py-2 text-sm font-semibold underline underline-offset-4">Prefiero el formulario</Link>
+                </div>
+              </aside>
+              <div className="article-content max-w-none" dangerouslySetInnerHTML={{ __html: post.contenido.slice(splitAt) }} style={{ fontFamily: FONT_BODY }} />
+            </>
+          )}
 
           {/* CTA INLINE - WhatsApp */}
-          <div className="mt-10 p-6 bg-[#FFF3EC] border-l-4 border-[#FF5A1F] rounded-r-lg shadow-sm">
+          {!portonesGuide && <div className="mt-10 p-6 bg-[#FFF3EC] border-l-4 border-[#FF5A1F] rounded-r-lg shadow-sm">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
               <div className="flex-1">
                 <p className="text-[#1E2126] font-semibold text-lg" style={{ fontFamily: FONT_DISPLAY }}>
@@ -136,6 +221,7 @@ export default function BlogPostClient({
             </div>
           </div>
 
+          }
           {/* Compartir */}
           <div className="my-12 flex flex-wrap items-center gap-4 border-t border-[#E3E1D8] pt-8">
             <span className="text-sm font-medium text-[#8B8F86]">
@@ -231,14 +317,14 @@ export default function BlogPostClient({
                 className="text-3xl font-semibold text-[#1E2126]"
                 style={{ fontFamily: FONT_DISPLAY }}
               >
-                Cotiza tu proyecto ahora
+                {portonesGuide ? "Cotiza el portón de tu proyecto" : "Cotiza tu proyecto ahora"}
               </h2>
               <p className="mt-3 text-[#565C63] max-w-xl mx-auto">
-                Cuéntanos tu idea y te ayudaremos a encontrar la mejor solución metalmecánica.
+                {portonesGuide ? "Comparte las medidas del acceso, el distrito y el tipo de apertura para solicitar una propuesta." : "Cuéntanos tu idea y te ayudaremos a encontrar la mejor solución metalmecánica."}
               </p>
               <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
                 <Link
-                  href="/contacto"
+                  href={portonesGuide ? "/contacto?servicio=puertas-portones" : "/contacto"}
                   className="inline-flex items-center gap-2 bg-[#FF5A1F] px-8 py-4 text-sm font-semibold uppercase tracking-wide text-white shadow-lg shadow-[#FF5A1F]/20 transition-all hover:bg-[#FF7A44] hover:shadow-[#FF5A1F]/40 hover:-translate-y-1 rounded-lg w-full sm:w-auto justify-center"
                 >
                   <PhoneCall className="h-4 w-4" />
@@ -247,7 +333,7 @@ export default function BlogPostClient({
                 </Link>
                 <WhatsAppLink
                   href={whatsappUrl}
-                  location="final_cta"
+                  location={portonesGuide ? "blog-portones-final" : "final_cta"}
                   page={`blog-${post.slug}`}
                   className="inline-flex items-center gap-2 bg-[#25D366] px-8 py-4 text-sm font-semibold uppercase tracking-wide text-white shadow-lg shadow-[#25D366]/20 transition-all hover:bg-[#1FB855] hover:shadow-[#25D366]/40 hover:-translate-y-1 rounded-lg w-full sm:w-auto justify-center"
                 >
@@ -264,6 +350,10 @@ export default function BlogPostClient({
       <style jsx global>{`
         .article-content {
           color: #1E2126 !important;
+        }
+        /* FIX SEO PORTONES: anclas visibles bajo el header fijo. */
+        [id^="portones-seccion-"] {
+          scroll-margin-top: 6rem;
         }
         .article-content h2 {
           font-family: var(--font-display, Oswald, ui-sans-serif, sans-serif) !important;
