@@ -79,10 +79,8 @@ function useCountUp(target: number, active: boolean, duration = 1400) {
   const [value, setValue] = useState(0);
 
   useEffect(() => {
-    if (!active) {
-      setValue(0);
-      return;
-    }
+    // FIX MOBILE F3B: valor final inmediato; cancelar RAF si cambia la preferencia.
+    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
     let start: number | null = null;
     let raf = 0;
 
@@ -94,8 +92,24 @@ function useCountUp(target: number, active: boolean, duration = 1400) {
       if (progress < 1) raf = requestAnimationFrame(step);
     };
 
-    raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
+    const updateMotion = () => {
+      cancelAnimationFrame(raf);
+      start = null;
+      if (motion.matches) {
+        setValue(target);
+      } else if (!active) {
+        setValue(0);
+      } else {
+        setValue(0);
+        raf = requestAnimationFrame(step);
+      }
+    };
+    updateMotion();
+    motion.addEventListener("change", updateMotion);
+    return () => {
+      cancelAnimationFrame(raf);
+      motion.removeEventListener("change", updateMotion);
+    };
   }, [active, target, duration]);
 
   return value;

@@ -109,7 +109,7 @@ export default function BlogPostClient({
 
           {/* Contenido HTML */}
           <div
-            className="prose prose-lg max-w-none"
+            className="article-content max-w-none"
             dangerouslySetInnerHTML={{ __html: post.contenido }}
             style={{ fontFamily: FONT_BODY }}
           />
@@ -260,12 +260,12 @@ export default function BlogPostClient({
         </div>
       </section>
 
-      {/* ESTILOS PROSE */}
+      {/* FIX MOBILE F3B: reglas limitadas al HTML del artículo, sin plugin typography. */}
       <style jsx global>{`
-        .prose {
+        .article-content {
           color: #1E2126 !important;
         }
-        .prose h2 {
+        .article-content h2 {
           font-family: var(--font-display, Oswald, ui-sans-serif, sans-serif) !important;
           font-size: 2rem !important;
           font-weight: 600 !important;
@@ -274,7 +274,7 @@ export default function BlogPostClient({
           color: #1E2126 !important;
           letter-spacing: -0.02em !important;
         }
-        .prose h3 {
+        .article-content h3 {
           font-family: var(--font-display, Oswald, ui-sans-serif, sans-serif) !important;
           font-size: 1.5rem !important;
           font-weight: 600 !important;
@@ -282,54 +282,140 @@ export default function BlogPostClient({
           margin-bottom: 0.75rem !important;
           color: #1E2126 !important;
         }
-        .prose p {
+        .article-content p {
           color: #565C63 !important;
           line-height: 1.8 !important;
           margin-bottom: 1.25rem !important;
         }
-        .prose ul {
+        .article-content ul {
           list-style: none !important;
           padding-left: 0 !important;
           margin: 1.5rem 0 !important;
         }
-        .prose ul li {
+        .article-content ul li {
           padding-left: 1.75rem !important;
           position: relative !important;
           margin-bottom: 0.75rem !important;
           line-height: 1.6 !important;
           color: #565C63 !important;
         }
-        .prose ul li::before {
+        .article-content ul li::before {
           content: "—" !important;
           position: absolute !important;
           left: 0 !important;
           color: #FF5A1F !important;
           font-weight: 600 !important;
         }
-        .prose strong {
+        .article-content strong {
           color: #1E2126 !important;
           font-weight: 600 !important;
         }
-        .prose a {
+        .article-content a {
           color: #FF5A1F !important;
           text-decoration: none !important;
           transition: color 0.2s !important;
         }
-        .prose a:hover {
+        .article-content a:hover {
           text-decoration: underline !important;
         }
-        .prose blockquote {
+        .article-content blockquote {
           border-left: 4px solid #FF5A1F !important;
           padding-left: 1.5rem !important;
           margin: 1.5rem 0 !important;
           color: #565C63 !important;
           font-style: italic !important;
         }
+        .article-content {
+          min-width: 0;
+          overflow-wrap: anywhere;
+          word-break: break-word;
+        }
+        .article-content img {
+          max-width: 100%;
+          height: auto;
+          border-radius: 0.125rem;
+          margin: 1.5rem auto;
+        }
+        .article-content pre {
+          max-width: 100%;
+          overflow-x: auto;
+          overflow-wrap: normal;
+          word-break: normal;
+          background: #14161A;
+          color: #F7F7F4;
+          padding: 1rem;
+          border-radius: 0.125rem;
+          font-family: var(--font-mono, monospace);
+          font-size: 0.875rem;
+          line-height: 1.5;
+        }
+        .article-content code {
+          font-family: var(--font-mono, monospace);
+          font-size: 0.875em;
+          background: #EFEEE8;
+          padding: 0.125rem 0.375rem;
+          border-radius: 2px;
+        }
+        .article-content pre code {
+          background: transparent;
+          padding: 0;
+        }
+        .article-content table {
+          display: block;
+          width: 100%;
+          max-width: 100%;
+          overflow-x: auto;
+          white-space: nowrap;
+          border-collapse: collapse;
+          margin: 1.5rem 0;
+          font-size: 0.875rem;
+        }
+        .article-content th,
+        .article-content td {
+          padding: 0.5rem 0.75rem;
+          border: 1px solid #E3E1D8;
+          text-align: left;
+        }
+        .article-content th {
+          background: #EFEEE8;
+          font-weight: 600;
+          color: #1E2126;
+        }
+        .article-content blockquote {
+          padding: 0.5rem 1rem;
+          background: #FFF8F3;
+        }
+        .article-content ol {
+          list-style: decimal;
+          padding-left: 1.5rem;
+          margin: 1rem 0;
+        }
+        .article-content ol li {
+          margin: 0.5rem 0;
+          line-height: 1.7;
+        }
+        .article-content h4 {
+          font-family: var(--font-display, Oswald, sans-serif);
+          color: #1E2126;
+          font-size: 1.25rem;
+          margin: 2rem 0 1rem;
+          line-height: 1.3;
+        }
+        .article-content h2,
+        .article-content h3 {
+          line-height: 1.3;
+        }
+        @media (min-width: 768px) {
+          .article-content table {
+            display: table;
+            white-space: normal;
+          }
+        }
         @media (max-width: 640px) {
-          .prose h2 {
+          .article-content h2 {
             font-size: 1.5rem !important;
           }
-          .prose h3 {
+          .article-content h3 {
             font-size: 1.25rem !important;
           }
         }

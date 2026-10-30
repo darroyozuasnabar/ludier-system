@@ -55,7 +55,7 @@ export default function Beneficios() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div
           ref={ref}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+          className="beneficios-reveal grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
           style={{
             opacity: inView ? 1 : 0,
             transform: inView ? "translateY(0)" : "translateY(24px)",
@@ -91,6 +91,21 @@ export default function Beneficios() {
           })}
         </div>
       </div>
+      {/* FIX MOBILE F3B: mostrar el contenido sin reveal ni transiciones con movimiento reducido. */}
+      <style jsx>{`
+        @media (prefers-reduced-motion: reduce) {
+          .beneficios-reveal {
+            opacity: 1 !important;
+            transform: none !important;
+            transition: none !important;
+            animation: none !important;
+          }
+          .beneficios-reveal :global(*) {
+            transition: none !important;
+            animation: none !important;
+          }
+        }
+      `}</style>
     </section>
   );
 }
