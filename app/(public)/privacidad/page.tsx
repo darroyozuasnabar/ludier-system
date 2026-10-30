@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Mail, Server, ShieldCheck } from "lucide-react";
+import LegalPageLayout from "@/components/public/LegalPageLayout";
 
 // FIX MOBILE F2B: destino público para el enlace legal, sin competir en búsquedas.
 export const metadata: Metadata = {
@@ -9,20 +11,23 @@ export const metadata: Metadata = {
 };
 
 export default function PrivacidadPage() {
+  // FIX LEGAL DESIGN: distribuir el texto original sin añadir obligaciones ni cláusulas.
   return (
-    <section className="bg-[#F7F7F4] px-4 pb-16 pt-24 text-[#1E2126] md:pt-28">
-      <article className="mx-auto max-w-3xl space-y-6 text-base leading-relaxed">
-        <h1 className="text-3xl font-semibold sm:text-4xl">Política de privacidad</h1>
-        <p>
+    <LegalPageLayout
+      title="Política de Privacidad"
+      subtitle="Información sobre el uso de los datos del formulario de contacto de LUDIER."
+      contactTitle="¿Tienes dudas sobre tus datos?"
+      sections={[
+        { id: "uso-de-datos", title: "Uso de tus datos", icon: ShieldCheck, content: <p>
           LUDIER respeta tu privacidad. Los datos recogidos en el formulario de
           contacto se utilizan para responder a tu consulta y atender tu solicitud
           de cotización.
-        </p>
-        <p>
+        </p> },
+        { id: "proveedores", title: "Proveedores tecnológicos", icon: Server, content: <p>
           El procesamiento de las consultas y el funcionamiento del sitio pueden
           involucrar proveedores tecnológicos de correo y analítica.
-        </p>
-        <p>
+        </p> },
+        { id: "derechos-y-contacto", title: "Derechos y contacto", icon: Mail, content: <p>
           Para consultar sobre tus datos o solicitar el ejercicio de tus derechos,
           escríbenos a{" "}
           <a
@@ -31,8 +36,8 @@ export default function PrivacidadPage() {
           >
             ernestoarroyo1969@hotmail.com
           </a>.
-        </p>
-      </article>
-    </section>
+        </p> },
+      ]}
+    />
   );
 }
