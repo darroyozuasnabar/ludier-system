@@ -35,6 +35,13 @@ export async function POST(req: NextRequest) {
     if (validated instanceof NextResponse) return validated;
 
     const { nombre, email, telefono, asunto, mensaje } = validated;
+    // FIX TRACKING F5: defaults compatibles con el tipo de entrada de Zod y clientes antiguos.
+    const leadId = validated.leadId ?? crypto.randomUUID();
+    const source = validated.source ?? { landingPath: "/contacto", currentPath: "/contacto", ctaSource: "" };
+    // FIX TRACKING F5: escapar la procedencia antes de insertarla en el correo HTML.
+    const escapeHtml = (value: string) => value.replace(/[&<>"']/g, (char) => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+    }[char]!));
 
     // 3. Sanitizar (capa extra de seguridad)
     const sanitizedNombre = nombre.replace(/[<>]/g, '');
@@ -56,6 +63,8 @@ export async function POST(req: NextRequest) {
           </div>
           <div style="background: white; padding: 30px; border-radius: 0 0 8px 8px; border: 1px solid #E3E1D8; border-top: none;">
             <h2 style="color: #1E2126; font-size: 20px; margin-top: 0;">¡Hola ${sanitizedNombre}!</h2>
+            <!-- FIX TRACKING F5: referencia visible también en el acuse. -->
+            <p>Ref: ${leadId}</p>
             <p style="color: #565C63; font-size: 16px; line-height: 1.6;">
               Hemos recibido tu mensaje con el asunto: <strong>"${sanitizedAsunto}"</strong>.
             </p>
@@ -99,6 +108,11 @@ export async function POST(req: NextRequest) {
               Has recibido un nuevo mensaje desde el formulario de contacto de LUDIER.
             </p>
             <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+              <!-- FIX TRACKING F5: referencia y procedencia sin alterar los campos comerciales. -->
+              <tr><td style="padding: 8px 0; font-weight: bold;">Ref:</td><td>${leadId}</td></tr>
+              <tr><td style="padding: 8px 0; font-weight: bold;">Landing:</td><td>${escapeHtml(source.landingPath)}</td></tr>
+              <tr><td style="padding: 8px 0; font-weight: bold;">Formulario:</td><td>${escapeHtml(source.currentPath)}</td></tr>
+              <tr><td style="padding: 8px 0; font-weight: bold;">CTA:</td><td>${escapeHtml(source.ctaSource || "directo")}</td></tr>
               <tr>
                 <td style="padding: 8px 0; font-weight: bold; color: #1E2126; width: 100px;">Nombre:</td>
                 <td style="padding: 8px 0; color: #565C63;">${sanitizedNombre}</td>
@@ -134,13 +148,16 @@ export async function POST(req: NextRequest) {
     if (empresaEmail.error) {
       console.error(empresaEmail.error.message);
       return NextResponse.json(
-        { error: 'No pudimos enviar tu consulta. Inténtalo nuevamente.' },
+        { error: 'No pudimos enviar tu consulta. Inténtalo nuevamente.', leadId },
         { status: 502 }
       );
     }
 
+    // FIX TRACKING F5: no existe leads en el esquema; registro estructurado sin PII.
+    // Este log NO sustituye una tabla persistente ni confirma entrega del correo.
+    console.info("lead_received", { leadId, source, persistence: "not_configured" });
     return NextResponse.json(
-      { success: true },
+      { success: true, leadId },
       { status: 200 }
     );
   } catch (error) {

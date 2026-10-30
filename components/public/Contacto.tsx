@@ -24,7 +24,7 @@ import {
   Clock,
   Send,
 } from "lucide-react";
-import { trackEvent } from "@/lib/analytics";
+import { trackEvent, getLandingPath } from "@/lib/analytics";
 
 // ============================================================
 // TIPOGRAFÍAS
@@ -177,6 +177,13 @@ const ContactInfoCard = ({
 // ============================================================
 function ContactoInner() {
   const searchParams = useSearchParams();
+  // FIX TRACKING F5: referencia estable durante reintentos; nueva referencia tras éxito.
+  const leadIdRef = useRef("");
+  const submittingRef = useRef(false);
+  useEffect(() => {
+    leadIdRef.current ||= crypto.randomUUID();
+    getLandingPath();
+  }, []);
 
   const [formState, setFormState] = useState({
     nombre: "",
@@ -244,6 +251,7 @@ function ContactoInner() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submittingRef.current) return;
     setErrors({});
 
     if (!formState.nombre || !formState.email || !formState.asunto || !formState.mensaje) {
@@ -273,14 +281,29 @@ function ContactoInner() {
       return;
     }
 
+    // FIX TRACKING F5: capturar solo rutas y etiqueta del CTA, sin PII en Analytics.
+    const leadId = leadIdRef.current || (leadIdRef.current = crypto.randomUUID());
+    const source = {
+      landingPath: getLandingPath().slice(0, 500),
+      currentPath: window.location.pathname.slice(0, 500),
+      ctaSource: (searchParams.get("from") || "").replace(/[^a-zA-Z0-9_.:-]/g, "").slice(0, 100),
+    };
+    submittingRef.current = true;
     setCargando(true);
+    let errorType = "network";
 
     try {
+      // FIX TRACKING F5: intento válido antes de esperar la respuesta del endpoint.
+      trackEvent("form_submit", {
+        leadId, source: source.landingPath, ctaSource: source.ctaSource,
+        currentPath: source.currentPath, form_name: "contacto_landing",
+      });
       const response = await fetch('/api/contacto', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formState),
+        body: JSON.stringify({ ...formState, leadId, source }),
       });
+      errorType = response.ok ? "invalid_response" : `http_${response.status}`;
 
       // 🔥 Manejar respuestas no-JSON (ej: HTML de error 500, 404, redirect)
       const contentType = response.headers.get("content-type");
@@ -319,15 +342,14 @@ function ContactoInner() {
         }
       }
 
-      // 📊 Google Analytics — Conversión
-      const servicioParam = searchParams.get("servicio");
-      trackEvent("form_submit", {
-        form_name: "contacto_landing",
-        servicio_origen: servicioParam || "directo",
-        tiene_telefono: formState.telefono ? "si" : "no",
-      });
+      // FIX TRACKING F5: registrar aceptación únicamente con respuesta 200 correlacionada.
+      if (response.status !== 200 || data.success !== true || data.leadId !== leadId) {
+        throw new Error("No pudimos confirmar tu consulta. Inténtalo nuevamente.");
+      }
       trackEvent("generate_lead", {
-        value: 1,
+        leadId, source: source.landingPath, ctaSource: source.ctaSource,
+        currentPath: source.currentPath,
+        value: 0,
         currency: "PEN",
       });
 
@@ -341,10 +363,13 @@ function ContactoInner() {
       });
 
       setEnviado(true);
+      leadIdRef.current = crypto.randomUUID();
       setFormState({ nombre: '', email: '', telefono: '', asunto: '', mensaje: '' });
       setTimeout(() => setEnviado(false), 5000);
 
     } catch (error: any) {
+      // FIX TRACKING F5: clasificar el fallo sin enviar mensajes ni datos del cliente a GA4.
+      trackEvent("form_error", { leadId, errorType });
       Swal.fire({
         icon: 'error',
         title: 'Error al enviar',
@@ -352,6 +377,7 @@ function ContactoInner() {
         confirmButtonColor: '#FF5A1F',
       });
     } finally {
+      submittingRef.current = false;
       setCargando(false);
     }
   };

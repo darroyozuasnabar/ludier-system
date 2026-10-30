@@ -1,6 +1,6 @@
 "use client";
 
-import { trackEvent } from "@/lib/analytics";
+import { trackEvent, withWhatsAppReference } from "@/lib/analytics";
 
 type WhatsAppLinkProps = {
   href: string;
@@ -28,7 +28,8 @@ export default function WhatsAppLink({
 
   return (
     <a
-      href={href}
+      // FIX TRACKING F5: referencia según location sin cambiar el texto ni el diseño del CTA.
+      href={withWhatsAppReference(href, location)}
       target="_blank"
       rel="noopener noreferrer"
       className={className}

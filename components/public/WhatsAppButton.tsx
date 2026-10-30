@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { trackEvent } from "@/lib/analytics";
+import { trackEvent, getLandingPath, withWhatsAppReference } from "@/lib/analytics";
 
 export default function WhatsAppButton({ offset = false }: { offset?: boolean }) {
   // FIX MOBILE F1: elevar el flotante solo donde existe la barra B2B.
@@ -15,9 +15,12 @@ export default function WhatsAppButton({ offset = false }: { offset?: boolean })
   const [isVisible, setIsVisible] = useState(false);
   const phoneNumber = "51965391256";
   const message = "Hola%20LUDIER%2C%20quiero%20cotizar%20un%20proyecto";
-  const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
+  // FIX TRACKING F5: referencia legible en el primer mensaje comercial.
+  const whatsappUrl = withWhatsAppReference(`https://wa.me/${phoneNumber}?text=${message}`, "floating");
 
   useEffect(() => {
+    // FIX TRACKING F5: capturar la landing antes de navegar al formulario.
+    getLandingPath();
     // Mostrar el botón después de 2 segundos para dar tiempo a cargar la página
     const timer = setTimeout(() => setIsVisible(true), 2000);
     return () => clearTimeout(timer);
@@ -36,6 +39,7 @@ export default function WhatsAppButton({ offset = false }: { offset?: boolean })
         onClick={() => {
           trackEvent("whatsapp_click", {
             ubicacion: "boton_flotante",
+            location: "floating",
           });
         }}
         className="group relative flex items-center justify-center w-16 h-16 rounded-full bg-[#25D366] shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95"
