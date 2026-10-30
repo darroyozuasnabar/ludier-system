@@ -1,7 +1,7 @@
 // components/public/LightboxFotos.tsx
 "use client";
 
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useCallback, useState, useRef, useId } from "react";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { CATEGORIAS_INFO, type FotoGaleria } from "@/lib/proyectos-galeria";
 import { trackEvent } from "@/lib/analytics";
@@ -26,6 +26,10 @@ export default function LightboxFotos({
   const foto = fotos[indiceActual];
   const total = fotos.length;
   const [visible, setVisible] = useState(false);
+  // FIX MOBILE F2B: referencias estables para foco y nombre único del diálogo.
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const titleId = useId();
 
   const irAnterior = useCallback(() => {
     onNavigate((indiceActual - 1 + total) % total);
@@ -37,18 +41,54 @@ export default function LightboxFotos({
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      // FIX MOBILE F2B: Escape y ciclo de Tab dentro del diálogo.
+      if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        onClose();
+      }
+      if (e.key === "Tab") {
+        const items = dialogRef.current?.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), [tabindex="0"]',
+        );
+        if (items?.length) {
+          const first = items[0];
+          const last = items[items.length - 1];
+          const outside = !dialogRef.current?.contains(document.activeElement);
+          if (e.shiftKey && (document.activeElement === first || outside)) {
+            e.preventDefault();
+            last.focus();
+          } else if (!e.shiftKey && (document.activeElement === last || outside)) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      }
       if (e.key === "ArrowLeft") irAnterior();
       if (e.key === "ArrowRight") irSiguiente();
     };
     document.addEventListener("keydown", handleKey);
-    document.body.style.overflow = "hidden";
-    setTimeout(() => setVisible(true), 10);
     return () => {
       document.removeEventListener("keydown", handleKey);
-      document.body.style.overflow = "";
     };
   }, [onClose, irAnterior, irSiguiente]);
+
+  // FIX MOBILE F2B: capturar/restaurar foco y scroll solo al abrir/cerrar, no al navegar.
+  const isOpen = !!foto;
+  useEffect(() => {
+    if (!isOpen) return;
+    const previousFocus = document.activeElement instanceof HTMLElement
+      ? document.activeElement : null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    closeRef.current?.focus({ preventScroll: true });
+    const timer = setTimeout(() => setVisible(true), 10);
+    return () => {
+      clearTimeout(timer);
+      document.body.style.overflow = previousOverflow;
+      if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
+    };
+  }, [isOpen]);
 
   // 📊 Google Analytics — Tracking de vista de foto
   useEffect(() => {
@@ -65,6 +105,11 @@ export default function LightboxFotos({
 
   return (
     <div
+      // FIX MOBILE F2B: semántica y foco del diálogo.
+      ref={dialogRef}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
       className="fixed inset-0 z-[100] flex flex-col bg-[#F7F7F4] transition-opacity duration-300"
       style={{ opacity: visible ? 1 : 0 }}
       onClick={onClose}
@@ -88,8 +133,10 @@ export default function LightboxFotos({
         </div>
         <button
           onClick={onClose}
-          className="w-9 h-9 rounded-full hover:bg-[#1E2126] hover:text-white text-[#1E2126] flex items-center justify-center transition-colors"
-          aria-label="Cerrar"
+          // FIX MOBILE F2B: cierre con nombre accesible y área mínima de 44px.
+          ref={closeRef}
+          className="w-9 h-9 min-h-11 min-w-11 rounded-full hover:bg-[#1E2126] hover:text-white text-[#1E2126] flex items-center justify-center transition-colors"
+          aria-label="Cerrar imagen"
         >
           <X className="w-5 h-5" />
         </button>
@@ -138,6 +185,7 @@ export default function LightboxFotos({
       >
         <div className="max-w-3xl mx-auto">
           <h3
+            id={titleId}
             className="text-lg md:text-xl font-semibold text-[#1E2126] mb-1.5"
             style={{ fontFamily: FONT_DISPLAY }}
           >

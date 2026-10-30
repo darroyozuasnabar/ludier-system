@@ -16,6 +16,9 @@ const PUBLIC_ROUTES = [
   "/faq",
   "/blog",
   "/testimonios",
+  // FIX MOBILE F2B: las páginas legales usan el layout público con header y footer.
+  "/privacidad",
+  "/terminos",
 ];
 
 const AUTH_ROUTES = ["/login", "/register"];

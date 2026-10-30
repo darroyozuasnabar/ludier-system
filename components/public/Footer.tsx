@@ -153,7 +153,8 @@ export default function Footer() {
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={social.label}
-                    className="flex h-9 w-9 items-center justify-center rounded-sm border border-[#3A3F45] bg-[#1D2024] text-[#9AA0A6] transition-all duration-300 hover:border-[#FF5A1F] hover:text-[#FF5A1F] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF5A1F]"
+                    // FIX MOBILE F2B: área táctil mínima de 44px sin modificar el icono.
+                    className="flex h-9 w-9 min-h-11 min-w-11 items-center justify-center rounded-sm border border-[#3A3F45] bg-[#1D2024] text-[#9AA0A6] transition-all duration-300 hover:border-[#FF5A1F] hover:text-[#FF5A1F] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF5A1F]"
                   >
                     <Icon className="h-4 w-4" />
                   </a>

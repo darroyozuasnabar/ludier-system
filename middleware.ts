@@ -17,6 +17,9 @@ const PUBLIC_PREFIXES = [
   "/faq",
   "/blog",
   "/testimonios",
+  // FIX MOBILE F2B: permitir lectura pública de los destinos legales del footer.
+  "/privacidad",
+  "/terminos",
   "/api/auth",
   "/api/contacto",
   "/api/cotizaciones",

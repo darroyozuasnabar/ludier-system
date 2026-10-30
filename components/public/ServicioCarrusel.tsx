@@ -1,7 +1,7 @@
 // components/public/ServicioCarrusel.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";
 import { ETAPAS_INFO, type ServicioGaleria } from "@/lib/proyectos-galeria";
 import LightboxServicio from "./LightboxServicio";
@@ -30,6 +30,29 @@ export default function ServicioCarrusel({
 }: Props) {
   const [idx, setIdx] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  // FIX MOBILE F2B: Pointer Events con umbral horizontal de 40px y supresión del clic tras swipe.
+  const gesture = useRef<{ id: number; x: number; y: number } | null>(null);
+  const suppressClick = useRef(false);
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!e.isPrimary || e.button !== 0) return;
+    const target = e.target as Element;
+    suppressClick.current = false;
+    gesture.current = null;
+    if (target.closest("button:not([data-ampliar])")) return;
+    gesture.current = { id: e.pointerId, x: e.clientX, y: e.clientY };
+    target.setPointerCapture?.(e.pointerId);
+  };
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    const start = gesture.current;
+    if (!start || start.id !== e.pointerId) return;
+    gesture.current = null;
+    const dx = e.clientX - start.x;
+    const dy = e.clientY - start.y;
+    suppressClick.current = Math.abs(dx) > 10 || Math.abs(dy) > 10;
+    if (Math.abs(dx) >= 40 && Math.abs(dx) > Math.abs(dy) && total > 1) {
+      setIdx((i) => (i + (dx < 0 ? 1 : -1) + total) % total);
+    }
+  };
   const total = servicio.fotos.length;
   const foto = servicio.fotos[idx];
   const etapaInfo = ETAPAS_INFO[foto.etapa];
@@ -50,10 +73,21 @@ export default function ServicioCarrusel({
       <article
         className="group bg-white border border-[#E3E1D8] rounded-sm overflow-hidden transition-all hover:shadow-xl hover:border-[#FF5A1F]/30 hover:-translate-y-1 flex flex-col cursor-pointer"
         style={{ fontFamily: FONT_BODY }}
-        onClick={() => setLightboxOpen(true)}
       >
         {/* Imagen */}
-        <div className="relative aspect-[4/3] bg-[#F0EDE7] overflow-hidden">
+        <div
+          className="relative aspect-[4/3] bg-[#F0EDE7] overflow-hidden"
+          style={{ touchAction: "pan-y pinch-zoom" }}
+          onPointerDown={handlePointerDown}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={() => { gesture.current = null; suppressClick.current = true; }}
+          onClickCapture={(e) => {
+            if (suppressClick.current && e.detail !== 0) {
+              e.preventDefault();
+              e.stopPropagation();
+            }
+          }}
+        >
           <img
             key={foto.src}
             src={foto.src}
@@ -84,7 +118,18 @@ export default function ServicioCarrusel({
             </div>
           )}
 
-          <div className="absolute inset-0 z-20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
+          {/* FIX MOBILE F2B: ampliar con botón real, sin anidar flechas ni indicadores. */}
+          <button
+            type="button"
+            data-ampliar
+            aria-label={`Ampliar imagen de ${servicio.titulo}`}
+            aria-haspopup="dialog"
+            onClick={(e) => {
+              e.currentTarget.focus({ preventScroll: true });
+              setLightboxOpen(true);
+            }}
+            className="absolute inset-0 z-20 flex items-center justify-center opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#FF5A1F] transition-all duration-300"
+          >
             <div className="flex items-center gap-2 px-5 py-3 bg-white/95 backdrop-blur-sm rounded-full shadow-2xl scale-90 group-hover:scale-100 transition-transform duration-300">
               <Maximize2 className="w-4 h-4 text-[#1E2126]" />
               <span
@@ -94,20 +139,21 @@ export default function ServicioCarrusel({
                 Click para ampliar
               </span>
             </div>
-          </div>
+          </button>
 
           {total > 1 && (
             <>
+              {/* FIX MOBILE F2B: flechas táctiles visibles; conservar hover en desktop. */}
               <button
                 onClick={irAnterior}
-                className="absolute left-3 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-white/95 hover:bg-[#FF5A1F] hover:text-white border border-[#E3E1D8] flex items-center justify-center text-[#1E2126] transition-all shadow-md opacity-0 group-hover:opacity-100"
+                className="absolute left-3 top-1/2 -translate-y-1/2 z-30 w-10 h-10 min-h-11 min-w-11 rounded-full bg-white/95 hover:bg-[#FF5A1F] hover:text-white border border-[#E3E1D8] flex items-center justify-center text-[#1E2126] transition-all shadow-md opacity-100 md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100"
                 aria-label="Anterior"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
               <button
                 onClick={irSiguiente}
-                className="absolute right-3 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-white/95 hover:bg-[#FF5A1F] hover:text-white border border-[#E3E1D8] flex items-center justify-center text-[#1E2126] transition-all shadow-md opacity-0 group-hover:opacity-100"
+                className="absolute right-3 top-1/2 -translate-y-1/2 z-30 w-10 h-10 min-h-11 min-w-11 rounded-full bg-white/95 hover:bg-[#FF5A1F] hover:text-white border border-[#E3E1D8] flex items-center justify-center text-[#1E2126] transition-all shadow-md opacity-100 md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100"
                 aria-label="Siguiente"
               >
                 <ChevronRight className="w-5 h-5" />
@@ -116,7 +162,7 @@ export default function ServicioCarrusel({
           )}
 
           {total > 1 && (
-            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 flex gap-1.5">
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 flex max-w-full overflow-x-auto">
               {servicio.fotos.map((_, i) => (
                 <button
                   key={i}
@@ -124,13 +170,18 @@ export default function ServicioCarrusel({
                     e.stopPropagation();
                     setIdx(i);
                   }}
-                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                  // FIX MOBILE F2B: el punto conserva su tamaño dentro de un botón de 44px.
+                  className="min-h-11 min-w-11 shrink-0 flex items-center justify-center"
+                  aria-label={`Ir a imagen ${i + 1}`}
+                  aria-current={i === idx ? "true" : undefined}
+                >
+                  <span aria-hidden className={`h-1.5 rounded-full transition-all duration-300 ${
                     i === idx
                       ? "w-6 bg-[#FF5A1F]"
                       : "w-1.5 bg-white/70 hover:bg-white"
                   }`}
-                  aria-label={`Ir a imagen ${i + 1}`}
-                />
+                  />
+                </button>
               ))}
             </div>
           )}
