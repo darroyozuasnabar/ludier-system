@@ -50,6 +50,8 @@ export default function Navbar() {
   }, []);
 
   const handleMouseEnter = (label: string) => {
+    // FIX MOBILE F2A: evitar que el hover sintético táctil interfiera con el clic.
+    if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
     if (dropdownTimeout.current) clearTimeout(dropdownTimeout.current);
     setOpenDropdown(label);
   };
@@ -62,23 +64,48 @@ export default function Navbar() {
 
   useEffect(() => {
     setIsOpen(false);
+    setOpenDropdown(null);
   }, [pathname]);
 
+  // FIX MOBILE F2A: cerrar a 1024px y al breakpoint md real sin alterar desktop.
   useEffect(() => {
-    document.body.style.overflow = isOpen ? "hidden" : "";
+    const desktop = window.matchMedia("(min-width: 1024px)");
+    const desktopNav = window.matchMedia("(min-width: 768px)");
+    const closeOnDesktop = () => {
+      if (desktop.matches || desktopNav.matches) setIsOpen(false);
+    };
+    closeOnDesktop();
+    desktop.addEventListener("change", closeOnDesktop);
+    desktopNav.addEventListener("change", closeOnDesktop);
     return () => {
-      document.body.style.overflow = "";
+      desktop.removeEventListener("change", closeOnDesktop);
+      desktopNav.removeEventListener("change", closeOnDesktop);
+      if (dropdownTimeout.current) clearTimeout(dropdownTimeout.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    // FIX MOBILE F2A: restaurar el valor previo y no tocar el body con menú cerrado.
+    if (!isOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
     };
   }, [isOpen]);
 
   useEffect(() => {
-    if (!isOpen) return;
+    // FIX MOBILE F2A: Escape también cierra Recursos.
+    if (!isOpen && !openDropdown) return;
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setIsOpen(false);
+      if (e.key === "Escape") {
+        setIsOpen(false);
+        setOpenDropdown(null);
+      }
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [isOpen]);
+  }, [isOpen, openDropdown]);
 
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname?.startsWith(href));
 
@@ -88,6 +115,15 @@ export default function Navbar() {
   const totalPages = String(mainItems.length).padStart(2, "0");
 
   return (
+    <>
+    {/* FIX MOBILE F2A: fondo exterior desmontable para cerrar con un toque. */}
+    {isOpen && (
+      <div
+        className="fixed inset-0 z-40 bg-black/50 md:hidden"
+        onClick={() => setIsOpen(false)}
+        aria-hidden="true"
+      />
+    )}
     <header
       className={`fixed top-0 left-0 right-0 z-50 bg-[#14161A] transition-all duration-500 ${
         isScrolled ? "border-b border-[#3A3F45] shadow-2xl backdrop-blur-xl" : "border-b border-[#3A3F45]/40"
@@ -133,6 +169,14 @@ export default function Navbar() {
                     onMouseLeave={handleMouseLeave}
                   >
                     <button
+                      // FIX MOBILE F2A: Recursos operable por toque y teclado.
+                      type="button"
+                      onClick={() => {
+                        if (dropdownTimeout.current) clearTimeout(dropdownTimeout.current);
+                        setOpenDropdown((current) => current === item.label ? null : item.label);
+                      }}
+                      aria-expanded={isDropdownOpen}
+                      aria-controls="recursos-menu"
                       className={`group flex items-center gap-1 text-sm font-medium transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#FF5A1F] ${
                         item.subItems.some((sub) => isActive(sub.href))
                           ? "text-[#FF5A1F]"
@@ -148,7 +192,7 @@ export default function Navbar() {
                       />
                     </button>
                     {isDropdownOpen && (
-                      <div className="absolute left-0 top-full mt-1 w-48 rounded-sm border border-[#3A3F45] bg-[#1D2024] py-2 shadow-xl">
+                      <div id="recursos-menu" className="absolute left-0 top-full mt-1 w-48 rounded-sm border border-[#3A3F45] bg-[#1D2024] py-2 shadow-xl">
                         {item.subItems.map((sub) => (
                           <Link
                             key={sub.href}
@@ -219,10 +263,10 @@ export default function Navbar() {
             </Link>
           </nav>
 
-          {/* Mobile Menu Button */}
+          {/* FIX MOBILE F2A: área táctil mínima de 44 × 44 px. */}
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="rounded-lg p-2 transition-colors duration-200 hover:bg-[#3A3F45]/30 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#FF5A1F] md:hidden"
+            className="min-h-11 min-w-11 flex items-center justify-center rounded-lg p-2 transition-colors duration-200 hover:bg-[#3A3F45]/30 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#FF5A1F] md:hidden"
             aria-label={isOpen ? "Cerrar menú" : "Abrir menú"}
             aria-expanded={isOpen}
             aria-controls="mobile-menu"
@@ -232,12 +276,11 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Menu */}
+      {/* FIX MOBILE F2A: desmontar al cerrar y permitir scroll dentro del alto disponible. */}
+      {isOpen && (
       <div
         id="mobile-menu"
-        className={`overflow-hidden border-b border-[#3A3F45] bg-[#14161A]/98 backdrop-blur-xl transition-all duration-300 ease-in-out md:hidden ${
-          isOpen ? "max-h-screen" : "max-h-0 border-b-0"
-        }`}
+        className="max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain border-b border-[#3A3F45] bg-[#14161A]/98 backdrop-blur-xl md:hidden"
       >
         <div className="space-y-1 px-4 py-6">
           {navItems.map((item, index) => {
@@ -309,10 +352,13 @@ export default function Navbar() {
         </div>
       </div>
 
+      )}
+
       {/* Línea de progreso sutil al hacer scroll */}
       {isScrolled && (
         <div className="absolute bottom-0 left-0 h-[2px] w-full bg-gradient-to-r from-[#FF5A1F] via-[#FF7A44] to-[#FF5A1F] opacity-60" />
       )}
     </header>
+    </>
   );
 }

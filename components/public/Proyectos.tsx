@@ -116,6 +116,53 @@ const ModalProyecto = ({
   onClose: () => void;
 }) => {
   const router = useRouter();
+  // FIX MOBILE F2A: todos los hooks preceden al retorno condicional.
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  // FIX MOBILE F2A: bloquear scroll, contener foco y restaurar el disparador al cerrar.
+  useEffect(() => {
+    if (!proyecto) return;
+    const previousFocus = document.activeElement instanceof HTMLElement
+      ? document.activeElement : null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    closeButtonRef.current?.focus({ preventScroll: true });
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        onCloseRef.current();
+      }
+      if (e.key === "Tab") {
+        const focusable = dialogRef.current?.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), [tabindex="0"]',
+        );
+        if (!focusable?.length) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        const outside = !dialogRef.current?.contains(document.activeElement);
+        if (e.shiftKey && (document.activeElement === first || outside)) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && (document.activeElement === last || outside)) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("keydown", handleKey);
+      document.body.style.overflow = previousOverflow;
+      if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
+    };
+  }, [proyecto]);
+
   if (!proyecto) return null;
   const CatIcon = categoriaEstilos[proyecto.categoria].icon;
 
@@ -132,14 +179,6 @@ const ModalProyecto = ({
 
   const clienteURL = clienteURLs[proyecto.cliente] || null;
 
-  useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", handleEsc);
-    return () => document.removeEventListener("keydown", handleEsc);
-  }, [onClose]);
-
   const handleVerCompleto = () => {
     onClose();
     router.push(`/proyectos/${proyecto.slug}`);
@@ -151,6 +190,11 @@ const ModalProyecto = ({
       onClick={onClose}
     >
       <div
+        // FIX MOBILE F2A: semántica de diálogo y referencia para contener el foco.
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="titulo-proyecto"
         className="relative bg-[#14161A] border border-[#3A3F45] rounded-sm max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
         onClick={(e) => e.stopPropagation()}
         style={{
@@ -161,12 +205,17 @@ const ModalProyecto = ({
 
         <div className="sticky top-0 flex justify-between items-start p-6 bg-gradient-to-r from-[#FF5A1F] to-[#D94A14] text-white z-10 rounded-t-sm">
           <h3
+            id="titulo-proyecto"
             className="text-2xl font-semibold pr-8"
             style={{ fontFamily: FONT_DISPLAY }}
           >
             {proyecto.titulo}
           </h3>
           <button
+            // FIX MOBILE F2A: nombre accesible y foco inicial del modal.
+            ref={closeButtonRef}
+            type="button"
+            aria-label="Cerrar proyecto"
             onClick={onClose}
             className="p-2 hover:bg-white/20 rounded-sm transition-colors shrink-0"
           >
@@ -329,7 +378,6 @@ const ProyectoCard = ({
   return (
     <div
       className="group relative bg-white border border-[#E3E1D8] rounded-sm overflow-hidden cursor-pointer transition-all hover:border-[#FF5A1F]/40 hover:shadow-xl hover:-translate-y-2"
-      onClick={isHome ? onClick : undefined}
       style={{
         opacity: visible ? 1 : 0,
         transform: visible ? "translateY(0)" : "translateY(30px)",
@@ -337,7 +385,19 @@ const ProyectoCard = ({
       }}
     >
       {/* FIX MOBILE: enlace nativo sobre toda la tarjeta; no depende del modal ni de hover. */}
-      {!isHome && (
+      {/* FIX MOBILE F2A: abrir el modal de portada con un botón accesible por teclado. */}
+      {isHome ? (
+        <button
+          type="button"
+          aria-label={`Ampliar imagen de ${proyecto.titulo}`}
+          aria-haspopup="dialog"
+          onClick={(e) => {
+            e.currentTarget.focus({ preventScroll: true });
+            onClick?.();
+          }}
+          className="absolute inset-0 z-10 select-none rounded-sm focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#FF5A1F]"
+        />
+      ) : (
         <Link
           href={`/proyectos/${proyecto.slug}`}
           aria-label={`Ver detalles de ${proyecto.titulo}`}
