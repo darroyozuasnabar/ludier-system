@@ -310,7 +310,7 @@ const ProyectoCard = ({
 }: {
   proyecto: Proyecto;
   index: number;
-  onClick: () => void;
+  onClick?: () => void;
   isHome?: boolean;
 }) => {
   const CatIcon = categoriaEstilos[proyecto.categoria].icon;
@@ -329,13 +329,21 @@ const ProyectoCard = ({
   return (
     <div
       className="group relative bg-white border border-[#E3E1D8] rounded-sm overflow-hidden cursor-pointer transition-all hover:border-[#FF5A1F]/40 hover:shadow-xl hover:-translate-y-2"
-      onClick={onClick}
+      onClick={isHome ? onClick : undefined}
       style={{
         opacity: visible ? 1 : 0,
         transform: visible ? "translateY(0)" : "translateY(30px)",
         transition: `opacity 800ms cubic-bezier(0.16,1,0.3,1), transform 800ms cubic-bezier(0.16,1,0.3,1)`,
       }}
     >
+      {/* FIX MOBILE: enlace nativo sobre toda la tarjeta; no depende del modal ni de hover. */}
+      {!isHome && (
+        <Link
+          href={`/proyectos/${proyecto.slug}`}
+          aria-label={`Ver detalles de ${proyecto.titulo}`}
+          className="absolute inset-0 z-10 select-none rounded-sm focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#FF5A1F]"
+        />
+      )}
       <CornerMarks />
       <div className="relative h-56 overflow-hidden bg-[#14161A]">
         <img
@@ -645,7 +653,6 @@ export default function Proyectos({
                 proyecto={proyecto}
                 index={index}
                 isHome={false}
-                onClick={() => setProyectoSeleccionado(proyecto)}
               />
             ))}
           </div>
