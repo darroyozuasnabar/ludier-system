@@ -187,6 +187,15 @@ function ContactoInner() {
   });
   const [enviado, setEnviado] = useState(false);
   const [cargando, setCargando] = useState(false);
+  // FIX MOBILE F1: asociar errores nativos y del servidor con sus campos.
+  const [errors, setErrors] = useState<Partial<Record<keyof typeof formState, string>>>({});
+
+  const handleInvalid = (e: React.FormEvent<HTMLFormElement>) => {
+    const field = e.target;
+    if (field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement) {
+      setErrors((prev) => ({ ...prev, [field.name]: field.validationMessage }));
+    }
+  };
 
   const { ref: heroRef, inView: heroInView } = useScrollReveal<HTMLDivElement>(0.1);
   const { ref: gridRef, inView: gridInView } = useScrollReveal<HTMLDivElement>(0.1);
@@ -230,12 +239,19 @@ function ContactoInner() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormState({ ...formState, [e.target.name]: e.target.value });
+    setErrors((prev) => ({ ...prev, [e.target.name]: undefined }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors({});
 
     if (!formState.nombre || !formState.email || !formState.asunto || !formState.mensaje) {
+      setErrors(Object.fromEntries(
+        (["nombre", "email", "asunto", "mensaje"] as const)
+          .filter((field) => !formState[field])
+          .map((field) => [field, "Completa este campo obligatorio."])
+      ));
       Swal.fire({
         icon: 'warning',
         title: 'Campos incompletos',
@@ -247,6 +263,7 @@ function ContactoInner() {
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formState.email)) {
+      setErrors({ email: "Ingresa un correo electrónico válido." });
       Swal.fire({
         icon: 'warning',
         title: 'Correo inválido',
@@ -285,6 +302,14 @@ function ContactoInner() {
 
       if (!response.ok) {
         if (response.status === 400 && data.errors) {
+          // FIX MOBILE F1: el API identifica los errores de validación mediante path.
+          const fieldErrors: Partial<Record<keyof typeof formState, string>> = {};
+          for (const err of data.errors) {
+            if (typeof err.path === "string" && Object.prototype.hasOwnProperty.call(formState, err.path)) {
+              fieldErrors[err.path as keyof typeof formState] = err.message;
+            }
+          }
+          setErrors(fieldErrors);
           const errorMessages = data.errors.map((err: any) => err.message).join('\n');
           throw new Error(errorMessages);
         } else if (response.status === 429) {
@@ -519,7 +544,7 @@ function ContactoInner() {
                   <p className="text-green-600">Nos pondremos en contacto contigo pronto.</p>
                 </div>
               ) : (
-                <form onSubmit={handleSubmit} className="space-y-5">
+                <form onSubmit={handleSubmit} onInvalid={handleInvalid} className="space-y-5">
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div>
                       <label htmlFor="nombre" className="block text-sm font-medium text-[#1E2126] mb-1">
@@ -529,12 +554,16 @@ function ContactoInner() {
                         type="text"
                         id="nombre"
                         name="nombre"
+                        autoComplete="name"
+                        aria-invalid={!!errors.nombre}
+                        aria-describedby={errors.nombre ? "error-nombre" : undefined}
                         value={formState.nombre}
                         onChange={handleChange}
                         required
                         className="w-full px-4 py-2 border border-[#E3E1D8] rounded-sm focus:border-[#FF5A1F] focus:outline-none transition-colors bg-white text-[#1E2126] placeholder:text-[#8B8F86]"
                         placeholder="Ej. Juan Pérez"
                       />
+                      {errors.nombre && <p id="error-nombre" role="alert" className="mt-1 text-sm text-red-700">{errors.nombre}</p>}
                     </div>
                     <div>
                       <label htmlFor="email" className="block text-sm font-medium text-[#1E2126] mb-1">
@@ -544,12 +573,16 @@ function ContactoInner() {
                         type="email"
                         id="email"
                         name="email"
+                        autoComplete="email"
+                        aria-invalid={!!errors.email}
+                        aria-describedby={errors.email ? "error-email" : undefined}
                         value={formState.email}
                         onChange={handleChange}
                         required
                         className="w-full px-4 py-2 border border-[#E3E1D8] rounded-sm focus:border-[#FF5A1F] focus:outline-none transition-colors bg-white text-[#1E2126] placeholder:text-[#8B8F86]"
                         placeholder="ejemplo@correo.com"
                       />
+                      {errors.email && <p id="error-email" role="alert" className="mt-1 text-sm text-red-700">{errors.email}</p>}
                     </div>
                   </div>
                   <div>
@@ -560,11 +593,15 @@ function ContactoInner() {
                       type="tel"
                       id="telefono"
                       name="telefono"
+                      autoComplete="tel"
+                      aria-invalid={!!errors.telefono}
+                      aria-describedby={errors.telefono ? "error-telefono" : undefined}
                       value={formState.telefono}
                       onChange={handleChange}
                       className="w-full px-4 py-2 border border-[#E3E1D8] rounded-sm focus:border-[#FF5A1F] focus:outline-none transition-colors bg-white text-[#1E2126] placeholder:text-[#8B8F86]"
                       placeholder="+51 999 999 999"
                     />
+                    {errors.telefono && <p id="error-telefono" role="alert" className="mt-1 text-sm text-red-700">{errors.telefono}</p>}
                   </div>
                   <div>
                     <label htmlFor="asunto" className="block text-sm font-medium text-[#1E2126] mb-1">
@@ -574,12 +611,15 @@ function ContactoInner() {
                       type="text"
                       id="asunto"
                       name="asunto"
+                      aria-invalid={!!errors.asunto}
+                      aria-describedby={errors.asunto ? "error-asunto" : undefined}
                       value={formState.asunto}
                       onChange={handleChange}
                       required
                       className="w-full px-4 py-2 border border-[#E3E1D8] rounded-sm focus:border-[#FF5A1F] focus:outline-none transition-colors bg-white text-[#1E2126] placeholder:text-[#8B8F86]"
                       placeholder="Ej. Cotización de barandas"
                     />
+                    {errors.asunto && <p id="error-asunto" role="alert" className="mt-1 text-sm text-red-700">{errors.asunto}</p>}
                   </div>
                   <div>
                     <label htmlFor="mensaje" className="block text-sm font-medium text-[#1E2126] mb-1">
@@ -588,6 +628,9 @@ function ContactoInner() {
                     <textarea
                       id="mensaje"
                       name="mensaje"
+                      autoComplete="off"
+                      aria-invalid={!!errors.mensaje}
+                      aria-describedby={errors.mensaje ? "error-mensaje" : undefined}
                       rows={5}
                       value={formState.mensaje}
                       onChange={handleChange}
@@ -595,6 +638,7 @@ function ContactoInner() {
                       className="w-full px-4 py-2 border border-[#E3E1D8] rounded-sm focus:border-[#FF5A1F] focus:outline-none transition-colors bg-white text-[#1E2126] placeholder:text-[#8B8F86] resize-none"
                       placeholder="Describe tu proyecto o consulta..."
                     />
+                    {errors.mensaje && <p id="error-mensaje" role="alert" className="mt-1 text-sm text-red-700">{errors.mensaje}</p>}
                   </div>
                   <button
                     type="submit"

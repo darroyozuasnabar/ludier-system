@@ -42,6 +42,8 @@ export async function POST(req: NextRequest) {
     const sanitizedMensaje = mensaje.replace(/[<>]/g, '');
 
     // 4. Correo al cliente
+    // FIX MOBILE F1: el acuse es secundario; su fallo no debe impedir captar el lead.
+    try {
     const clientEmail = await resend.emails.send({
       from: 'LUDIER <contacto@grupoludier.com>',
       to: email,
@@ -76,6 +78,11 @@ export async function POST(req: NextRequest) {
         </div>
       `,
     });
+
+    if (clientEmail.error) console.error(clientEmail.error.message);
+    } catch (error) {
+      console.error(error instanceof Error ? error.message : 'Error al enviar el acuse');
+    }
 
     // 5. Correo a la empresa
     const empresaEmail = await resend.emails.send({
@@ -123,15 +130,21 @@ export async function POST(req: NextRequest) {
       `,
     });
 
-    console.log('✅ Correo al cliente:', clientEmail);
-    console.log('✅ Correo a la empresa:', empresaEmail);
+    // FIX MOBILE F1: solo confirmar cuando el proveedor acepta el lead comercial.
+    if (empresaEmail.error) {
+      console.error(empresaEmail.error.message);
+      return NextResponse.json(
+        { error: 'No pudimos enviar tu consulta. Inténtalo nuevamente.' },
+        { status: 502 }
+      );
+    }
 
     return NextResponse.json(
-      { message: 'Mensaje enviado correctamente' },
+      { success: true },
       { status: 200 }
     );
   } catch (error) {
-    console.error('❌ Error en contacto:', error);
+    console.error(error instanceof Error ? error.message : 'Error en contacto');
     return NextResponse.json(
       { error: 'Error al enviar el mensaje. Inténtalo nuevamente.' },
       { status: 500 }

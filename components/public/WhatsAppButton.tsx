@@ -1,9 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { trackEvent } from "@/lib/analytics";
 
-export default function WhatsAppButton() {
+export default function WhatsAppButton({ offset = false }: { offset?: boolean }) {
+  // FIX MOBILE F1: elevar el flotante solo donde existe la barra B2B.
+  const pathname = usePathname();
+  const hasMobileBar = offset || [
+    "/servicios/barandas-acero-inoxidable",
+    "/servicios/chutes-metalicos-para-construccion",
+    "/servicios/estructuras-metalicas-para-techos",
+  ].includes(pathname.replace(/\/$/, ""));
   const [isVisible, setIsVisible] = useState(false);
   const phoneNumber = "51965391256";
   const message = "Hola%20LUDIER%2C%20quiero%20cotizar%20un%20proyecto";
@@ -17,7 +25,7 @@ export default function WhatsAppButton() {
 
   return (
     <div
-      className={`fixed bottom-6 right-6 z-50 transition-all duration-500 ${
+      className={`fixed ${hasMobileBar ? "bottom-[calc(72px+env(safe-area-inset-bottom))] lg:bottom-6" : "bottom-6"} right-6 z-50 transition-all duration-500 ${
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
       }`}
     >
@@ -41,7 +49,8 @@ export default function WhatsAppButton() {
         />
 
         {/* Efecto de pulso (anillo) */}
-        <span className="absolute inset-0 rounded-full bg-[#25D366] animate-ping opacity-75" />
+        {/* FIX MOBILE F1: respetar la preferencia de movimiento reducido. */}
+        <span className="absolute inset-0 rounded-full bg-[#25D366] animate-ping motion-reduce:animate-none opacity-75" />
         <span className="absolute inset-0 rounded-full bg-[#25D366] opacity-30" />
 
         {/* Tooltip que aparece al hacer hover */}

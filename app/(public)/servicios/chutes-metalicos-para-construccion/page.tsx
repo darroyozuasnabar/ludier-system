@@ -592,7 +592,8 @@ export default function ChutesMetalicosPage() {
         </div>
 
         {/* BARRA FIJA MÓVIL */}
-        <div className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-2 border-t border-[#3A3F45] bg-[#14161A] lg:hidden">
+        {/* FIX MOBILE F1: reservar el área segura inferior del dispositivo. */}
+        <div style={{ paddingBottom: "env(safe-area-inset-bottom)" }} className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-2 border-t border-[#3A3F45] bg-[#14161A] lg:hidden">
           <WhatsAppLink
             href={WHATSAPP_URL}
             location="mobile_bar"
