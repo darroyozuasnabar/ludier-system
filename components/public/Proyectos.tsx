@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   Building2,
@@ -406,9 +407,12 @@ const ProyectoCard = ({
       )}
       <CornerMarks />
       <div className="relative h-56 overflow-hidden bg-[#14161A]">
-        <img
+        {/* FIX MOBILE F3A: thumbnail optimizado; conservar contenedor, recorte y animación. */}
+        <Image
           src={proyecto.imagen}
           alt={proyecto.titulo}
+          fill
+          sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />

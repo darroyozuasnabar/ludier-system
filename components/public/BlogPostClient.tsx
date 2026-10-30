@@ -2,6 +2,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import {
   ArrowLeft,
   Calendar,
@@ -102,7 +103,8 @@ export default function BlogPostClient({
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Imagen destacada */}
           <div className="relative aspect-[16/9] rounded-xl overflow-hidden border border-[#E3E1D8] bg-[#14161A] shadow-xl mb-12">
-            <img src={post.imagen} alt={post.titulo} className="w-full h-full object-cover" />
+            {/* FIX MOBILE F3A-AJUSTE: priorizar la destacada situada inmediatamente después del hero. */}
+            <Image src={post.imagen} alt={post.titulo} fill priority={true} sizes="(min-width: 1024px) 800px, 100vw" className="w-full h-full object-cover" />
           </div>
 
           {/* Contenido HTML */}
@@ -181,9 +183,12 @@ export default function BlogPostClient({
                   className="group block bg-[#F7F7F4] border border-[#E3E1D8] rounded-sm overflow-hidden transition-all hover:border-[#FF5A1F]/40 hover:shadow-lg hover:-translate-y-1"
                 >
                   <div className="relative h-40 overflow-hidden bg-[#14161A]">
-                    <img
+                    {/* FIX MOBILE F3A: thumbnail relacionado; Image permanece dentro del Link. */}
+                    <Image
                       src={rel.imagen}
                       alt={rel.titulo}
+                      fill
+                      sizes="(min-width: 768px) 33vw, 100vw"
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                   </div>

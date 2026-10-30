@@ -3,6 +3,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Calendar,
   Clock,
@@ -84,9 +85,12 @@ const BlogCard = ({
       <div className="group relative bg-white border border-[#E3E1D8] rounded-sm overflow-hidden transition-all hover:border-[#FF5A1F]/40 hover:shadow-xl hover:-translate-y-2">
         <CornerMarks />
         <div className="relative h-48 overflow-hidden bg-[#14161A]">
-          <img
+          {/* FIX MOBILE F3A-AJUSTE: sizes coincide con las columnas 1/2/3 del grid. */}
+          <Image
             src={post.imagen}
             alt={post.titulo}
+            fill
+            sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
