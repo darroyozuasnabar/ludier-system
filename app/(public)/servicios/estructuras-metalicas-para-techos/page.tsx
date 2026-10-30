@@ -392,9 +392,10 @@ export default function TechosMetalicosPage() {
             <p className="mb-2 text-xs font-medium uppercase tracking-[0.16em] text-[#8B8F86]">
               Otras soluciones de Estructuras Metálicas
             </p>
+            {/* FIX OVERFLOW MOBILE: D — permitir reducir el ancho mínimo de cada chip. */}
             <ul className="flex flex-wrap gap-2">
               {OTHER_SUBCATEGORIES.map((sub) => (
-                <li key={sub.id}>
+                <li key={sub.id} className="min-w-0">
                   <Link
                     href={`/servicios/estructuras-metalicas#${sub.id}`}
                     className="inline-flex items-center gap-1.5 border border-[#E3E1D8] bg-[#F7F7F4] px-3.5 py-2 text-sm font-medium text-[#1E2126] transition-colors hover:border-[#FF5A1F] hover:bg-[#FFF3EC] hover:text-[#FF5A1F] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF5A1F]"
@@ -426,8 +427,9 @@ export default function TechosMetalicosPage() {
         </section>
 
         {/* CONTENIDO */}
-        <div className="mx-auto grid max-w-6xl gap-12 px-4 py-16 lg:grid-cols-3">
-          <div className="space-y-16 lg:col-span-2">
+        {/* FIX OVERFLOW MOBILE: A — columna explícita y contenido reducible en móvil. */}
+        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-12 px-4 py-16 lg:grid-cols-3">
+          <div className="min-w-0 space-y-16 lg:col-span-2">
             {/* Material */}
             <section aria-labelledby="material">
               <h2 id="material" className="text-2xl font-semibold md:text-3xl" style={{ fontFamily: FONT_DISPLAY }}>
@@ -437,7 +439,8 @@ export default function TechosMetalicosPage() {
                 En Lima, los techos de concreto o fibrocemento se agrietan con el tiempo y requieren mantenimiento constante. El techo metálico galvanizado ofrece una solución duradera y de bajo mantenimiento:
               </p>
 
-              <div className="mt-6 overflow-x-auto">
+              {/* FIX OVERFLOW MOBILE: E — limitar el scroll horizontal al wrapper de tabla. */}
+              <div className="mt-6 overflow-x-auto max-w-full">
                 <table className="w-full min-w-[560px] border-collapse bg-white text-left text-sm">
                   <caption className="sr-only">Comparación de materiales para techos</caption>
                   <thead>
@@ -495,8 +498,9 @@ export default function TechosMetalicosPage() {
                     <span className="flex h-10 w-10 shrink-0 items-center justify-center bg-[#14161A] text-lg text-white" style={{ fontFamily: FONT_DISPLAY }}>
                       {i + 1}
                     </span>
-                    <div>
-                      <h3 className="flex items-center gap-2 text-base font-semibold">
+                    {/* FIX OVERFLOW MOBILE: C — permitir que el texto del proceso se reduzca. */}
+                    <div className="min-w-0">
+                      <h3 className="flex items-center gap-2 text-base font-semibold break-words">
                         {title}
                         <Icon className="h-4 w-4 text-[#FF5A1F]" aria-hidden />
                       </h3>
@@ -570,8 +574,9 @@ export default function TechosMetalicosPage() {
                         className="object-cover transition-transform duration-300 group-hover:scale-110"
                       />
                     </div>
-                    <div className="flex-1">
-                      <h3 className="text-sm font-semibold text-[#1E2126] group-hover:text-[#FF5A1F] transition-colors">
+                    {/* FIX OVERFLOW MOBILE: B — ajustar títulos largos junto a la miniatura fija. */}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-sm font-semibold text-[#1E2126] group-hover:text-[#FF5A1F] transition-colors break-words">
                         {sub.title}
                       </h3>
                       <p className="text-xs text-[#565C63] line-clamp-2 mt-1">{sub.description}</p>
@@ -619,7 +624,8 @@ export default function TechosMetalicosPage() {
           </div>
 
           {/* SIDEBAR */}
-          <aside className="h-fit space-y-6 lg:sticky lg:top-24">
+          {/* FIX OVERFLOW MOBILE: A — evitar que el sidebar imponga un ancho mínimo. */}
+          <aside className="min-w-0 h-fit space-y-6 lg:sticky lg:top-24">
             <div className="bg-[#FF5A1F] p-6 text-white shadow-xl">
               <h3 className="text-xl font-semibold" style={{ fontFamily: FONT_DISPLAY }}>
                 ¿Necesitas techar tu obra?

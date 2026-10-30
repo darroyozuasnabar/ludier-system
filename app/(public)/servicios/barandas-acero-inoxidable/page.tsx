@@ -332,8 +332,9 @@ export default function BarandasInoxidablePage() {
         </section>
 
         {/* CONTENIDO */}
-        <div className="mx-auto grid max-w-6xl gap-12 px-4 py-16 lg:grid-cols-3">
-          <div className="space-y-16 lg:col-span-2">
+        {/* FIX OVERFLOW MOBILE: A — columna explícita y contenido reducible en móvil. */}
+        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-12 px-4 py-16 lg:grid-cols-3">
+          <div className="min-w-0 space-y-16 lg:col-span-2">
             {/* Material */}
             <section aria-labelledby="material">
               <h2 id="material" className="text-2xl font-semibold md:text-3xl" style={{ fontFamily: FONT_DISPLAY }}>
@@ -343,7 +344,8 @@ export default function BarandasInoxidablePage() {
                 En Lima la humedad y la brisa marina desgastan el acero convencional. Fabricamos barandas de acero inoxidable en grado 304 o 316, y también en acero al carbono con pintura epóxica como alternativa más económica. Esta es la guía rápida para decidir:
               </p>
 
-              <div className="mt-6 overflow-x-auto">
+              {/* FIX OVERFLOW MOBILE: E — limitar el scroll horizontal al wrapper de tabla. */}
+              <div className="mt-6 overflow-x-auto max-w-full">
                 <table className="w-full min-w-[560px] border-collapse bg-white text-left text-sm">
                   <caption className="sr-only">Comparación de materiales para barandas de acero inoxidable</caption>
                   <thead>
@@ -430,8 +432,9 @@ export default function BarandasInoxidablePage() {
                     <span className="flex h-10 w-10 shrink-0 items-center justify-center bg-[#14161A] text-lg text-white" style={{ fontFamily: FONT_DISPLAY }}>
                       {i + 1}
                     </span>
-                    <div>
-                      <h3 className="flex items-center gap-2 text-base font-semibold">
+                    {/* FIX OVERFLOW MOBILE: C — permitir que el texto del proceso se reduzca. */}
+                    <div className="min-w-0">
+                      <h3 className="flex items-center gap-2 text-base font-semibold break-words">
                         {title}
                         <Icon className="h-4 w-4 text-[#FF5A1F]" aria-hidden />
                       </h3>
@@ -496,8 +499,9 @@ export default function BarandasInoxidablePage() {
                         className="object-cover transition-transform duration-300 group-hover:scale-110"
                       />
                     </div>
-                    <div className="flex-1">
-                      <h3 className="text-sm font-semibold text-[#1E2126] group-hover:text-[#FF5A1F] transition-colors">
+                    {/* FIX OVERFLOW MOBILE: B — ajustar títulos largos junto a la miniatura fija. */}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-sm font-semibold text-[#1E2126] group-hover:text-[#FF5A1F] transition-colors break-words">
                         {sub.title}
                       </h3>
                       <p className="text-xs text-[#565C63] line-clamp-2 mt-1">{sub.description}</p>
@@ -545,7 +549,8 @@ export default function BarandasInoxidablePage() {
           </div>
 
           {/* SIDEBAR */}
-          <aside className="h-fit space-y-6 lg:sticky lg:top-24">
+          {/* FIX OVERFLOW MOBILE: A — evitar que el sidebar imponga un ancho mínimo. */}
+          <aside className="min-w-0 h-fit space-y-6 lg:sticky lg:top-24">
             <div className="bg-[#FF5A1F] p-6 text-white shadow-xl">
               <h3 className="text-xl font-semibold" style={{ fontFamily: FONT_DISPLAY }}>
                 ¿Tienes los planos de tu obra?
