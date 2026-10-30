@@ -41,11 +41,11 @@ export default function WhatsAppButton({ offset = false }: { offset?: boolean })
         className="group relative flex items-center justify-center w-16 h-16 rounded-full bg-[#25D366] shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95"
         aria-label="Contactar por WhatsApp"
       >
-        {/* Imagen del logo de WhatsApp */}
+        {/* FIX WHATSAPP LOGO: mantener el logo por encima de las capas verdes del halo. */}
         <img
           src="/img/WhatsAppLogo.jpg"
           alt="WhatsApp"
-          className="w-10 h-10 object-contain rounded-full"
+          className="relative z-10 w-10 h-10 object-contain rounded-full"
         />
 
         {/* Efecto de pulso (anillo) */}
