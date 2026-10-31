@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import type { BlogPost } from "@/lib/blog-posts";
 import WhatsAppLink from "@/components/public/WhatsAppLink";
+import GaleriaReferencia from "@/components/public/GaleriaReferencia";
 
 const FONT_DISPLAY = 'var(--font-display, Oswald, ui-sans-serif, sans-serif)';
 const FONT_BODY = 'var(--font-body, Inter, ui-sans-serif, system-ui, sans-serif)';
@@ -39,6 +40,12 @@ export default function BlogPostClient({
   // FIX SEO PORTONES: dividir solo en un h2 de nivel superior para insertar un CTA React medible.
   const splitAt = portonesGuide?.inlineAnchor
     ? post.contenido.indexOf(`<h2 id="${portonesGuide.inlineAnchor}">`) : -1;
+  // FIX GALERIA PORTONES: separar el HTML en un h2 completo, después de Tipos.
+  const isPortones = post.slug === "portones-metalicos-tipos-precios-guia";
+  const galleryAt = isPortones
+    ? post.contenido.search(/<h2\b[^>]*>\s*Materiales y acabados\s*<\/h2>/i) : -1;
+  const firstBlockEnd = splitAt >= 0 ? splitAt : post.contenido.length;
+  const galleryAfterTypes = galleryAt >= 0 && galleryAt < firstBlockEnd;
   const comparisonRows = [
     ["Corredizo estándar", "Deslizamiento lateral", "Revisión anual y pintura", "Desde S/ 380/m²", "Accesos con espacio lateral"],
     ["Corredizo galvanizado", "Deslizamiento lateral", "Revisión anual", "Desde S/ 520/m²", "Fachadas expuestas a humedad"],
@@ -179,9 +186,19 @@ export default function BlogPostClient({
           {/* Contenido HTML */}
           <div
             className="article-content max-w-none"
-            dangerouslySetInnerHTML={{ __html: splitAt >= 0 ? post.contenido.slice(0, splitAt) : post.contenido }}
+            dangerouslySetInnerHTML={{ __html: post.contenido.slice(0, galleryAfterTypes ? galleryAt : firstBlockEnd) }}
             style={{ fontFamily: FONT_BODY }}
           />
+          {galleryAfterTypes && (
+            <>
+              <GaleriaReferencia />
+              <div
+                className="article-content max-w-none"
+                dangerouslySetInnerHTML={{ __html: post.contenido.slice(galleryAt, firstBlockEnd) }}
+                style={{ fontFamily: FONT_BODY }}
+              />
+            </>
+          )}
           {portonesGuide && splitAt >= 0 && (
             <>
               {/* FIX SEO PORTONES: CTA contextual dentro de la lectura, con tracking existente. */}
@@ -198,6 +215,9 @@ export default function BlogPostClient({
               <div className="article-content max-w-none" dangerouslySetInnerHTML={{ __html: post.contenido.slice(splitAt) }} style={{ fontFamily: FONT_BODY }} />
             </>
           )}
+
+          {/* FIX GALERIA PORTONES: fallback al final del texto si cambia el encabezado de Materiales. */}
+          {isPortones && !galleryAfterTypes && <GaleriaReferencia />}
 
           {/* CTA INLINE - WhatsApp */}
           {!portonesGuide && <div className="mt-10 p-6 bg-[#FFF3EC] border-l-4 border-[#FF5A1F] rounded-r-lg shadow-sm">
