@@ -22,12 +22,13 @@ const nextConfig: NextConfig = {
   // ============================================================
   async redirects() {
     return [
-      // === REDIRECT 301: URLs VIEJAS (/public/*) → NUEVAS (/*) ===
+      // === URLs VIEJAS (/public/*) → NUEVAS (/*) ===
+      // FIX SEO PUBLIC: 301 explícito para los tres listados; permanent: true produce 308.
       // Preserva el SEO ya ganado en Google Search Console
       {
         source: "/public/servicios",
         destination: "/servicios",
-        permanent: true,
+        statusCode: 301,
       },
       {
         source: "/public/servicios/:slug",
@@ -37,7 +38,7 @@ const nextConfig: NextConfig = {
       {
         source: "/public/proyectos",
         destination: "/proyectos",
-        permanent: true,
+        statusCode: 301,
       },
       {
         source: "/public/proyectos/:slug",
@@ -67,7 +68,7 @@ const nextConfig: NextConfig = {
       {
         source: "/public/faq",
         destination: "/faq",
-        permanent: true,
+        statusCode: 301,
       },
       {
         source: "/public/testimonios",
