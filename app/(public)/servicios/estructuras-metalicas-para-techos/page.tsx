@@ -41,15 +41,21 @@ const FONT_MONO = 'var(--font-mono, "JetBrains Mono", monospace)';
 // SEO
 // ============================================================
 export const metadata: Metadata = {
-  title: "Estructuras Metálicas para Techos en Lima | LUDIER",
+  // FIX SEO TECHOS: ambas keywords principales y marca única mediante title.absolute.
+  title: { absolute: "Estructuras Metálicas para Techos y Techos Metálicos | LUDIER" },
   description:
-    "Fabricamos e instalamos estructuras metálicas para techos, coberturas y azoteas en Lima. Acero galvanizado de alta resistencia, aislación térmica y montaje seguro. Cotiza en 24 horas.",
+    "Fabricamos e instalamos estructuras metálicas para techos y techos metálicos en Lima. Coberturas para naves industriales, almacenes y azoteas. Cotiza en 24h.",
   keywords: [
+    // FIX SEO TECHOS: variaciones exactas sin duplicar las keywords existentes.
     "estructuras metálicas para techos",
+    "techos metálicos",
+    "modelos de estructuras metálicas para techos",
+    "techos metálicos para naves industriales",
     "techos metálicos lima",
     "coberturas metálicas",
     "techos para naves industriales",
     "estructuras para azotea",
+    "estructuras metálicas para azoteas",
     "cobertura de policarbonato",
   ],
   alternates: { canonical: PAGE_URL },
@@ -261,7 +267,8 @@ export default function TechosMetalicosPage() {
   const serviceLd = {
     "@context": "https://schema.org",
     "@type": "Service",
-    name: "Fabricación e instalación de estructuras metálicas para techos y coberturas",
+    // FIX SEO TECHOS: alinear el nombre del servicio con la oferta del hero.
+    name: "Fabricación e instalación de estructuras metálicas para techos y techos metálicos",
     serviceType: "Techos metálicos y coberturas",
     description:
       "Fabricación y montaje en obra de estructuras metálicas para techos, coberturas y azoteas en proyectos de construcción en Lima.",
@@ -342,10 +349,12 @@ export default function TechosMetalicosPage() {
               <div>
                 <p className="text-sm font-medium text-[#FF5A1F]">Para constructoras y proyectos industriales</p>
                 <h1 className="mt-4 text-4xl font-semibold leading-tight md:text-5xl" style={{ fontFamily: FONT_DISPLAY }}>
-                  Estructuras metálicas para techos y coberturas en Lima
+                  {/* FIX SEO TECHOS: ampliar el H1 sin modificar sus clases. */}
+                  Estructuras Metálicas para Techos y Techos Metálicos en Lima
                 </h1>
                 <p className="mt-6 max-w-xl text-lg leading-relaxed text-[#B4B9BF]">
-                  Fabricamos e instalamos techos metálicos, coberturas de policarbonato y estructuras para azoteas. Tú nos envías los planos; nosotros entregamos el techo montado, listo para usar.
+                  {/* FIX SEO TECHOS: techos metálicos y naves industriales al inicio del párrafo. */}
+                  Fabricamos e instalamos techos metálicos para naves industriales, almacenes y azoteas, además de coberturas de policarbonato. Tú nos envías los planos; nosotros entregamos el techo montado, listo para usar.
                 </p>
 
                 <ul className="mt-6 space-y-2 text-sm text-white/90">
@@ -433,7 +442,8 @@ export default function TechosMetalicosPage() {
             {/* Material */}
             <section aria-labelledby="material">
               <h2 id="material" className="text-2xl font-semibold md:text-3xl" style={{ fontFamily: FONT_DISPLAY }}>
-                ¿Por qué elegir un techo metálico?
+                {/* FIX SEO TECHOS: orientar la elección del material a proyectos de obra. */}
+                ¿Por qué elegir un techo metálico para tu obra?
               </h2>
               <p className="mt-4 max-w-2xl leading-relaxed text-[#565C63]">
                 En Lima, los techos de concreto o fibrocemento se agrietan con el tiempo y requieren mantenimiento constante. El techo metálico galvanizado ofrece una solución duradera y de bajo mantenimiento:
@@ -487,10 +497,28 @@ export default function TechosMetalicosPage() {
               </div>
             </section>
 
+            {/* FIX SEO TECHOS: sección B2B integrada con el estilo de las secciones existentes. */}
+            <section aria-labelledby="naves-industriales">
+              <h2 id="naves-industriales" className="text-2xl font-semibold md:text-3xl" style={{ fontFamily: FONT_DISPLAY }}>
+                Techos metálicos para naves industriales y almacenes
+              </h2>
+              <p className="mt-4 max-w-2xl leading-relaxed text-[#565C63]">
+                Las naves industriales y los almacenes requieren estructuras de gran luz que permitan disponer de espacios de trabajo amplios. Ofrecemos cubiertas de calamina con aislación térmica o paneles aislantes, según el uso de la nave. Fabricamos y montamos conforme a los planos estructurales del proyecto, cumpliendo la norma E.030 de Diseño Sismorresistente aplicable a la obra.
+              </p>
+              <Link
+                href="/contacto?from=techos-naves"
+                className="mt-4 inline-flex items-center gap-2 py-3 text-sm font-semibold text-[#FF5A1F] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF5A1F]"
+              >
+                Cotizar techo para nave industrial
+                <ArrowRight className="h-4 w-4" aria-hidden />
+              </Link>
+            </section>
+
             {/* Proceso */}
             <section aria-labelledby="proceso">
               <h2 id="proceso" className="text-2xl font-semibold md:text-3xl" style={{ fontFamily: FONT_DISPLAY }}>
-                Cómo trabajamos con tu constructora
+                {/* FIX SEO TECHOS: explicitar fabricación y keyword principal. */}
+                Cómo fabricamos tus estructuras metálicas para techos
               </h2>
               <ol className="mt-6 grid gap-4 sm:grid-cols-2">
                 {PROCESS.map(({ icon: Icon, title, text }, i) => (
