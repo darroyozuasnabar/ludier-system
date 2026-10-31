@@ -15,6 +15,8 @@ export const contactoSchema = z.object({
   nombre: nombreSchema,
   email: emailSchema,
   telefono: phoneSchema,
+  // FIX TRACKING F5: aceptar empresa opcional para persistirla en Lead sin cambiar el formulario.
+  empresa: z.string().trim().max(150, "La empresa no puede exceder los 150 caracteres").optional(),
   asunto: z
     .string()
     .min(3, "El asunto debe tener al menos 3 caracteres")

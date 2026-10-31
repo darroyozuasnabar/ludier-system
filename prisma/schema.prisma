@@ -303,6 +303,29 @@ model Contacto {
 // CRM — Módulo Cotizaciones (Ribau · APF1)
 // ============================================================
 
+// FIX TRACKING F5: reflejar Lead ya creada en Supabase; no generar migración.
+model Lead {
+  id           String     @id @default(dbgenerated("(gen_random_uuid())::text"))
+  created_at   DateTime?  @default(now()) @map("created_at") @db.Timestamp(6)
+  nombre       String
+  email        String
+  telefono     String
+  empresa      String?
+  mensaje      String?
+  landingPath  String?    @map("landing_path")
+  currentPath  String?    @map("current_path")
+  ctaSource    String?    @map("cta_source")
+  estado       String     @default("nuevo")
+  cotizacionId String?    @map("cotizacion_id")
+
+  cotizacion Cotizacion? @relation(fields: [cotizacionId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
+  @@index([email], map: "idx_lead_email")
+  @@index([created_at(sort: Desc)], map: "idx_lead_created_at")
+  @@index([estado], map: "idx_lead_estado")
+  @@map("Lead")
+}
+
 model Cotizacion {
   id                 String                @id @default(dbgenerated("(gen_random_uuid())::text"))
   numero             String                @unique
@@ -334,6 +357,8 @@ model Cotizacion {
   User               User?                 @relation(fields: [creado_por], references: [id], onDelete: NoAction, onUpdate: NoAction)
   CotizacionItem     CotizacionItem[]
   CotizacionSeguimiento CotizacionSeguimiento[]
+  // FIX TRACKING F5: cotizacion_id no tiene UNIQUE; varios leads pueden vincularse.
+  leads             Lead[]
 
   @@index([project_id])
   @@index([estado])

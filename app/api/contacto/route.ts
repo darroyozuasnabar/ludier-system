@@ -3,6 +3,7 @@ import { Resend } from 'resend';
 import { contactRateLimit } from '@/lib/rate-limit';
 import { validateBody } from '@/lib/validate';
 import { contactoSchema } from '@/lib/validations';
+import { prisma } from '@/lib/prisma';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -47,6 +48,30 @@ export async function POST(req: NextRequest) {
     const sanitizedNombre = nombre.replace(/[<>]/g, '');
     const sanitizedAsunto = asunto.replace(/[<>]/g, '');
     const sanitizedMensaje = mensaje.replace(/[<>]/g, '');
+
+    // FIX TRACKING F5: persistir antes del correo; un fallo de BD no bloquea el envío.
+    let leadPersisted = false;
+    try {
+      await prisma.lead.create({
+        data: {
+          id: leadId,
+          nombre,
+          email,
+          telefono: telefono ?? "",
+          empresa: validated.empresa || null,
+          mensaje,
+          landingPath: source.landingPath,
+          currentPath: source.currentPath,
+          ctaSource: source.ctaSource || null,
+        },
+      });
+      leadPersisted = true;
+    } catch (error) {
+      // No volcar consultas ni datos personales del cliente en los logs.
+      const code = error && typeof error === "object" && "code" in error
+        ? String(error.code) : "UNKNOWN";
+      console.error("No se pudo guardar Lead; se continúa con el correo.", { leadId, code });
+    }
 
     // 4. Correo al cliente
     // FIX MOBILE F1: el acuse es secundario; su fallo no debe impedir captar el lead.
@@ -153,9 +178,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // FIX TRACKING F5: no existe leads en el esquema; registro estructurado sin PII.
-    // Este log NO sustituye una tabla persistente ni confirma entrega del correo.
-    console.info("lead_received", { leadId, source, persistence: "not_configured" });
+    // FIX TRACKING F5: distinguir persistencia real de correo aceptado por el proveedor.
+    console.info("lead_received", { leadId, source, persistence: leadPersisted ? "saved" : "failed" });
     return NextResponse.json(
       { success: true, leadId },
       { status: 200 }
