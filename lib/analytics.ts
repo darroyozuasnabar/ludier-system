@@ -3,7 +3,6 @@
 // Helper para enviar eventos a Google Analytics 4
 // Uso: trackEvent("form_submit", { form_name: "contacto" })
 
-// FIX TRACKING F5: cola breve para que la carga diferida de GA no descarte el envío.
 type FlatParams = Record<string, string | number | boolean>;
 type EventValue = string | number | boolean | { [key: string]: EventValue };
 type EventParams = Record<string, EventValue>;
@@ -20,37 +19,14 @@ function flattenParams(params: EventParams, prefix = "", depth = 0): FlatParams 
   }
   return flat;
 }
-const pendingEvents: { name: string; params: FlatParams }[] = [];
-let analyticsTimer: ReturnType<typeof setTimeout> | undefined;
-let retries = 0;
-
-function flushEvents() {
-  analyticsTimer = undefined;
-  const w = window as any;
-  if (typeof w.gtag === "function") {
-    retries = 0;
-    while (pendingEvents.length) {
-      const event = pendingEvents.shift()!;
-      try { w.gtag("event", event.name, event.params); } catch { /* Analytics no bloquea leads. */ }
-    }
-  } else if (pendingEvents.length && retries++ < 120) {
-    analyticsTimer = setTimeout(flushEvents, 250);
-  } else {
-    pendingEvents.length = 0;
-    retries = 0;
-  }
-}
-
+// FIX TRACKING F5: envío directo, sin cola, temporizadores ni reintentos.
 export function trackEvent(
   eventName: string,
   eventParams?: EventParams,
 ) {
-  if (typeof window === "undefined") return;
-
-  if (pendingEvents.length >= 100) pendingEvents.shift();
-  pendingEvents.push({ name: eventName, params: flattenParams(eventParams || {}) });
-  if (analyticsTimer) clearTimeout(analyticsTimer);
-  flushEvents();
+  if (typeof window !== "undefined" && typeof (window as any).gtag === "function") {
+    (window as any).gtag("event", eventName, flattenParams(eventParams || {}));
+  }
 }
 
 // FIX TRACKING F5: primera ruta de la sesión de pestaña; tolerar almacenamiento bloqueado.

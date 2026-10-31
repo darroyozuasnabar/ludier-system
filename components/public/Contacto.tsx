@@ -342,8 +342,8 @@ function ContactoInner() {
         }
       }
 
-      // FIX TRACKING F5: registrar aceptación únicamente con respuesta 200 correlacionada.
-      if (response.status !== 200 || data.success !== true || data.leadId !== leadId) {
+      // FIX TRACKING F5: el éxito del servidor dispara el evento sin comparar UUID.
+      if (data.success !== true) {
         throw new Error("No pudimos confirmar tu consulta. Inténtalo nuevamente.");
       }
       trackEvent("generate_lead", {
