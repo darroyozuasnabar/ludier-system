@@ -36,11 +36,18 @@ const FONT_MONO = 'var(--font-mono, "JetBrains Mono", monospace)';
 // SEO
 // ============================================================
 export const metadata: Metadata = {
-  title: "Barandas de Acero Inoxidable 304 en Lima | LUDIER",
+  // FIX SEO BARANDAS: keyword principal y marca única, sin repetir el title.template global.
+  title: { absolute: "Barandas Metálicas y de Acero Inoxidable en Lima | LUDIER" },
   description:
-    "Fabricamos e instalamos barandas de acero inoxidable 304 para edificios multifamiliares y obras en Lima. Montaje con personal propio. Envía tus planos y recibe cotización en 24 horas.",
+    "Fabricación e instalación de barandas metálicas y de acero inoxidable para escaleras, balcones y terrazas en Lima. Resistencia a la intemperie. Cotiza en 24h.",
   keywords: [
+    // FIX SEO BARANDAS: ampliar variaciones conservando las keywords B2B existentes.
+    "barandas metálicas",
+    "baranda de escalera",
+    "barandas de metal",
+    "barandas metálicas para escaleras",
     "barandas de acero inoxidable",
+    "barandas para balcones",
     "barandas de acero inoxidable 304",
     "barandas de acero inoxidable lima",
     "barandas para constructoras",
@@ -199,7 +206,8 @@ export default function BarandasInoxidablePage() {
   const serviceLd = {
     "@context": "https://schema.org",
     "@type": "Service",
-    name: "Fabricación e instalación de barandas de acero inoxidable",
+    // FIX SEO BARANDAS: servicio ampliado; serviceType ya coincide con el solicitado.
+    name: "Fabricación e instalación de barandas metálicas y de acero inoxidable",
     serviceType: "Barandas metálicas para construcción",
     description:
       "Fabricación y montaje en obra de barandas de acero inoxidable 304 para balcones, escaleras y terrazas en proyectos de construcción en Lima.",
@@ -273,10 +281,12 @@ export default function BarandasInoxidablePage() {
               <div>
                 <p className="text-sm font-medium text-[#FF5A1F]">Para constructoras e inmobiliarias</p>
                 <h1 className="mt-4 text-4xl font-semibold leading-tight md:text-5xl" style={{ fontFamily: FONT_DISPLAY }}>
-                  Barandas de acero inoxidable para obras y constructoras en Lima
+                  {/* FIX SEO BARANDAS: ampliar el H1 manteniendo su estilo y enfoque de obra. */}
+                  Barandas Metálicas y de Acero Inoxidable para Obras en Lima
                 </h1>
                 <p className="mt-6 max-w-xl text-lg leading-relaxed text-[#B4B9BF]">
-                  Fabricamos e instalamos <strong className="text-white">barandas de acero inoxidable</strong> 304 y 316 para balcones, escaleras y terrazas en proyectos residenciales y comerciales de Lima. Tú nos envías los planos; nosotros entregamos la baranda instalada, con el avance que tu obra necesita.
+                  {/* FIX SEO BARANDAS: incluir barandas metálicas y escaleras al inicio. */}
+                  Fabricamos e instalamos <strong className="text-white">barandas metálicas para escaleras</strong>, balcones y terrazas, con opciones de acero inoxidable 304 y 316 para proyectos residenciales y comerciales de Lima. Tú nos envías los planos; nosotros entregamos la baranda instalada, con el avance que tu obra necesita.
                 </p>
 
                 <ul className="mt-6 space-y-2 text-sm text-white/90">
@@ -338,7 +348,8 @@ export default function BarandasInoxidablePage() {
             {/* Material */}
             <section aria-labelledby="material">
               <h2 id="material" className="text-2xl font-semibold md:text-3xl" style={{ fontFamily: FONT_DISPLAY }}>
-                ¿Qué material elegir para tus barandas de acero inoxidable?
+                {/* FIX SEO BARANDAS: orientar la elección de material a la categoría general. */}
+                ¿Qué material elegir para tus barandas metálicas?
               </h2>
               <p className="mt-4 max-w-2xl leading-relaxed text-[#565C63]">
                 En Lima la humedad y la brisa marina desgastan el acero convencional. Fabricamos barandas de acero inoxidable en grado 304 o 316, y también en acero al carbono con pintura epóxica como alternativa más económica. Esta es la guía rápida para decidir:
@@ -395,7 +406,8 @@ export default function BarandasInoxidablePage() {
             {/* ¿Por qué elegir acero inoxidable? (NUEVO BLOQUE SEO) */}
             <section aria-labelledby="por-que-inoxidable">
               <h2 id="por-que-inoxidable" className="text-2xl font-semibold md:text-3xl" style={{ fontFamily: FONT_DISPLAY }}>
-                ¿Por qué elegir barandas de acero inoxidable?
+                {/* FIX SEO BARANDAS: conservar intención comercial y ambas familias de material. */}
+                ¿Por qué elegir nuestras barandas metálicas y de acero inoxidable?
               </h2>
               <p className="mt-4 max-w-2xl leading-relaxed text-[#565C63]">
                 Las barandas de acero inoxidable son la solución preferida por constructoras e inmobiliarias para proyectos de alta exigencia. Sus ventajas frente al acero al carbono con pintura o al hierro forjado son claras:
