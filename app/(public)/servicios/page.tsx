@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   ArrowRight,
   ShieldCheck,
@@ -27,7 +28,7 @@ const FONT_BODY = 'var(--font-body, Inter, ui-sans-serif, system-ui, sans-serif)
 const FONT_MONO = 'var(--font-mono, "JetBrains Mono", ui-monospace, monospace)';
 
 // ============================================================
-// DATOS DE CATEGORÍAS DE SERVICIOS (6 LÍNEAS DE NEGOCIO)
+// DATOS DE CATEGORÍAS: 6 LÍNEAS DE NEGOCIO Y ATENCIÓN B2B PARA CONSTRUCTORAS
 // ============================================================
 
 type Categoria = {
@@ -64,6 +65,17 @@ const categorias: Categoria[] = [
     ],
     image: "/img/estructurasMetalicas.png",
     tag: "11 servicios",
+  },
+  // ACCESO B2B: séptima tarjeta, conservando Estructuras Metálicas y su enlace a techos.
+  {
+    slug: "empresas-estructuras-metalicas",
+    b2bSlug: "empresas-estructuras-metalicas",
+    icon: Building2,
+    title: "Proveedores para Constructoras",
+    description: "Soluciones metalmecánicas para obras. Homologados para Grupo LAR.",
+    subServicios: ["Fabricación según planos", "Montaje en obra", "Homologación por Hodelpe"],
+    image: "/img/proyectos/qantua/28-vistaIntegralQantuaF1&F2.jpeg",
+    tag: "Atención B2B",
   },
   {
     slug: "barandas-pasamanos",
@@ -261,9 +273,11 @@ function CategoriaCard({ categoria, index }: { categoria: Categoria; index: numb
 
       {/* Imagen de fondo */}
       <div className="relative h-48 overflow-hidden bg-[#14161A]">
-        <img
+        <Image
           src={categoria.image}
           alt={categoria.title}
+          fill
+          sizes="(min-width: 1280px) 400px, (min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
@@ -304,10 +318,10 @@ function CategoriaCard({ categoria, index }: { categoria: Categoria; index: numb
 
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-1 text-sm font-medium text-[#FF5A1F]">
-            <span>{categoria.b2bSlug ? "Ver ficha técnica B2B" : "Ver todos los servicios"}</span>
+            <span>{categoria.slug === "empresas-estructuras-metalicas" ? "Ver capacidades y obras" : categoria.b2bSlug ? "Ver ficha técnica B2B" : "Ver todos los servicios"}</span>
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </div>
-          {categoria.b2bSlug && (
+          {categoria.b2bSlug && categoria.slug !== "empresas-estructuras-metalicas" && (
             <span className="text-[10px] text-[#8B8F86]">
               Incluye todas las subcategorías
             </span>
@@ -386,8 +400,8 @@ export default function ServiciosPage() {
               </span>
             </h1>
             <p className="mt-6 text-lg text-[#9AA0A6] max-w-xl leading-relaxed">
-              Explora nuestras 6 líneas de negocio. Desde estructuras metálicas
-              hasta fabricación a medida, tenemos la solución para tu proyecto.
+              Explora nuestras 6 líneas de negocio y la atención para constructoras.
+              Desde estructuras metálicas hasta fabricación a medida, tenemos la solución para tu proyecto.
             </p>
 
             <div className="mt-8 flex flex-wrap gap-4">
