@@ -80,9 +80,9 @@ export async function generateMetadata({
       image: "/img/portones.jpeg",
     },
     "cercos-cerramientos": {
-      title: "Cercos Perimetrales y Prefabricados para Obras | LUDIER",
+      title: "Cercos Perimetrales y Protecciones para Obras en Lima | LUDIER",
       description:
-        "Especialistas en cercos perimetrales prefabricados y cerramientos temporales para constructoras en Lima. Rápidos, seguros y reutilizables.",
+        "Fabricación e instalación de cercos perimetrales, cerramientos temporales y protecciones provisionales para obras en Lima. Cotiza según planos y metrados.",
       keywords: [
         "cerco perimetral para obra",
         "cerco prefabricado",
@@ -174,7 +174,7 @@ export default async function Page({
     "barandas-pasamanos": { title: "Barandas Metálicas y de Acero Inoxidable en Lima | LUDIER", description: "Fabricación de barandas de acero inoxidable y metálicas para balcones, escaleras y terrazas." },
     "escaleras-metalicas": { title: "Escaleras Metálicas de Emergencia e Industriales | LUDIER", description: "Fabricación de escaleras metálicas de emergencia, marineras e industriales en Lima." },
     "puertas-portones": { title: "Portones y Puertas Metálicas en Lima | LUDIER", description: "Fabricación e instalación de portones metálicos, puertas cortafuego y cerramientos industriales." },
-    "cercos-cerramientos": { title: "Cercos Perimetrales y Prefabricados para Obras | LUDIER", description: "Especialistas en cercos perimetrales prefabricados y cerramientos temporales para constructoras." },
+    "cercos-cerramientos": { title: "Cercos Perimetrales y Protecciones para Obras en Lima | LUDIER", description: "Fabricación e instalación de cercos perimetrales, cerramientos temporales y protecciones provisionales para obras en Lima." },
     "fabricacion-medida": { title: "Fabricación Metálica a Medida en Lima | LUDIER", description: "Fabricación de rejillas metálicas, tapas, sumideros y estructuras personalizadas según planos." },
   };
 

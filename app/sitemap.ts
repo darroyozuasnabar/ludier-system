@@ -67,8 +67,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ];
 
-  // ── Páginas de servicios (6 categorías) ──
-  const servicePages: MetadataRoute.Sitemap = Object.keys(SERVICIOS_SEO).map(
+  // Categorías generales y fichas especializadas con URL canónica propia.
+  const serviceSlugs = [
+    ...Object.keys(SERVICIOS_SEO),
+    "estructuras-metalicas-para-techos",
+    "barandas-acero-inoxidable",
+    "chutes-metalicos-para-construccion",
+  ];
+  const servicePages: MetadataRoute.Sitemap = serviceSlugs.map(
     (slug) => ({
       url: `${SITE_URL}/servicios/${slug}`,
       lastModified: now,

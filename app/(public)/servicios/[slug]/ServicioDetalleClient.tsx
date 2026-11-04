@@ -515,14 +515,14 @@ const categorias: Categoria[] = [
   },
 
   // ==========================================================
-  // 5. SOLUCIONES PARA CONSTRUCTORAS
+  // 5. CERCOS Y PROTECCIONES PARA OBRA
   // ==========================================================
   {
     slug: "cercos-cerramientos",
     icon: HardHat,
-    title: "Soluciones para Constructoras",
+    title: "Cercos y protecciones para obra",
     description:
-      "Especialistas en cerco perimetral para obra y cercos prefabricados. Ofrecemos cerramientos temporales, chutes metálicos y soluciones ágiles para constructoras que buscan cumplir plazos y normativas.",
+      "Fabricamos e instalamos cercos perimetrales, cerramientos temporales y protecciones provisionales para obras. También atendemos adecuaciones, montajes y refuerzos según los requerimientos de tu proyecto.",
     image: "/img/cercosPerimetricos.jpg",
     tag: "8 servicios",
     beneficios: [

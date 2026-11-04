@@ -148,22 +148,22 @@ const PROJECTS = [
   },
 ];
 
-// 👇 OTRAS SUBCATEGORÍAS DE "SOLUCIONES PARA CONSTRUCTORAS"
+// Servicios complementarios con enlace al alcance específico.
 const OTHER_SUBCATEGORIES = [
   {
-    slug: "cercos-cerramientos",
+    slug: "cercos-cerramientos#cerramientos-temporales",
     title: "Cerramientos temporales",
     description: "Cerramientos provisionales para obras, con paneles modulares de fácil montaje y desmontaje.",
     img: "/img/cerramientosTemporales.jpg",
   },
   {
-    slug: "cercos-cerramientos",
+    slug: "cercos-cerramientos#barandas-provisionales",
     title: "Barandas provisionales",
     description: "Barandas de seguridad para andamios y áreas de trabajo, con instalación rápida.",
     img: "/img/barandasProvisionales.jpeg",
   },
   {
-    slug: "cercos-cerramientos",
+    slug: "cercos-cerramientos#protecciones-para-obra",
     title: "Protecciones para obra",
     description: "Elementos de protección para áreas de riesgo, como cubrimientos de huecos y barandas perimetrales.",
     img: "/img/proteccionesObra.webp",
@@ -465,13 +465,13 @@ export default function ChutesMetalicosPage() {
               </div>
             </section>
 
-            {/* 👇 NUEVA SECCIÓN: Otras subcategorías */}
+            {/* Servicios complementarios para la misma obra */}
             <section aria-labelledby="otras-subcategorias">
               <h2 id="otras-subcategorias" className="text-2xl font-semibold md:text-3xl" style={{ fontFamily: FONT_DISPLAY }}>
-                Otras subcategorías de Soluciones para Constructoras
+                Protecciones y cerramientos para complementar tu obra
               </h2>
               <p className="mt-4 max-w-2xl leading-relaxed text-[#565C63]">
-                ¿Buscas otra solución para tu obra? Estas son las otras alternativas que ofrecemos dentro de esta categoría:
+                Coordina la evacuación de escombros junto con los cerramientos y las protecciones provisionales que necesita tu proyecto.
               </p>
               <div className="mt-6 grid gap-4 sm:grid-cols-2">
                 {OTHER_SUBCATEGORIES.map((sub, i) => (

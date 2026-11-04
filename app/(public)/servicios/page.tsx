@@ -1,180 +1,68 @@
-"use client";
-
-import { useEffect, useRef, useState } from "react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import {
   ArrowRight,
   ShieldCheck,
   HardHat,
-  Wrench,
   Building2,
-  Shield,
-  Gauge,
-  DoorOpen,
   CheckCircle,
   Clock,
   PhoneCall,
   Award,
   Users,
-  TrendingUp,
-  Zap,
-  Truck,
-  FileCheck,
 } from "lucide-react";
+
+import ConstructorasCTA from "@/components/public/ConstructorasCTA";
+import { SERVICIOS_CATALOGO, type ServicioCatalogo } from "@/lib/servicios-catalogo";
 
 const FONT_DISPLAY = 'var(--font-display, Oswald, ui-sans-serif, sans-serif)';
 const FONT_BODY = 'var(--font-body, Inter, ui-sans-serif, system-ui, sans-serif)';
 const FONT_MONO = 'var(--font-mono, "JetBrains Mono", ui-monospace, monospace)';
 
-// ============================================================
-// DATOS DE CATEGORÍAS: 6 LÍNEAS DE NEGOCIO Y ATENCIÓN B2B PARA CONSTRUCTORAS
-// ============================================================
+const SITE_URL = "https://grupoludier.com";
+const PAGE_URL = `${SITE_URL}/servicios`;
+const TITLE = "Servicios de Metalmecánica en Lima | LUDIER";
+const DESCRIPTION =
+  "Fabricación e instalación de estructuras metálicas, barandas, escaleras, portones y chutes en Lima. Atención a constructoras y trabajos según planos.";
 
-type Categoria = {
-  slug: string;
-  b2bSlug?: string; // <-- NUEVO: Slug de la landing B2B si existe
-  icon: any;
-  title: string;
-  description: string;
-  subServicios: string[];
-  image: string;
-  tag: string;
+export const metadata: Metadata = {
+  title: { absolute: TITLE },
+  description: DESCRIPTION,
+  alternates: { canonical: PAGE_URL },
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: PAGE_URL,
+    type: "website",
+    siteName: "LUDIER",
+    locale: "es_PE",
+    images: [{ url: "/img/Qantua.jpg", alt: "Trabajos metalmecánicos de LUDIER en el proyecto Qantua" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+    images: ["/img/Qantua.jpg"],
+  },
 };
 
-const categorias: Categoria[] = [
-  {
-    slug: "estructuras-metalicas",
-    b2bSlug: "estructuras-metalicas-para-techos", // <-- Enlaza a la landing B2B
-    icon: Building2,
-    title: "Estructuras Metálicas",
-    description:
-      "Diseñamos, fabricamos e instalamos estructuras metálicas para proyectos residenciales, comerciales e industriales.",
-    subServicios: [
-      "Estructuras para azotea",
-      "Coberturas metálicas",
-      "Techos metálicos",
-      "Marquesinas",
-      "Plataformas metálicas",
-      "Soportes metálicos",
-      "Vigas metálicas",
-      "Estructuras especiales",
-      "Estructuras para paneles solares",
-      "Cuartos metálicos para equipos",
-      "Jaulas metálicas",
-    ],
-    image: "/img/estructurasMetalicas.png",
-    tag: "11 servicios",
+const collectionJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  name: TITLE,
+  description: DESCRIPTION,
+  url: PAGE_URL,
+  mainEntity: {
+    "@type": "ItemList",
+    itemListElement: SERVICIOS_CATALOGO.map((servicio, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: servicio.title,
+      url: `${SITE_URL}${servicio.href}`,
+    })),
   },
-  // ACCESO B2B: séptima tarjeta, conservando Estructuras Metálicas y su enlace a techos.
-  {
-    slug: "empresas-estructuras-metalicas",
-    b2bSlug: "empresas-estructuras-metalicas",
-    icon: Building2,
-    title: "Proveedores para Constructoras",
-    description: "Soluciones metalmecánicas para obras. Homologados para Grupo LAR.",
-    subServicios: ["Fabricación según planos", "Montaje en obra", "Homologación por Hodelpe"],
-    image: "/img/proyectos/qantua/28-vistaIntegralQantuaF1&F2.jpeg",
-    tag: "Atención B2B",
-  },
-  {
-    slug: "barandas-pasamanos",
-    b2bSlug: "barandas-acero-inoxidable", // <-- Enlaza a la landing B2B
-    icon: Shield,
-    title: "Barandas y Pasamanos",
-    description:
-      "Fabricación e instalación de barandas metálicas y de acero inoxidable para balcones, escaleras y terrazas. Resistencia a la intemperie y diseño a medida.",
-    subServicios: [
-      "Barandas metálicas",
-      "Barandas para balcones",
-      "Barandas de escaleras",
-      "Barandas de azotea",
-      "Barandas de seguridad",
-      "Pasamanos metálicos",
-      "Pasamanos para escaleras de emergencia",
-      "Pasamanos adosados a muro",
-    ],
-    image: "/img/barandaBalcones.jpg",
-    tag: "8 servicios",
-  },
-  {
-    slug: "escaleras-metalicas",
-    // Sin b2bSlug: enlaza a la categoría general
-    icon: Gauge,
-    title: "Escaleras Metálicas",
-    description:
-      "Fabricamos soluciones metálicas para acceso, circulación y evacuación, adaptadas a cada proyecto y normativa.",
-    subServicios: [
-      "Escaleras metálicas",
-      "Escaleras de emergencia",
-      "Escaleras marineras",
-      "Escaleras industriales",
-      "Plataformas con escaleras",
-      "Accesos técnicos",
-    ],
-    image: "/img/escaleras-de-emergencia.jpg",
-    tag: "6 servicios",
-  },
-  {
-    slug: "puertas-portones",
-    // Sin b2bSlug: enlaza a la categoría general
-    icon: DoorOpen,
-    title: "Puertas, Portones y Cerramientos",
-    description:
-      "Desarrollamos soluciones de seguridad y control de accesos para edificaciones y proyectos de infraestructura.",
-    subServicios: [
-      "Portones metálicos",
-      "Puertas metálicas",
-      "Puertas cortafuego",
-      "Cercos metálicos",
-      "Cerramientos industriales",
-      "Protección perimetral",
-      "Mallas de seguridad",
-    ],
-    image: "/img/portones.jpeg",
-    tag: "7 servicios",
-  },
-  {
-    slug: "cercos-cerramientos",
-    b2bSlug: "chutes-metalicos-para-construccion", // <-- Enlaza a la landing B2B
-    icon: HardHat,
-    title: "Soluciones para Constructoras",
-    description:
-      "Especialistas en cerco perimetral para obra y cercos prefabricados. Ofrecemos cerramientos temporales, chutes metálicos y soluciones ágiles para constructoras.",
-    subServicios: [
-      "Chutes metálicos",
-      "Cerramientos temporales",
-      "Barandas provisionales",
-      "Protecciones para obra",
-      "Adecuaciones metálicas",
-      "Modificaciones en obra",
-      "Montajes especiales",
-      "Refuerzos estructurales",
-    ],
-    image: "/img/cercosPerimetricos.jpg",
-    tag: "8 servicios",
-  },
-  {
-    slug: "fabricacion-medida",
-    // Sin b2bSlug: enlaza a la categoría general
-    icon: Wrench,
-    title: "Fabricación a Medida",
-    description:
-      "Desarrollamos soluciones metálicas personalizadas de acuerdo con planos, especificaciones técnicas y requerimientos del cliente.",
-    subServicios: [
-      "Rejillas metálicas",
-      "Sumideros metálicos",
-      "Tapas metálicas",
-      "Bastidores",
-      "Racks",
-      "Soportes especiales",
-      "Elementos metálicos personalizados",
-      "Fabricación según planos",
-    ],
-    image: "/img/soldaduraPersonalizada.jpg",
-    tag: "8 servicios",
-  },
-];
+};
 
 // ============================================================
 // DATOS ESTRATÉGICOS
@@ -229,109 +117,57 @@ function CornerMarks({ active = false }: { active?: boolean }) {
   );
 }
 
-function useScrollReveal<T extends HTMLElement>(threshold = 0.12) {
-  const ref = useRef<T | null>(null);
-  const [inView, setInView] = useState(false);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => setInView(entry.isIntersecting),
-      { threshold, rootMargin: "-60px 0px -60px 0px" }
-    );
-
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [threshold]);
-
-  return { ref, inView };
-}
-
-function CategoriaCard({ categoria, index }: { categoria: Categoria; index: number }) {
+function CategoriaCard({ categoria }: { categoria: ServicioCatalogo }) {
   const Icon = categoria.icon;
-  const { ref, inView } = useScrollReveal<HTMLAnchorElement>(0.1);
-
-  // Estrategia: Si tiene b2bSlug, el enlace principal va a la landing B2B.
-  const href = categoria.b2bSlug
-    ? `/servicios/${categoria.b2bSlug}`
-    : `/servicios/${categoria.slug}`;
 
   return (
-    <Link
-      href={href}
-      ref={ref}
-      className="group relative block bg-white border border-[#E3E1D8] rounded-sm overflow-hidden transition-all hover:border-[#FF5A1F]/40 hover:shadow-xl hover:-translate-y-2"
-      style={{
-        opacity: inView ? 1 : 0,
-        transform: inView ? "translateY(0)" : "translateY(30px)",
-        transition: `opacity 700ms cubic-bezier(0.16,1,0.3,1) ${index * 100}ms, transform 700ms cubic-bezier(0.16,1,0.3,1) ${index * 100}ms`,
-      }}
-    >
-      <CornerMarks active={!!categoria.b2bSlug} />
-
-      {/* Imagen de fondo */}
-      <div className="relative h-48 overflow-hidden bg-[#14161A]">
-        <Image
-          src={categoria.image}
-          alt={categoria.title}
-          fill
-          sizes="(min-width: 1280px) 400px, (min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-        <div className="absolute bottom-3 left-3">
-          <span
-            className="text-[10px] font-medium text-white bg-black/50 px-2 py-1 rounded-sm"
-            style={{ fontFamily: FONT_MONO }}
-          >
+    <article className="group relative flex h-full flex-col overflow-hidden rounded-sm border border-[#E3E1D8] bg-white transition-shadow hover:shadow-lg motion-reduce:transition-none">
+      <Link
+        href={categoria.href}
+        className="relative flex flex-1 flex-col focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#B8390F]"
+      >
+        <CornerMarks />
+        <div className="relative h-48 shrink-0 overflow-hidden bg-[#14161A]">
+          <Image
+            src={categoria.image}
+            alt={categoria.imageAlt}
+            fill
+            sizes="(min-width: 1280px) 400px, (min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+            className="object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:transform-none motion-reduce:transition-none"
+          />
+          <span className="absolute bottom-3 left-3 rounded-sm bg-black/70 px-2 py-1 text-xs text-white">
             {categoria.tag}
           </span>
         </div>
-        {categoria.b2bSlug && (
-          <div className="absolute top-3 right-3">
-            <span className="text-[9px] font-bold text-white bg-[#FF5A1F] px-2 py-1 rounded-sm uppercase tracking-wider shadow-lg">
-              Ficha B2B
-            </span>
+        <div className="flex flex-1 flex-col p-6">
+          <div className="mb-3 flex items-start gap-3">
+            <Icon className="mt-1 h-6 w-6 shrink-0 text-[#B8390F]" aria-hidden />
+            <h3 className="text-xl font-semibold text-[#1E2126]" style={{ fontFamily: FONT_DISPLAY }}>
+              {categoria.title}
+            </h3>
           </div>
-        )}
-      </div>
-
-      {/* Contenido */}
-      <div className="p-6">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm bg-[#FF5A1F]/10 border border-[#FF5A1F]/20">
-            <Icon className="h-5 w-5 text-[#FF5A1F]" />
-          </div>
-          <h3
-            className="text-lg font-semibold text-[#1E2126]"
-            style={{ fontFamily: FONT_DISPLAY }}
-          >
-            {categoria.title}
-          </h3>
+          <p className="mb-5 text-sm leading-relaxed text-[#565C63]">{categoria.description}</p>
+          <span className="mt-auto inline-flex items-center gap-2 text-sm font-semibold text-[#B8390F]">
+            {categoria.linkLabel}
+            <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
+          </span>
         </div>
-
-        <p className="text-sm text-[#565C63] leading-relaxed mb-4 line-clamp-2">
-          {categoria.description}
-        </p>
-
-        <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-1 text-sm font-medium text-[#FF5A1F]">
-            <span>{categoria.slug === "empresas-estructuras-metalicas" ? "Ver capacidades y obras" : categoria.b2bSlug ? "Ver ficha técnica B2B" : "Ver todos los servicios"}</span>
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-          </div>
-          {categoria.b2bSlug && categoria.slug !== "empresas-estructuras-metalicas" && (
-            <span className="text-[10px] text-[#8B8F86]">
-              Incluye todas las subcategorías
-            </span>
-          )}
+      </Link>
+      {categoria.relatedLinks.length > 0 && (
+        <div className="border-t border-[#E3E1D8] bg-[#F7F7F4] px-6 py-3">
+          {categoria.relatedLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-[#B8390F] underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#B8390F]"
+            >
+              {link.label}
+              <ArrowRight className="h-3.5 w-3.5 shrink-0" aria-hidden />
+            </Link>
+          ))}
         </div>
-      </div>
-
-      {/* Línea inferior animada */}
-      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#FF5A1F] scale-x-0 transition-transform duration-500 origin-left group-hover:scale-x-100" />
-    </Link>
+      )}
+    </article>
   );
 }
 
@@ -340,11 +176,12 @@ function CategoriaCard({ categoria, index }: { categoria: Categoria; index: numb
 // ============================================================
 
 export default function ServiciosPage() {
-  const { ref: heroRef, inView: heroInView } = useScrollReveal<HTMLDivElement>(0.1);
-  const { ref: ctaRef, inView: ctaInView } = useScrollReveal<HTMLDivElement>(0.1);
-
   return (
     <div className="min-h-screen bg-[#F7F7F4]" style={{ fontFamily: FONT_BODY }}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd).replace(/</g, "\\u003c") }}
+      />
 
       {/* ============================================================
           HERO
@@ -370,15 +207,7 @@ export default function ServiciosPage() {
           }}
         />
 
-        <div
-          ref={heroRef}
-          className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8"
-          style={{
-            opacity: heroInView ? 1 : 0,
-            transform: heroInView ? "translateY(0)" : "translateY(30px)",
-            transition: "opacity 800ms cubic-bezier(0.16,1,0.3,1), transform 800ms cubic-bezier(0.16,1,0.3,1)",
-          }}
-        >
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl">
             <span
               className="inline-flex items-center gap-2.5 text-xs font-medium uppercase tracking-[0.22em] text-[#8A8F96]"
@@ -391,17 +220,17 @@ export default function ServiciosPage() {
               className="mt-6 text-4xl font-semibold tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl"
               style={{ fontFamily: FONT_DISPLAY }}
             >
-              Soluciones integrales
-              <br />
-              en{" "}
+              Servicios de
+              <br />{" "}
               <span className="relative inline-block">
                 <span className="text-[#FF5A1F]">metalmecánica</span>
                 <span className="absolute -bottom-1 left-0 right-0 h-1 bg-[#FF5A1F]/30 rounded-full blur-sm" />
               </span>
             </h1>
             <p className="mt-6 text-lg text-[#9AA0A6] max-w-xl leading-relaxed">
-              Explora nuestras 6 líneas de negocio y la atención para constructoras.
-              Desde estructuras metálicas hasta fabricación a medida, tenemos la solución para tu proyecto.
+              Fabricamos e instalamos estructuras, barandas, escaleras, portones
+              y chutes metálicos en Lima. Elige el servicio que necesitas o
+              envíanos los planos para cotizar varios alcances de tu obra.
             </p>
 
             <div className="mt-8 flex flex-wrap gap-4">
@@ -411,6 +240,13 @@ export default function ServiciosPage() {
               >
                 <PhoneCall className="h-4 w-4" />
                 Cotizar ahora
+              </Link>
+              <Link
+                href="#constructoras"
+                className="inline-flex min-h-11 items-center gap-2 border border-white/40 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#FF5A1F]"
+              >
+                Soy constructora
+                <ArrowRight className="h-4 w-4" aria-hidden />
               </Link>
             </div>
 
@@ -484,15 +320,19 @@ export default function ServiciosPage() {
               <span className="text-[#FF5A1F]">metalmecánica</span>
             </h2>
             <p className="mt-3 text-[#565C63] max-w-2xl mx-auto">
-              Cada categoría contiene una lista detallada de servicios con
-              imágenes y descripciones específicas.
+              Explora los alcances, revisa trabajos realizados y encuentra
+              la solución metálica que necesita tu proyecto.
             </p>
           </div>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {categorias.map((categoria, index) => (
-              <CategoriaCard key={categoria.slug} categoria={categoria} index={index} />
+            {SERVICIOS_CATALOGO.map((categoria) => (
+              <CategoriaCard key={categoria.slug} categoria={categoria} />
             ))}
+          </div>
+
+          <div id="constructoras" className="mt-12 scroll-mt-28 lg:mt-16">
+            <ConstructorasCTA />
           </div>
         </div>
       </section>
@@ -565,13 +405,7 @@ export default function ServiciosPage() {
           ============================================================ */}
       <section className="bg-white py-16 lg:py-20 border-t border-[#E3E1D8]">
         <div
-          ref={ctaRef}
           className="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8"
-          style={{
-            opacity: ctaInView ? 1 : 0,
-            transform: ctaInView ? "translateY(0)" : "translateY(20px)",
-            transition: "opacity 700ms cubic-bezier(0.16,1,0.3,1), transform 700ms cubic-bezier(0.16,1,0.3,1)",
-          }}
         >
           <h2
             className="text-3xl font-semibold text-[#1E2126]"
@@ -598,15 +432,6 @@ export default function ServiciosPage() {
           </div>
         </div>
       </section>
-
-      <style jsx>{`
-        @media (prefers-reduced-motion: reduce) {
-          section * {
-            transition: none !important;
-            animation: none !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }

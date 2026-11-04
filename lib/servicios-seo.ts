@@ -99,21 +99,21 @@ export const SERVICIOS_SEO: Record<string, ServicioSEO> = {
   "cercos-cerramientos": {
     slug: "cercos-cerramientos",
     metaTitle:
-      "Chutes Metálicos y Soluciones para Constructoras en Lima | LUDIER",
+      "Cercos Perimetrales y Protecciones para Obras en Lima | LUDIER",
     metaDescription:
-      "Chutes metálicos, cerramientos temporales, barandas provisionales y refuerzos estructurales para obras. Especialistas en construcción vertical.",
+      "Fabricación e instalación de cercos perimetrales, cerramientos temporales y protecciones provisionales para obras en Lima. Cotiza según planos y metrados.",
     keywords: [
-      "chutes metálicos",
-      "chutes para residuos obra",
-      "chute metálico 19 pisos",
+      "cercos perimetrales para obras",
+      "cercos prefabricados Lima",
+      "protecciones para obra",
       "cerramientos temporales obra",
       "barandas provisionales",
       "refuerzos estructurales",
-      "soluciones para constructoras Lima",
+      "cerco perimetral para obra",
     ],
-    ogImage: "/img/chutesMetalicos.webp",
+    ogImage: "/img/cercosPerimetricos.jpg",
     schemaDescription:
-      "Soluciones metalmecánicas para obras de construcción vertical: chutes metálicos, cerramientos temporales, barandas provisionales y refuerzos.",
+      "Fabricación e instalación de cercos perimetrales, cerramientos temporales, barandas provisionales y protecciones para obras en Lima.",
   },
 
   "fabricacion-medida": {

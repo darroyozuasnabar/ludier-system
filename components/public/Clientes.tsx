@@ -15,11 +15,12 @@ const clientes = [
   { nombre: "Real Edificaciones", logo: "/img/RealEdificaciones.png" },
   { nombre: "CHL", logo: "/img/CHL_Logo.png" },
   { nombre: "Zonum Inmobiliaria", logo: "/img/zonumInmobiliariaLogo.png" },
+  { nombre: "Constructora M&J", logo: "/img/constructoraM&J.png" },
 ];
 
 const stats = [
   { value: 20, prefix: "+", suffix: "", label: "Proyectos ejecutados" },
-  { value: 7, prefix: "+", suffix: "", label: "Empresas líderes del sector" },
+  { value: clientes.length, prefix: "+", suffix: "", label: "Empresas líderes del sector" },
   { value: 100, prefix: "", suffix: "%", label: "Compromiso en cada obra" },
 ];
 
