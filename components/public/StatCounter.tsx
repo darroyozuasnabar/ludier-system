@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 export default function StatCounter({ value }: { value: string }) {
   const [count, setCount] = useState(0);
   const [started, setStarted] = useState(false);
-  const [isAnimating, setIsAnimating] = useState(false);
+  const [finished, setFinished] = useState(false);
   const ref = useRef<HTMLSpanElement>(null);
 
   const numericPart = parseInt(value.replace(/\D/g, ""), 10) || 0;
@@ -29,32 +29,31 @@ export default function StatCounter({ value }: { value: string }) {
 
   useEffect(() => {
     if (!started) return;
-    
+
     // Respetar preferencia de movimiento reducido
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       setCount(numericPart);
+      setFinished(true);
       return;
     }
 
-    setIsAnimating(true);
     let startTime: number | null = null;
-    const duration = 2000; // 2 segundos para que se sienta más épico
+    const duration = 3000; // 3 segundos: tiempo suficiente para apreciarlo
 
     const animate = (timestamp: number) => {
       if (!startTime) startTime = timestamp;
       const progress = Math.min((timestamp - startTime) / duration, 1);
       
-      // Función de easing: arranca lento, acelera y frena suave al final
-      const easeInOutQuart = progress < 0.5 
-        ? 8 * progress * progress * progress * progress 
-        : 1 - Math.pow(-2 * progress + 2, 4) / 2;
-        
-      setCount(Math.floor(easeInOutQuart * numericPart));
+      // Easing: arranca suave, acelera y frena al final
+      const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+      
+      setCount(Math.floor(easeOutQuart * numericPart));
 
       if (progress < 1) {
         requestAnimationFrame(animate);
       } else {
-        setIsAnimating(false); // Termina la animación cuando llega al final
+        setCount(numericPart);
+        setFinished(true);
       }
     };
     requestAnimationFrame(animate);
@@ -63,10 +62,10 @@ export default function StatCounter({ value }: { value: string }) {
   return (
     <span
       ref={ref}
-      className={`mt-3 inline-block text-3xl font-bold text-[#1E2126] transition-all duration-300 ${
-        isAnimating 
-          ? "scale-110 text-[#FF5A1F] blur-[0.5px]" 
-          : "scale-100 group-hover:text-[#FF5A1F]"
+      className={`mt-3 inline-block text-2xl font-semibold text-[#1E2126] transition-all duration-500 ${
+        finished 
+          ? "scale-100 group-hover:text-[#FF5A1F]" 
+          : "scale-95 text-[#FF5A1F]"
       }`}
     >
       {count}{suffix}
