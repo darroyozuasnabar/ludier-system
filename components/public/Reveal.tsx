@@ -14,55 +14,43 @@ export default function Reveal({
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const element = ref.current;
-    if (!element) return;
-    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (motion.matches) return;
+    const el = ref.current;
+    if (!el) return;
 
-    let animation: Animation | undefined;
-    let observer: IntersectionObserver | undefined;
-    let revealed = false;
-
-    const reveal = () => {
-      if (revealed || motion.matches) return;
-      revealed = true;
-      observer?.disconnect();
-      animation = element.animate(
-        [
-          { opacity: 0, transform: "translateY(60px) scale(0.9)", filter: "blur(10px)" },
-          { opacity: 1, transform: "translateY(0) scale(1)", filter: "blur(0)" },
-        ],
-        { duration: 1000, delay, easing: "cubic-bezier(0.16, 1, 0.3, 1)", fill: "backwards" },
-      );
-    };
-
-    const bounds = element.getBoundingClientRect();
-    const visible = bounds.width > 0 && bounds.height > 0
-      && bounds.top < window.innerHeight && bounds.bottom > 0
-      && bounds.left < window.innerWidth && bounds.right > 0;
-
-    if (visible) {
-      reveal();
-    } else if (window.IntersectionObserver) {
-      observer = new IntersectionObserver(([entry]) => {
-        if (entry.isIntersecting) reveal();
-      }, { threshold: 0.08 });
-      observer.observe(element);
+    // Respetar movimiento reducido
+    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReduced) {
+      el.style.opacity = "1";
+      el.style.transform = "none";
+      el.style.filter = "none";
+      return;
     }
 
-    const stop = () => {
-      if (!motion.matches) return;
-      observer?.disconnect();
-      animation?.cancel();
-    };
-    motion.addEventListener("change", stop);
-    return () => {
-      observer?.disconnect();
-      animation?.cancel();
-      motion.removeEventListener("change", stop);
-    };
+    // Estado inicial
+    el.style.opacity = "0";
+    el.style.transform = "translateY(50px) scale(0.95)";
+    el.style.filter = "blur(10px)";
+    el.style.transition = `all 0.9s cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms`;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          el.style.opacity = "1";
+          el.style.transform = "translateY(0) scale(1)";
+          el.style.filter = "blur(0)";
+          observer.unobserve(el);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
   }, [delay]);
 
-  // El contenido permanece visible sin JavaScript; la entrada es una mejora visual.
-  return <div ref={ref} className={className}>{children}</div>;
+  return (
+    <div ref={ref} className={className} style={{ willChange: "transform, opacity, filter" }}>
+      {children}
+    </div>
+  );
 }
