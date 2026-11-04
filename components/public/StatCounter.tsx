@@ -1,61 +1,101 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+
+const DURATION = 2500;
 
 export default function StatCounter({ value }: { value: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
   const [count, setCount] = useState(0);
   const [finished, setFinished] = useState(false);
 
-  // 1. Extraemos solo el número (ej: "10+" -> 10, "95%" -> 95)
-  const targetNumber = parseInt(value.replace(/\D/g, ""), 10) || 0;
-  
-  // 2. Extraemos el sufijo (todo lo que NO sea número: "+", "%", etc.)
-  const suffix = value.replace(/\d/g, "");
+  // Capturas independientes: "10+" -> ["10", "+"], "95%" -> ["95", "%"].
+  const match = value.trim().match(/^(\d+)(\D*)$/);
+  const targetNumber = match ? Number(match[1]) : 0;
+  const suffix = match?.[2] ?? "";
 
   useEffect(() => {
-    // Si el usuario prefiere movimiento reducido, mostramos el valor final de golpe
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    const element = ref.current;
+    if (!element) return;
+
+    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let frame: number | undefined;
+    let observer: IntersectionObserver | undefined;
+    let started = false;
+    let startTime: number | undefined;
+
+    const finish = () => {
+      if (frame !== undefined) cancelAnimationFrame(frame);
+      observer?.disconnect();
       setCount(targetNumber);
       setFinished(true);
-      return;
-    }
-
-    let startTime: number | null = null;
-    const duration = 2500; // 2.5 segundos
+    };
 
     const animate = (timestamp: number) => {
-      if (!startTime) startTime = timestamp;
-      const progress = Math.min((timestamp - startTime) / duration, 1);
-      
-      // Easing para que frene suavemente al final
-      const easeOutQuart = 1 - Math.pow(1 - progress, 4);
-      
-      setCount(Math.floor(easeOutQuart * targetNumber));
+      startTime ??= timestamp;
+      const progress = Math.min((timestamp - startTime) / DURATION, 1);
+
+      // Un avance uniforme mantiene el conteo visible durante los 2,5 segundos.
+      setCount(Math.floor(progress * targetNumber));
 
       if (progress < 1) {
-        requestAnimationFrame(animate);
+        frame = requestAnimationFrame(animate);
       } else {
-        setCount(targetNumber);
-        setFinished(true);
+        finish();
       }
     };
 
-    // Pequeño delay para asegurar que el "0" se pinte primero
-    const timer = setTimeout(() => {
-      requestAnimationFrame(animate);
-    }, 100);
+    const start = () => {
+      if (started) return;
+      started = true;
+      observer?.disconnect();
+      if (motion.matches || targetNumber === 0) {
+        finish();
+        return;
+      }
+      frame = requestAnimationFrame(animate);
+    };
 
-    return () => clearTimeout(timer);
+    const updateMotion = () => {
+      if (motion.matches) finish();
+    };
+
+    if (motion.matches || targetNumber === 0) {
+      finish();
+    } else {
+      setCount(0);
+      setFinished(false);
+      const bounds = element.getBoundingClientRect();
+      const visible = bounds.top < window.innerHeight && bounds.bottom > 0
+        && bounds.left < window.innerWidth && bounds.right > 0;
+
+      if (visible || !window.IntersectionObserver) {
+        start();
+      } else {
+        observer = new IntersectionObserver(([entry]) => {
+          if (entry.isIntersecting) start();
+        }, { threshold: 0.1 });
+        observer.observe(element);
+      }
+    }
+
+    motion.addEventListener("change", updateMotion);
+    return () => {
+      if (frame !== undefined) cancelAnimationFrame(frame);
+      observer?.disconnect();
+      motion.removeEventListener("change", updateMotion);
+    };
   }, [targetNumber]);
 
   return (
     <span
-      className={`mt-3 inline-block text-2xl font-semibold transition-colors duration-300 ${
+      ref={ref}
+      style={{ fontFamily: "var(--font-display)" }}
+      className={`mt-3 inline-block text-2xl font-semibold tabular-nums transition-colors duration-300 motion-reduce:transition-none ${
         finished ? "text-[#1E2126] group-hover:text-[#FF5A1F]" : "text-[#FF5A1F]"
       }`}
     >
-      {count}
-      {suffix}
+      {match ? `${count}${suffix}` : value}
     </span>
   );
 }
