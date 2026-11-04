@@ -6,12 +6,11 @@ export default function StatCounter({ value }: { value: string }) {
   const [count, setCount] = useState(0);
   const [finished, setFinished] = useState(false);
 
-  // Extraemos el número y el sufijo correctamente
-  // "10+" -> numericPart = 10, suffix = "+"
-  // "95%" -> numericPart = 95, suffix = "%"
-  const match = value.match(/(\d+)(.*)/);
-  const targetNumber = match ? parseInt(match[1], 10) : 0;
-  const suffix = match ? match[2] : "";
+  // 1. Extraemos solo el número (ej: "10+" -> 10, "95%" -> 95)
+  const targetNumber = parseInt(value.replace(/\D/g, ""), 10) || 0;
+  
+  // 2. Extraemos el sufijo (todo lo que NO sea número: "+", "%", etc.)
+  const suffix = value.replace(/\d/g, "");
 
   useEffect(() => {
     // Si el usuario prefiere movimiento reducido, mostramos el valor final de golpe
