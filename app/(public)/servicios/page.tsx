@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
   ShieldCheck,
@@ -17,6 +16,7 @@ import Reveal from "@/components/public/Reveal";
 import ServiciosHero from "@/components/public/ServiciosHero";
 import ServicioCard from "@/components/public/ServicioCard";
 import ConstructorasCTA from "@/components/public/ConstructorasCTA";
+import StatCounter from "@/components/public/StatCounter";
 import { SERVICIOS_CATALOGO } from "@/lib/servicios-catalogo";
 
 const FONT_DISPLAY = "var(--font-display)";
@@ -29,7 +29,6 @@ const TITLE = "Servicios de Metalmecánica en Lima | LUDIER";
 const DESCRIPTION =
   "Fabricación e instalación de estructuras metálicas, barandas, escaleras, portones y chutes en Lima. Atención a constructoras y trabajos según planos.";
 
-// --- SEO ---
 export const metadata: Metadata = {
   title: { absolute: TITLE },
   description: DESCRIPTION,
@@ -51,61 +50,23 @@ export const metadata: Metadata = {
   },
 };
 
-// ============================================================
-// COMPONENTE CLIENTE PARA EL CONTADOR
-// ============================================================
-function StatCounter({ value }: { value: string }) {
-  const [count, setCount] = useState(0);
-  const [started, setStarted] = useState(false);
-  const ref = useRef<HTMLSpanElement>(null);
+const collectionJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  name: TITLE,
+  description: DESCRIPTION,
+  url: PAGE_URL,
+  mainEntity: {
+    "@type": "ItemList",
+    itemListElement: SERVICIOS_CATALOGO.map((servicio, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: servicio.title,
+      url: `${SITE_URL}${servicio.href}`,
+    })),
+  },
+};
 
-  const numericPart = parseInt(value.replace(/\D/g, ""), 10) || 0;
-  const suffix = value.replace(/\d/g, "");
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setStarted(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.5 }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
-    if (!started) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setCount(numericPart);
-      return;
-    }
-    let startTime: number | null = null;
-    const duration = 1500;
-    const animate = (timestamp: number) => {
-      if (!startTime) startTime = timestamp;
-      const progress = Math.min((timestamp - startTime) / duration, 1);
-      const easeOutQuart = 1 - Math.pow(1 - progress, 4);
-      setCount(Math.floor(easeOutQuart * numericPart));
-      if (progress < 1) requestAnimationFrame(animate);
-    };
-    requestAnimationFrame(animate);
-  }, [started, numericPart]);
-
-  return (
-    <span ref={ref} className="mt-3 text-2xl font-semibold text-[#1E2126] transition-colors group-hover:text-[#FF5A1F]">
-      {count}{suffix}
-    </span>
-  );
-}
-
-// ============================================================
-// DATOS
-// ============================================================
 const STATS = [
   { value: "10+", label: "Años de experiencia", icon: Award },
   { value: "20+", label: "Proyectos ejecutados", icon: Building2 },
@@ -133,27 +94,7 @@ function CornerMarks({ active = false }: { active?: boolean }) {
   );
 }
 
-// ============================================================
-// PÁGINA PRINCIPAL
-// ============================================================
 export default function ServiciosPage() {
-  const collectionJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "CollectionPage",
-    name: TITLE,
-    description: DESCRIPTION,
-    url: PAGE_URL,
-    mainEntity: {
-      "@type": "ItemList",
-      itemListElement: SERVICIOS_CATALOGO.map((servicio, index) => ({
-        "@type": "ListItem",
-        position: index + 1,
-        name: servicio.title,
-        url: `${SITE_URL}${servicio.href}`,
-      })),
-    },
-  };
-
   return (
     <div className="min-h-screen bg-[#F7F7F4]" style={{ fontFamily: FONT_BODY }}>
       <script
