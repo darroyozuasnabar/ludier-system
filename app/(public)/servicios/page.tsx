@@ -16,6 +16,7 @@ import Reveal from "@/components/public/Reveal";
 import ServiciosHero from "@/components/public/ServiciosHero";
 import ServicioCard from "@/components/public/ServicioCard";
 import ConstructorasCTA from "@/components/public/ConstructorasCTA";
+import ContadorAnimado from "@/components/public/ContadorAnimado";
 import { SERVICIOS_CATALOGO } from "@/lib/servicios-catalogo";
 
 const FONT_DISPLAY = "var(--font-display)";
@@ -101,7 +102,7 @@ const beneficios = [
 ];
 
 // ============================================================
-// COMPONENTES
+// COMPONENTES AUXILIARES
 // ============================================================
 
 function CornerMarks({ active = false }: { active?: boolean }) {
@@ -137,7 +138,7 @@ export default function ServiciosPage() {
       <ServiciosHero />
 
       {/* ============================================================
-          ESTADÍSTICAS DE CONFIANZA (CON REVEAL Y HOVER)
+          ESTADÍSTICAS DE CONFIANZA (CON CONTADOR ANIMADO)
           ============================================================ */}
       <section className="py-12 bg-white border-b border-[#E3E1D8]">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -153,12 +154,10 @@ export default function ServiciosPage() {
                   <div className="flex h-12 w-12 items-center justify-center rounded-sm bg-[#FF5A1F]/10 border border-[#FF5A1F]/20 transition-all duration-300 group-hover:scale-110 group-hover:bg-[#FF5A1F] group-hover:text-white">
                     <Icon className="h-6 w-6 text-[#FF5A1F] transition-colors group-hover:text-white" />
                   </div>
-                  <p
+                  <ContadorAnimado
+                    value={stat.value}
                     className="mt-3 text-2xl font-semibold text-[#1E2126] transition-colors group-hover:text-[#FF5A1F]"
-                    style={{ fontFamily: FONT_DISPLAY }}
-                  >
-                    {stat.value}
-                  </p>
+                  />
                   <p className="text-sm text-[#565C63]" style={{ fontFamily: FONT_BODY }}>{stat.label}</p>
                 </Reveal>
               );
@@ -207,10 +206,9 @@ export default function ServiciosPage() {
       </section>
 
       {/* ============================================================
-          BENEFICIOS - POR QUÉ ELEGIRNOS (CON FONDO MEJORADO)
+          BENEFICIOS - POR QUÉ ELEGIRNOS
           ============================================================ */}
       <section className="relative overflow-hidden bg-[#14161A] py-20 lg:py-28">
-        {/* Fondo con gradiente y partículas sutiles */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#FF5A1F]/5 via-transparent to-transparent opacity-50" />
         <div className="pointer-events-none absolute inset-0 opacity-[0.03] bg-[url('/img/grid-pattern.svg')] bg-repeat" />
         <div
@@ -247,7 +245,6 @@ export default function ServiciosPage() {
                   <div
                     className="group relative h-full overflow-hidden rounded-sm border border-[#3A3F45] bg-[#1D2024] p-6 transition-all duration-500 hover:-translate-y-2 hover:border-[#FF5A1F]/40 hover:shadow-2xl hover:shadow-[#FF5A1F]/5"
                   >
-                    {/* Efecto de luz en hover */}
                     <div className="absolute inset-0 bg-gradient-to-br from-[#FF5A1F]/10 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
                     <CornerMarks active={true} />
                     <div className="relative z-10 mb-4 flex h-12 w-12 items-center justify-center rounded-sm border border-[#FF5A1F]/20 bg-[#FF5A1F]/10 transition-all duration-300 group-hover:scale-110 group-hover:bg-[#FF5A1F]">
@@ -275,7 +272,7 @@ export default function ServiciosPage() {
       </section>
 
       {/* ============================================================
-          CTA FINAL (CON REVEAL Y BOTÓN MEJORADO)
+          CTA FINAL
           ============================================================ */}
       <section className="bg-white py-16 lg:py-20 border-t border-[#E3E1D8]">
         <Reveal className="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
