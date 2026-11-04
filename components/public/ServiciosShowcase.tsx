@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type PointerEvent } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
@@ -35,13 +35,37 @@ const OBRAS = [
 export default function ServiciosShowcase() {
   const [active, setActive] = useState(0);
   const frame = useRef<HTMLDivElement>(null);
+  const images = useRef<HTMLDivElement>(null);
+  const reducedMotion = useRef(true);
   const obra = OBRAS[active];
 
-  function move(event: PointerEvent<HTMLDivElement>) {
-    if (event.pointerType !== "mouse" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  function reset() {
+    if (images.current) {
+      images.current.style.transform = "rotateX(0deg) rotateY(0deg)";
+    }
+  }
+
+  useEffect(() => {
+    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const updateMotion = () => {
+      reducedMotion.current = motion.matches;
+      if (motion.matches) reset();
+    };
+    updateMotion();
+    motion.addEventListener("change", updateMotion);
+    return () => motion.removeEventListener("change", updateMotion);
+  }, []);
+
+  function move(event: MouseEvent<HTMLDivElement>) {
+    if (reducedMotion.current || !window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
     const element = frame.current;
-    if (!element) return;
+    const layer = images.current;
+    if (!element || !layer) return;
     const bounds = element.getBoundingClientRect();
+    if (!bounds.width || !bounds.height) return;
+    const x = Math.max(-1, Math.min(1, ((event.clientX - bounds.left) / bounds.width) * 2 - 1));
+    const y = Math.max(-1, Math.min(1, ((event.clientY - bounds.top) / bounds.height) * 2 - 1));
+    layer.style.transform = `rotateX(${-y * 4}deg) rotateY(${x * 4}deg)`;
     element.style.setProperty("--spot-x", `${event.clientX - bounds.left}px`);
     element.style.setProperty("--spot-y", `${event.clientY - bounds.top}px`);
   }
@@ -52,16 +76,18 @@ export default function ServiciosShowcase() {
         <span className="flex items-center gap-2"><span className="h-1.5 w-1.5 bg-[#FF5A1F]" aria-hidden />Del taller a la obra</span>
         <span>{String(active + 1).padStart(2, "0")} / 03</span>
       </div>
-      <div ref={frame} onPointerMove={move} className="ludier-showcase-frame">
-        <div key={obra.image} className="ludier-showcase-slide is-active">
-          <Image
-            src={obra.image}
-            alt={obra.alt}
-            fill
-            sizes="(min-width: 1280px) 580px, (min-width: 1024px) 45vw, 100vw"
-            loading="eager"
-            className="object-cover"
-          />
+      <div ref={frame} onMouseMove={move} onMouseLeave={reset} className="ludier-showcase-frame perspective-[1000px]">
+        <div ref={images} className="absolute inset-0 transition-transform duration-200 ease-out motion-reduce:transition-none" style={{ transform: "rotateX(0deg) rotateY(0deg)" }}>
+          <div key={obra.image} className="ludier-showcase-slide is-active">
+            <Image
+              src={obra.image}
+              alt={obra.alt}
+              fill
+              sizes="(min-width: 1280px) 580px, (min-width: 1024px) 45vw, 100vw"
+              loading="eager"
+              className="object-cover"
+            />
+          </div>
         </div>
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#14161A] via-transparent to-black/10" aria-hidden />
         <div className="ludier-showcase-spotlight" aria-hidden />

@@ -1,10 +1,47 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, CheckCircle, ChevronDown, PhoneCall } from "lucide-react";
 import Reveal from "@/components/public/Reveal";
 import ScrollToLink from "@/components/public/ScrollToLink";
 import ServiciosShowcase from "@/components/public/ServiciosShowcase";
 
+const SPECIALTY = "metalmecánica";
+
 export default function ServiciosHero() {
+  const [typed, setTyped] = useState(SPECIALTY);
+  const [reducedMotion, setReducedMotion] = useState(true);
+
+  useEffect(() => {
+    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let timer: ReturnType<typeof setInterval> | undefined;
+
+    const updateMotion = () => {
+      clearInterval(timer);
+      setReducedMotion(motion.matches);
+      if (motion.matches) {
+        setTyped(SPECIALTY);
+        return;
+      }
+
+      let length = 0;
+      setTyped("");
+      timer = setInterval(() => {
+        length += 1;
+        setTyped(SPECIALTY.slice(0, length));
+        if (length === SPECIALTY.length) clearInterval(timer);
+      }, 300);
+    };
+
+    updateMotion();
+    motion.addEventListener("change", updateMotion);
+    return () => {
+      clearInterval(timer);
+      motion.removeEventListener("change", updateMotion);
+    };
+  }, []);
+
   return (
     <section className="ludier-services-hero relative overflow-hidden bg-[#14161A] pb-16 pt-28 lg:pb-24 lg:pt-36">
       <div className="ludier-services-grid" aria-hidden />
@@ -22,7 +59,16 @@ export default function ServiciosHero() {
             <Reveal delay={70}>
               <h1 className="mt-6 text-4xl font-semibold leading-[1.08] tracking-tight text-white sm:text-5xl lg:text-[3.25rem] xl:text-6xl" style={{ fontFamily: "var(--font-display)" }}>
                 Servicios de<br />{" "}
-                <span className="text-[#FF5A1F]">metalmecánica</span>
+                <span className="relative inline-block text-[#FF5A1F]">
+                  <span className="invisible">{SPECIALTY}</span>
+                  <span className="sr-only">{SPECIALTY}</span>
+                  <span aria-hidden="true" className="absolute inset-y-0 left-0">
+                    {typed}
+                    {!reducedMotion && typed === SPECIALTY && (
+                      <span className="absolute left-full top-0 animate-pulse motion-reduce:hidden">|</span>
+                    )}
+                  </span>
+                </span>
               </h1>
             </Reveal>
             <Reveal delay={140}>
