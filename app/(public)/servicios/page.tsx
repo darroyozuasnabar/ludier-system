@@ -18,9 +18,9 @@ import ServicioCard from "@/components/public/ServicioCard";
 import ConstructorasCTA from "@/components/public/ConstructorasCTA";
 import { SERVICIOS_CATALOGO } from "@/lib/servicios-catalogo";
 
-const FONT_DISPLAY = 'var(--font-display, Oswald, ui-sans-serif, sans-serif)';
-const FONT_BODY = 'var(--font-body, Inter, ui-sans-serif, system-ui, sans-serif)';
-const FONT_MONO = 'var(--font-mono, "JetBrains Mono", ui-monospace, monospace)';
+const FONT_DISPLAY = "var(--font-display)";
+const FONT_BODY = "var(--font-body)";
+const FONT_MONO = "var(--font-mono)";
 
 const SITE_URL = "https://grupoludier.com";
 const PAGE_URL = `${SITE_URL}/servicios`;
@@ -145,8 +145,9 @@ export default function ServiciosPage() {
             {STATS.map((stat, index) => {
               const Icon = stat.icon;
               return (
-                <div
+                <Reveal
                   key={index}
+                  delay={index * 70}
                   className="flex flex-col items-center p-4 text-center"
                 >
                   <div className="flex h-12 w-12 items-center justify-center rounded-sm bg-[#FF5A1F]/10 border border-[#FF5A1F]/20">
@@ -158,8 +159,8 @@ export default function ServiciosPage() {
                   >
                     {stat.value}
                   </p>
-                  <p className="text-sm text-[#565C63]">{stat.label}</p>
-                </div>
+                  <p className="text-sm text-[#565C63]" style={{ fontFamily: FONT_BODY }}>{stat.label}</p>
+                </Reveal>
               );
             })}
           </div>
@@ -171,7 +172,7 @@ export default function ServiciosPage() {
           ============================================================ */}
       <section id="catalogo-servicios" tabIndex={-1} className="scroll-mt-24 py-20 outline-none lg:py-28">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-14">
+          <Reveal className="text-center mb-14">
             <span
               className="inline-block text-xs font-medium uppercase tracking-[0.2em] text-[#8B8F86] px-3 py-1 border border-[#E3E1D8]"
               style={{ fontFamily: FONT_MONO }}
@@ -185,11 +186,11 @@ export default function ServiciosPage() {
               Todo lo que necesitas en{" "}
               <span className="text-[var(--ludier-accent-ink)]">metalmecánica</span>
             </h2>
-            <p className="mt-3 text-[#565C63] max-w-2xl mx-auto">
+            <p className="mt-3 text-[#565C63] max-w-2xl mx-auto" style={{ fontFamily: FONT_BODY }}>
               Explora los alcances, revisa trabajos realizados y encuentra
               la solución metálica que necesita tu proyecto.
             </p>
-          </div>
+          </Reveal>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {SERVICIOS_CATALOGO.map((categoria, index) => (
@@ -216,7 +217,7 @@ export default function ServiciosPage() {
         />
 
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-14">
+          <Reveal className="text-center mb-14">
             <span
               className="inline-block text-xs font-medium uppercase tracking-[0.2em] text-[#8A8F96] px-3 py-1 border border-[#3A3F45]"
               style={{ fontFamily: FONT_MONO }}
@@ -230,38 +231,39 @@ export default function ServiciosPage() {
               La diferencia está en el{" "}
               <span className="text-[#FF5A1F]">detalle</span>
             </h2>
-            <p className="mt-3 text-[#9AA0A6] max-w-2xl mx-auto">
+            <p className="mt-3 text-[#9AA0A6] max-w-2xl mx-auto" style={{ fontFamily: FONT_BODY }}>
               4 razones por las que las principales constructoras del Perú confían
               en LUDIER para sus proyectos más exigentes.
             </p>
-          </div>
+          </Reveal>
 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {beneficios.map((beneficio, index) => {
               const Icon = beneficio.icon;
               return (
-                <div
-                  key={index}
-                  className="group relative bg-[#1D2024] border border-[#3A3F45] p-6 rounded-sm transition-all hover:border-[#FF5A1F]/40 hover:-translate-y-2 hover:shadow-2xl hover:shadow-[#FF5A1F]/5"
-                >
-                  <CornerMarks />
-                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-sm bg-[#FF5A1F]/10 border border-[#FF5A1F]/20">
-                    <Icon className="h-6 w-6 text-[#FF5A1F]" />
-                  </div>
-                  <h3
-                    className="text-lg font-semibold text-white"
-                    style={{ fontFamily: FONT_DISPLAY }}
+                <Reveal key={beneficio.title} delay={index * 70} className="h-full">
+                  <div
+                    className="group relative h-full bg-[#1D2024] border border-[#3A3F45] p-6 rounded-sm transition-all hover:border-[#FF5A1F]/40 hover:-translate-y-2 hover:shadow-2xl hover:shadow-[#FF5A1F]/5"
                   >
-                    {beneficio.title}
-                  </h3>
-                  <p className="mt-2 text-sm text-[#9AA0A6] leading-relaxed">
-                    {beneficio.desc}
-                  </p>
-                  <div className="mt-4 flex items-center gap-2">
-                    <CheckCircle className="h-3 w-3 text-[#FF5A1F]" />
-                    <span className="text-[10px] text-[#6E7379] uppercase tracking-wider">Garantizado</span>
+                    <CornerMarks />
+                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-sm bg-[#FF5A1F]/10 border border-[#FF5A1F]/20">
+                      <Icon className="h-6 w-6 text-[#FF5A1F]" />
+                    </div>
+                    <h3
+                      className="text-lg font-semibold text-white"
+                      style={{ fontFamily: FONT_DISPLAY }}
+                    >
+                      {beneficio.title}
+                    </h3>
+                    <p className="mt-2 text-sm text-[#9AA0A6] leading-relaxed" style={{ fontFamily: FONT_BODY }}>
+                      {beneficio.desc}
+                    </p>
+                    <div className="mt-4 flex items-center gap-2">
+                      <CheckCircle className="h-3 w-3 text-[#FF5A1F]" />
+                      <span className="text-[10px] text-[#6E7379] uppercase tracking-wider">Garantizado</span>
+                    </div>
                   </div>
-                </div>
+                </Reveal>
               );
             })}
           </div>
@@ -272,7 +274,7 @@ export default function ServiciosPage() {
           CTA FINAL
           ============================================================ */}
       <section className="bg-white py-16 lg:py-20 border-t border-[#E3E1D8]">
-        <div
+        <Reveal
           className="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8"
         >
           <h2
@@ -281,13 +283,14 @@ export default function ServiciosPage() {
           >
             ¿Tienes un proyecto en mente?
           </h2>
-          <p className="mt-3 text-[#565C63] max-w-xl mx-auto">
+          <p className="mt-3 text-[#565C63] max-w-xl mx-auto" style={{ fontFamily: FONT_BODY }}>
             Cuéntanos qué necesitas y te ayudaremos a encontrar la mejor solución
             metalmecánica para tu proyecto.
           </p>
           <Link
             href="/contacto"
             className="ludier-button ludier-button-primary mt-6"
+            style={{ fontFamily: FONT_BODY }}
           >
             <PhoneCall className="h-4 w-4" />
             Cotizar ahora
@@ -298,7 +301,7 @@ export default function ServiciosPage() {
             <span>✓ Cotización sin compromiso</span>
             <span>✓ Asesoría personalizada</span>
           </div>
-        </div>
+        </Reveal>
       </section>
     </div>
   );
