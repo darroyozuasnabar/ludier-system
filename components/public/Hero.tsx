@@ -15,12 +15,7 @@ import {
   MessageCircle,
 } from "lucide-react";
 
-/**
- * FUENTES
- * Igual que en el Footer: carga Oswald + JetBrains Mono con next/font/google
- * en layout.tsx y expórtalas como variables --font-display / --font-mono
- * para que coincida el 100% del look. Sin eso, cae a un fallback razonable.
- */
+/** La tipografía y los colores se heredan del tema público de LUDIER. */
 
 // 🧾 "Ficha técnica" — reemplaza el stat-counter genérico por filas tipo hoja de specs
 const specs = [
@@ -384,7 +379,7 @@ export default function Hero() {
             <div className="flex flex-col gap-3 xs:flex-row xs:flex-wrap xs:items-center xs:gap-4">
               <Link
                 href="/contacto"
-                className="cta-shine group inline-flex items-center justify-center gap-2 bg-[#FF5A1F] px-6 py-3.5 text-sm font-semibold uppercase tracking-wide text-white shadow-lg shadow-[#FF5A1F]/20 transition-all hover:bg-[#FF7A44] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF5A1F] sm:px-8 sm:py-4"
+                className="ludier-button ludier-button-primary cta-shine group"
               >
                 Cotizar ahora
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />

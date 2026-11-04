@@ -5,7 +5,7 @@ import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 import LayoutClient from "./layout-client";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 const SITE_URL = "https://grupoludier.com";
 const GA_ID = "G-GYRFKP6RFF";
@@ -123,7 +123,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className={`${inter.variable} ${inter.className}`}>
         <LayoutClient>{children}</LayoutClient>
         <GoogleAnalytics gaId={GA_ID} />
       </body>

@@ -200,10 +200,10 @@ export default function EmpresasEstructurasMetalicasPage() {
               ))}
             </ul>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-              <Link href={QUOTE_URL} className="inline-flex min-h-11 items-center justify-center gap-2 bg-[#FF5A1F] px-6 py-3.5 text-center font-semibold text-[#14161A] transition-colors hover:bg-[#FF7A44] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
+              <Link href={QUOTE_URL} className="ludier-button ludier-button-primary">
                 Cotizar mi obra ahora <ArrowRight className="h-5 w-5 shrink-0" aria-hidden="true" />
               </Link>
-              <Link href="#obras-respaldo" className="inline-flex min-h-11 items-center justify-center gap-2 border border-[#59616B] px-5 py-3.5 text-center font-semibold hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#FF5A1F]">
+              <Link href="#obras-respaldo" className="ludier-button ludier-button-secondary ludier-button-secondary-dark">
                 Ver obras ejecutadas <ArrowDownToLine className="h-4 w-4 shrink-0" aria-hidden="true" />
               </Link>
             </div>
@@ -215,7 +215,7 @@ export default function EmpresasEstructurasMetalicasPage() {
         <ul className="mx-auto grid max-w-6xl grid-cols-1 gap-5 py-7 md:grid-cols-3 md:gap-8">
           {TRUST_ITEMS.map(({ icon: Icon, text }) => (
             <li key={text} className="flex min-w-0 items-center gap-4 text-sm font-semibold leading-relaxed">
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center border border-[#FF5A1F]/20 bg-[#FF5A1F]/10"><Icon className="h-6 w-6 text-[#B83B12]" aria-hidden="true" /></span>
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center border border-[#FF5A1F]/20 bg-[#FF5A1F]/10"><Icon className="h-6 w-6 text-[#B8390F]" aria-hidden="true" /></span>
               <span>{text}</span>
             </li>
           ))}
@@ -234,7 +234,7 @@ export default function EmpresasEstructurasMetalicasPage() {
               <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {BENEFITS.map(({ icon: Icon, title, text }) => (
                   <article key={title} className="min-w-0 border-l-4 border-[#FF5A1F] bg-white p-6">
-                    <Icon className="h-8 w-8 text-[#B83B12]" aria-hidden="true" />
+                    <Icon className="h-8 w-8 text-[#B8390F]" aria-hidden="true" />
                     <h3 className="mt-5 text-xl font-semibold" style={{ fontFamily: FONT_DISPLAY }}>{title}</h3>
                     <p className="mt-3 text-base leading-relaxed text-[#555B63]">{text}</p>
                   </article>
@@ -276,7 +276,7 @@ export default function EmpresasEstructurasMetalicasPage() {
                       <h3 className="break-words text-xl font-semibold group-hover:underline" style={{ fontFamily: FONT_DISPLAY }}>{project.titulo}</h3>
                       <p className="mt-2 text-sm text-[#555B63]">{project.cliente}</p>
                       <p className="mt-4 text-base leading-relaxed text-[#555B63]">{PROJECT_DESCRIPTIONS[project.slug]}</p>
-                      <span className="mt-auto inline-flex min-h-11 items-center gap-2 pt-5 font-semibold text-[#B83B12]">
+                      <span className="mt-auto inline-flex min-h-11 items-center gap-2 pt-5 font-semibold text-[#B8390F]">
                         Ver intervención <ArrowUpRight className="h-4 w-4 shrink-0" aria-hidden="true" />
                       </span>
                     </div>
@@ -298,12 +298,12 @@ export default function EmpresasEstructurasMetalicasPage() {
                   <li key={href} className="min-w-0">
                     <Link href={href} className="group flex h-full min-h-11 flex-col border border-[#E3E1D8] bg-white p-4 transition-colors hover:border-[#FF5A1F] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#FF5A1F]">
                       <div className="mb-5 flex items-center justify-between gap-4">
-                        <span className="flex h-12 w-12 items-center justify-center border border-[#E3E1D8] bg-[#F7F7F4]"><Icon className="h-6 w-6 text-[#B83B12]" aria-hidden="true" /></span>
+                        <span className="flex h-12 w-12 items-center justify-center border border-[#E3E1D8] bg-[#F7F7F4]"><Icon className="h-6 w-6 text-[#B8390F]" aria-hidden="true" /></span>
                         <ArrowUpRight className="h-5 w-5 text-[#555B63]" aria-hidden="true" />
                       </div>
                       <h3 className="break-words text-xl font-semibold group-hover:underline" style={{ fontFamily: FONT_DISPLAY }}>{title}</h3>
                       <p className="mt-3 text-base leading-relaxed text-[#555B63]">{text}</p>
-                      <span className="mt-auto pt-5 text-sm font-semibold text-[#B83B12]">Ver servicio</span>
+                      <span className="mt-auto pt-5 text-sm font-semibold text-[#B8390F]">Ver servicio</span>
                     </Link>
                   </li>
                 ))}
@@ -326,7 +326,7 @@ export default function EmpresasEstructurasMetalicasPage() {
                     <li key={item} className="flex items-start gap-3 text-base leading-relaxed text-[#E3E1D8]"><CheckCircle2 className="mt-1 h-5 w-5 shrink-0 text-[#FF5A1F]" aria-hidden="true" /><span>{item}</span></li>
                   ))}
                 </ul>
-                <WhatsAppLink href={WHATSAPP_URL} location="landing-empresas-requisitos" page={PAGE_PATH} className="mt-8 inline-flex min-h-11 w-full items-center justify-center gap-2 bg-[#FF5A1F] px-5 py-3.5 text-center font-semibold text-[#14161A] transition-colors hover:bg-[#FF7A44] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
+                <WhatsAppLink href={WHATSAPP_URL} location="landing-empresas-requisitos" page={PAGE_PATH} className="ludier-button ludier-button-primary mt-8 w-full">
                   <MessageCircle className="h-5 w-5 shrink-0" aria-hidden="true" /> Enviar planos por WhatsApp
                 </WhatsAppLink>
               </div>
@@ -342,9 +342,9 @@ export default function EmpresasEstructurasMetalicasPage() {
               </div>
               <div className="min-w-0 space-y-3">
                 {FAQS.map(({ question, answer }) => (
-                  <details key={question} className="group border border-[#E3E1D8] bg-white open:border-[#B83B12]">
+                  <details key={question} className="group border border-[#E3E1D8] bg-white open:border-[#B8390F]">
                     <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 p-5 text-base font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#FF5A1F]">
-                      <span className="min-w-0">{question}</span><ChevronRight className="h-5 w-5 shrink-0 text-[#B83B12] transition-transform group-open:rotate-90 motion-reduce:transition-none" aria-hidden="true" />
+                      <span className="min-w-0">{question}</span><ChevronRight className="h-5 w-5 shrink-0 text-[#B8390F] transition-transform group-open:rotate-90 motion-reduce:transition-none" aria-hidden="true" />
                     </summary>
                     <p className="px-5 pb-5 text-base leading-relaxed text-[#555B63]">{answer}</p>
                   </details>
@@ -366,9 +366,9 @@ export default function EmpresasEstructurasMetalicasPage() {
           <div className="border border-[#E3E1D8] bg-white p-6">
             <h2 className="mb-4 text-base font-semibold" style={{ fontFamily: FONT_DISPLAY }}>Contacto directo</h2>
             <ul className="space-y-3 text-sm text-[#565C63]">
-              <li><a href={`tel:${PHONE_TEL}`} className="flex min-h-11 items-center gap-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#FF5A1F]"><PhoneCall className="h-4 w-4 shrink-0 text-[#B83B12]" aria-hidden="true" />{PHONE_DISPLAY}</a></li>
-              <li className="flex items-start gap-2"><Clock className="mt-0.5 h-4 w-4 shrink-0 text-[#B83B12]" aria-hidden="true" /><span>Lunes a viernes, 8 a. m. a 6 p. m.</span></li>
-              <li className="flex items-start gap-2"><MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#B83B12]" aria-hidden="true" /><span>San Juan de Miraflores, Lima</span></li>
+              <li><a href={`tel:${PHONE_TEL}`} className="flex min-h-11 items-center gap-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#FF5A1F]"><PhoneCall className="h-4 w-4 shrink-0 text-[#B8390F]" aria-hidden="true" />{PHONE_DISPLAY}</a></li>
+              <li className="flex items-start gap-2"><Clock className="mt-0.5 h-4 w-4 shrink-0 text-[#B8390F]" aria-hidden="true" /><span>Lunes a viernes, 8 a. m. a 6 p. m.</span></li>
+              <li className="flex items-start gap-2"><MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#B8390F]" aria-hidden="true" /><span>San Juan de Miraflores, Lima</span></li>
             </ul>
           </div>
         </aside>
@@ -384,10 +384,10 @@ export default function EmpresasEstructurasMetalicasPage() {
             Revisamos tus requerimientos y coordinamos contigo una propuesta técnica y comercial.
           </p>
           <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:flex-wrap">
-            <WhatsAppLink href={WHATSAPP_URL} location="landing-empresas-final" page={PAGE_PATH} className="inline-flex min-h-11 items-center justify-center gap-2 bg-[#FF5A1F] px-6 py-3.5 text-center font-semibold text-[#14161A] transition-colors hover:bg-[#FF7A44] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
+            <WhatsAppLink href={WHATSAPP_URL} location="landing-empresas-final" page={PAGE_PATH} className="ludier-button ludier-button-primary">
               <MessageCircle className="h-5 w-5 shrink-0" aria-hidden="true" /> Cotizar por WhatsApp
             </WhatsAppLink>
-            <Link href={QUOTE_URL} className="inline-flex min-h-11 items-center justify-center gap-2 border border-[#C8CDD2] px-6 py-3.5 text-center font-semibold hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#FF5A1F]">
+            <Link href={QUOTE_URL} className="ludier-button ludier-button-secondary ludier-button-secondary-dark">
               <FileCheck className="h-5 w-5 shrink-0" aria-hidden="true" /> Enviar planos
             </Link>
           </div>

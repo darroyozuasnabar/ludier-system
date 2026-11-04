@@ -187,7 +187,7 @@ function CtaButtons({ className = "" }: { className?: string }) {
     <div className={`flex flex-wrap gap-3 ${className}`}>
       <Link
         href={QUOTE_URL}
-        className="inline-flex items-center gap-2 bg-[#FF5A1F] px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-[#FF5A1F]/25 transition-colors hover:bg-[#FF7A44] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+        className="ludier-button ludier-button-primary"
       >
         <ClipboardList className="h-4 w-4" aria-hidden /> Cotizar mi proyecto
       </Link>
@@ -195,7 +195,7 @@ function CtaButtons({ className = "" }: { className?: string }) {
         href={WHATSAPP_URL}
         location="hero"
         page="chutes"
-        className="inline-flex items-center gap-2 border border-white/30 px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:border-white hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+        className="ludier-button ludier-button-secondary ludier-button-secondary-dark"
       >
         <Image
           src="/img/WhatsAppLogo.jpg"

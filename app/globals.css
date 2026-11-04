@@ -7,9 +7,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-sans: var(--font-inter), Arial, Helvetica, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Consolas, monospace;
+  --font-heading: var(--font-inter), Arial, Helvetica, sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -148,4 +148,98 @@ textarea::placeholder {
 input[type="checkbox"],
 input[type="radio"] {
   background-color: revert !important;
+}
+
+/* Identidad pública: una familia ya cargada y la paleta original de LUDIER. */
+.ludier-public {
+  --font-body: var(--font-inter), Arial, Helvetica, sans-serif;
+  --font-display: var(--font-inter), Arial, Helvetica, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Consolas, monospace;
+  --ludier-paper: #F7F7F4;
+  --ludier-surface: #FFFFFF;
+  --ludier-border: #E3E1D8;
+  --ludier-border-muted: #D8D5CB;
+  --ludier-title: #1E2126;
+  --ludier-text: #565C63;
+  --ludier-muted: #8B8F86;
+  --ludier-dark: #14161A;
+  --ludier-accent: #FF5A1F;
+  --ludier-accent-hover: #FF7A44;
+  --ludier-accent-ink: #B8390F;
+  font-family: var(--font-body);
+}
+
+.ludier-public .ludier-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  line-height: 1.6;
+  text-transform: uppercase;
+}
+
+.ludier-public .ludier-button {
+  display: inline-flex;
+  min-height: 3rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  padding: 0.875rem 1.5rem;
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  line-height: 1.5;
+  text-align: center;
+  text-transform: uppercase;
+  transition: background-color 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+
+.ludier-public .ludier-button:focus-visible {
+  outline: 2px solid var(--ludier-accent);
+  outline-offset: 4px;
+}
+
+.ludier-public .ludier-button-primary {
+  background-color: var(--ludier-accent);
+  color: #FFFFFF;
+}
+
+.ludier-public .ludier-button-primary:hover {
+  background-color: var(--ludier-accent-hover);
+  transform: translateY(-2px);
+}
+
+.ludier-public .ludier-button-secondary {
+  border-color: var(--ludier-border-muted);
+  background-color: transparent;
+  color: var(--ludier-title);
+}
+
+.ludier-public .ludier-button-secondary:hover {
+  border-color: var(--ludier-accent);
+  background-color: var(--ludier-paper);
+}
+
+.ludier-public .ludier-button-secondary-dark {
+  border-color: #3A3F45;
+  color: #FFFFFF;
+}
+
+.ludier-public .ludier-button-secondary-dark:hover {
+  border-color: var(--ludier-accent);
+  background-color: #1D2024;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ludier-public .ludier-button,
+  .ludier-public .ludier-button:hover {
+    transform: none;
+    transition: none;
+  }
 }

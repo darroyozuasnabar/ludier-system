@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
 import {
   ArrowRight,
   ShieldCheck,
@@ -13,8 +12,9 @@ import {
   Users,
 } from "lucide-react";
 
+import ServicioCard from "@/components/public/ServicioCard";
 import ConstructorasCTA from "@/components/public/ConstructorasCTA";
-import { SERVICIOS_CATALOGO, type ServicioCatalogo } from "@/lib/servicios-catalogo";
+import { SERVICIOS_CATALOGO } from "@/lib/servicios-catalogo";
 
 const FONT_DISPLAY = 'var(--font-display, Oswald, ui-sans-serif, sans-serif)';
 const FONT_BODY = 'var(--font-body, Inter, ui-sans-serif, system-ui, sans-serif)';
@@ -117,60 +117,6 @@ function CornerMarks({ active = false }: { active?: boolean }) {
   );
 }
 
-function CategoriaCard({ categoria }: { categoria: ServicioCatalogo }) {
-  const Icon = categoria.icon;
-
-  return (
-    <article className="group relative flex h-full flex-col overflow-hidden rounded-sm border border-[#E3E1D8] bg-white transition-shadow hover:shadow-lg motion-reduce:transition-none">
-      <Link
-        href={categoria.href}
-        className="relative flex flex-1 flex-col focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#B8390F]"
-      >
-        <CornerMarks />
-        <div className="relative h-48 shrink-0 overflow-hidden bg-[#14161A]">
-          <Image
-            src={categoria.image}
-            alt={categoria.imageAlt}
-            fill
-            sizes="(min-width: 1280px) 400px, (min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
-            className="object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:transform-none motion-reduce:transition-none"
-          />
-          <span className="absolute bottom-3 left-3 rounded-sm bg-black/70 px-2 py-1 text-xs text-white">
-            {categoria.tag}
-          </span>
-        </div>
-        <div className="flex flex-1 flex-col p-6">
-          <div className="mb-3 flex items-start gap-3">
-            <Icon className="mt-1 h-6 w-6 shrink-0 text-[#B8390F]" aria-hidden />
-            <h3 className="text-xl font-semibold text-[#1E2126]" style={{ fontFamily: FONT_DISPLAY }}>
-              {categoria.title}
-            </h3>
-          </div>
-          <p className="mb-5 text-sm leading-relaxed text-[#565C63]">{categoria.description}</p>
-          <span className="mt-auto inline-flex items-center gap-2 text-sm font-semibold text-[#B8390F]">
-            {categoria.linkLabel}
-            <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
-          </span>
-        </div>
-      </Link>
-      {categoria.relatedLinks.length > 0 && (
-        <div className="border-t border-[#E3E1D8] bg-[#F7F7F4] px-6 py-3">
-          {categoria.relatedLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-[#B8390F] underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#B8390F]"
-            >
-              {link.label}
-              <ArrowRight className="h-3.5 w-3.5 shrink-0" aria-hidden />
-            </Link>
-          ))}
-        </div>
-      )}
-    </article>
-  );
-}
-
 // ============================================================
 // PÁGINA PRINCIPAL
 // ============================================================
@@ -236,14 +182,14 @@ export default function ServiciosPage() {
             <div className="mt-8 flex flex-wrap gap-4">
               <Link
                 href="/contacto"
-                className="inline-flex items-center gap-2 bg-[#FF5A1F] px-6 py-3 text-sm font-semibold uppercase tracking-wide text-white shadow-lg shadow-[#FF5A1F]/20 transition-all hover:bg-[#FF7A44] hover:shadow-[#FF5A1F]/40 hover:-translate-y-1"
+                className="ludier-button ludier-button-primary"
               >
                 <PhoneCall className="h-4 w-4" />
                 Cotizar ahora
               </Link>
               <Link
                 href="#constructoras"
-                className="inline-flex min-h-11 items-center gap-2 border border-white/40 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#FF5A1F]"
+                className="ludier-button ludier-button-secondary ludier-button-secondary-dark"
               >
                 Soy constructora
                 <ArrowRight className="h-4 w-4" aria-hidden />
@@ -317,7 +263,7 @@ export default function ServiciosPage() {
               style={{ fontFamily: FONT_DISPLAY }}
             >
               Todo lo que necesitas en{" "}
-              <span className="text-[#FF5A1F]">metalmecánica</span>
+              <span className="text-[var(--ludier-accent-ink)]">metalmecánica</span>
             </h2>
             <p className="mt-3 text-[#565C63] max-w-2xl mx-auto">
               Explora los alcances, revisa trabajos realizados y encuentra
@@ -327,7 +273,7 @@ export default function ServiciosPage() {
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {SERVICIOS_CATALOGO.map((categoria) => (
-              <CategoriaCard key={categoria.slug} categoria={categoria} />
+              <ServicioCard key={categoria.slug} servicio={categoria} />
             ))}
           </div>
 
@@ -419,7 +365,7 @@ export default function ServiciosPage() {
           </p>
           <Link
             href="/contacto"
-            className="mt-6 inline-flex items-center gap-2 bg-[#FF5A1F] px-8 py-4 text-sm font-semibold uppercase tracking-wide text-white shadow-lg shadow-[#FF5A1F]/20 transition-all hover:bg-[#FF7A44] hover:shadow-[#FF5A1F]/40 hover:-translate-y-1"
+            className="ludier-button ludier-button-primary mt-6"
           >
             <PhoneCall className="h-4 w-4" />
             Cotizar ahora

@@ -1,15 +1,10 @@
-"use client";
-
 import Link from "next/link";
-import Image from "next/image";
 import { ArrowRight } from "lucide-react";
+import ServicioCard from "@/components/public/ServicioCard";
 import ConstructorasCTA from "@/components/public/ConstructorasCTA";
-import { SERVICIOS_CATALOGO, type ServicioCatalogo } from "@/lib/servicios-catalogo";
+import { SERVICIOS_CATALOGO } from "@/lib/servicios-catalogo";
 
-/**
- * FUENTES: Oswald (display) + Inter (cuerpo) + JetBrains Mono (códigos técnicos)
- * cargadas en layout.tsx como --font-display / --font-body / --font-mono.
- */
+/** Colores originales de la portada; tipografía heredada del tema público. */
 
 const COLORS = {
   paper: "#F7F7F4",
@@ -105,147 +100,6 @@ function RulerStrip() {
   );
 }
 
-function CornerMarks() {
-  const base =
-    "pointer-events-none absolute h-3 w-3 transition-colors duration-300 group-hover:!border-[color:var(--accent-color)] group-focus-visible:!border-[color:var(--accent-color)]";
-  const style = { borderColor: COLORS.borderMuted } as React.CSSProperties;
-  return (
-    <>
-      <span className={`${base} left-3 top-3 border-l-2 border-t-2`} style={style} />
-      <span className={`${base} right-3 top-3 border-r-2 border-t-2`} style={style} />
-      <span className={`${base} bottom-3 left-3 border-b-2 border-l-2`} style={style} />
-      <span className={`${base} bottom-3 right-3 border-b-2 border-r-2`} style={style} />
-    </>
-  );
-}
-
-function ServiceCard({ servicio }: { servicio: ServicioCatalogo }) {
-  const Icon = servicio.icon;
-
-  return (
-    <article className="flex h-full flex-col">
-      <Link
-        href={servicio.href}
-        className="group relative flex flex-1 flex-col overflow-hidden rounded-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/[0.06] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 motion-reduce:transform-none motion-reduce:transition-none"
-        style={
-          {
-            backgroundColor: COLORS.card,
-            border: `1px solid ${COLORS.border}`,
-            outlineColor: COLORS.accent,
-          } as React.CSSProperties
-        }
-        onMouseEnter={(e) => (e.currentTarget.style.borderColor = COLORS.accent)}
-        onMouseLeave={(e) => (e.currentTarget.style.borderColor = COLORS.border)}
-      >
-        <CornerMarks />
-
-        {/* Imagen del servicio */}
-        <div
-          className="relative h-44 w-full shrink-0"
-          style={{ backgroundColor: COLORS.paper, borderBottom: `1px solid ${COLORS.border}` }}
-        >
-          {servicio.image ? (
-            <Image
-              src={servicio.image}
-              alt={servicio.imageAlt}
-              fill
-              sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center">
-              <Icon className="h-10 w-10" style={{ color: COLORS.borderMuted }} />
-            </div>
-          )}
-
-          {servicio.image && (
-            <div
-              className="absolute inset-x-0 bottom-0 h-16"
-              style={{
-                background: "linear-gradient(to top, rgba(0,0,0,0.55), transparent)",
-              }}
-              aria-hidden="true"
-            />
-          )}
-
-          <div className="absolute inset-x-0 top-0 flex items-center justify-between p-3">
-            <span
-              className="rounded-sm px-2 py-1 text-xs font-medium tracking-wider"
-              style={{
-                color: servicio.image ? "#FFFFFF" : COLORS.accentText,
-                backgroundColor: servicio.image ? "rgba(30,33,38,0.55)" : "transparent",
-                fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-              }}
-            >
-              {servicio.code}
-            </span>
-            <span
-              className="rounded-sm px-2 py-1 text-[10px] font-medium uppercase tracking-[0.14em]"
-              style={{
-                color: servicio.image ? "#FFFFFF" : COLORS.textFaint,
-                backgroundColor: servicio.image ? "rgba(30,33,38,0.55)" : "transparent",
-              }}
-            >
-              {servicio.tag}
-            </span>
-          </div>
-        </div>
-
-        <div className="flex flex-1 flex-col p-6">
-          <div className="flex items-start gap-4">
-            <div
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm"
-              style={{ border: `1px solid ${COLORS.border}`, backgroundColor: COLORS.paper }}
-            >
-              <Icon className="h-4 w-4" style={{ color: COLORS.iconIdle }} />
-            </div>
-            <h3
-              className="pt-1 text-lg font-semibold"
-              style={{
-                color: COLORS.title,
-                fontFamily: "var(--font-display, Oswald, ui-sans-serif, sans-serif)",
-              }}
-            >
-              {servicio.title}
-            </h3>
-          </div>
-
-          <p className="mb-5 mt-4 text-sm leading-relaxed" style={{ color: COLORS.text }}>
-            {servicio.description}
-          </p>
-
-          <div
-            className="mt-auto flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide"
-            style={{ color: COLORS.accentText }}
-          >
-            <span>{servicio.linkLabel}</span>
-            <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" />
-          </div>
-        </div>
-
-        <div
-          className="absolute bottom-0 left-0 right-0 h-0.5 origin-left scale-x-0 transition-transform duration-300 group-hover:scale-x-100"
-          style={{ backgroundColor: COLORS.accent }}
-        />
-      </Link>
-      {servicio.relatedLinks.length > 0 && (
-        <div className="border-x border-b border-[#E3E1D8] bg-white px-6 py-3">
-          {servicio.relatedLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-[#B8390F] underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#B8390F]"
-            >
-              {link.label}
-              <ArrowRight className="h-3.5 w-3.5 shrink-0" aria-hidden />
-            </Link>
-          ))}
-        </div>
-      )}
-    </article>
-  );
-}
-
 export default function Servicios() {
   return (
     <section
@@ -303,7 +157,7 @@ export default function Servicios() {
         {/* Grid de servicios */}
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
           {SERVICIOS_CATALOGO.map((servicio) => (
-            <ServiceCard key={servicio.slug} servicio={servicio} />
+            <ServicioCard key={servicio.slug} servicio={servicio} />
           ))}
         </div>
 
@@ -315,10 +169,7 @@ export default function Servicios() {
         <div className="mt-16 text-center">
           <Link
             href="/contacto"
-            className="inline-flex items-center gap-2 rounded-sm px-8 py-4 text-sm font-semibold uppercase tracking-wide text-white transition-all duration-300 hover:-translate-y-0.5"
-            style={{ backgroundColor: COLORS.accent }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = COLORS.accentHover)}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = COLORS.accent)}
+            className="ludier-button ludier-button-primary"
           >
             <span>Cotizar ahora</span>
             <ArrowRight className="h-4 w-4" />
