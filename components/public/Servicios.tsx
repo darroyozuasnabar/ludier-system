@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import Reveal from "@/components/public/Reveal";
 import ServicioCard from "@/components/public/ServicioCard";
 import ConstructorasCTA from "@/components/public/ConstructorasCTA";
 import { SERVICIOS_CATALOGO } from "@/lib/servicios-catalogo";
@@ -156,13 +157,15 @@ export default function Servicios() {
 
         {/* Grid de servicios */}
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {SERVICIOS_CATALOGO.map((servicio) => (
-            <ServicioCard key={servicio.slug} servicio={servicio} />
+          {SERVICIOS_CATALOGO.map((servicio, index) => (
+            <Reveal key={servicio.slug} className="h-full" delay={(index % 3) * 70}>
+              <ServicioCard servicio={servicio} />
+            </Reveal>
           ))}
         </div>
 
         <div className="mt-12 lg:mt-16">
-          <ConstructorasCTA />
+          <Reveal><ConstructorasCTA /></Reveal>
         </div>
 
         {/* CTA */}

@@ -12,6 +12,8 @@ import {
   Users,
 } from "lucide-react";
 
+import Reveal from "@/components/public/Reveal";
+import ServiciosHero from "@/components/public/ServiciosHero";
 import ServicioCard from "@/components/public/ServicioCard";
 import ConstructorasCTA from "@/components/public/ConstructorasCTA";
 import { SERVICIOS_CATALOGO } from "@/lib/servicios-catalogo";
@@ -132,89 +134,7 @@ export default function ServiciosPage() {
       {/* ============================================================
           HERO
           ============================================================ */}
-      <section className="relative overflow-hidden bg-[#14161A] py-28 lg:py-36">
-        <div className="pointer-events-none absolute inset-0 opacity-[0.03] bg-[url('/img/grid-pattern.svg')] bg-repeat" />
-        <div
-          className="pointer-events-none absolute inset-0 opacity-[0.04]"
-          style={{
-            backgroundImage:
-              "repeating-linear-gradient(115deg, #C7CBD1 0px, #C7CBD1 1px, transparent 1px, transparent 64px)",
-          }}
-        />
-        <div
-          className="pointer-events-none absolute -left-32 top-1/2 h-[600px] w-[600px] -translate-y-1/2 rounded-full opacity-[0.08]"
-          style={{ background: "radial-gradient(circle, #FF5A1F 0%, transparent 70%)" }}
-        />
-        <div
-          className="absolute top-0 left-0 right-0 h-[4px]"
-          style={{
-            backgroundImage:
-              "repeating-linear-gradient(135deg, #FF5A1F 0px, #FF5A1F 14px, #14161A 14px, #14161A 28px)",
-          }}
-        />
-
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl">
-            <span
-              className="inline-flex items-center gap-2.5 text-xs font-medium uppercase tracking-[0.22em] text-[#8A8F96]"
-              style={{ fontFamily: FONT_MONO }}
-            >
-              <span className="h-px w-6 bg-[#FF5A1F]" />
-              Nuestros servicios
-            </span>
-            <h1
-              className="mt-6 text-4xl font-semibold tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl"
-              style={{ fontFamily: FONT_DISPLAY }}
-            >
-              Servicios de
-              <br />{" "}
-              <span className="relative inline-block">
-                <span className="text-[#FF5A1F]">metalmecánica</span>
-                <span className="absolute -bottom-1 left-0 right-0 h-1 bg-[#FF5A1F]/30 rounded-full blur-sm" />
-              </span>
-            </h1>
-            <p className="mt-6 text-lg text-[#9AA0A6] max-w-xl leading-relaxed">
-              Fabricamos e instalamos estructuras, barandas, escaleras, portones
-              y chutes metálicos en Lima. Elige el servicio que necesitas o
-              envíanos los planos para cotizar varios alcances de tu obra.
-            </p>
-
-            <div className="mt-8 flex flex-wrap gap-4">
-              <Link
-                href="/contacto"
-                className="ludier-button ludier-button-primary"
-              >
-                <PhoneCall className="h-4 w-4" />
-                Cotizar ahora
-              </Link>
-              <Link
-                href="#constructoras"
-                className="ludier-button ludier-button-secondary ludier-button-secondary-dark"
-              >
-                Soy constructora
-                <ArrowRight className="h-4 w-4" aria-hidden />
-              </Link>
-            </div>
-
-            <div className="mt-6 flex flex-wrap gap-4 text-xs text-[#8A8F96]">
-              <span className="flex items-center gap-1">
-                <CheckCircle className="h-3 w-3 text-[#FF5A1F]" />
-                Más de 10 años de experiencia
-              </span>
-              <span className="text-[#3A3F45]">|</span>
-              <span className="flex items-center gap-1">
-                <CheckCircle className="h-3 w-3 text-[#FF5A1F]" />
-                20+ proyectos ejecutados
-              </span>
-              <span className="text-[#3A3F45]">|</span>
-              <span className="flex items-center gap-1">
-                <CheckCircle className="h-3 w-3 text-[#FF5A1F]" />
-                95% cumplimiento de plazos
-              </span>
-            </div>
-          </div>
-        </div>
-      </section>
+      <ServiciosHero />
 
       {/* ============================================================
           ESTADÍSTICAS DE CONFIANZA
@@ -249,7 +169,7 @@ export default function ServiciosPage() {
       {/* ============================================================
           GRID DE CATEGORÍAS
           ============================================================ */}
-      <section className="py-20 lg:py-28">
+      <section id="catalogo-servicios" tabIndex={-1} className="scroll-mt-24 py-20 outline-none lg:py-28">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
             <span
@@ -272,13 +192,15 @@ export default function ServiciosPage() {
           </div>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {SERVICIOS_CATALOGO.map((categoria) => (
-              <ServicioCard key={categoria.slug} servicio={categoria} />
+            {SERVICIOS_CATALOGO.map((categoria, index) => (
+              <Reveal key={categoria.slug} className="h-full" delay={(index % 3) * 70}>
+                <ServicioCard servicio={categoria} />
+              </Reveal>
             ))}
           </div>
 
           <div id="constructoras" className="mt-12 scroll-mt-28 lg:mt-16">
-            <ConstructorasCTA />
+            <Reveal><ConstructorasCTA /></Reveal>
           </div>
         </div>
       </section>

@@ -43,3 +43,14 @@ Las variables de `.ludier-public` en `app/globals.css` son la referencia:
 Comprobar escritorio y móvil con la fuente cargada, sin desbordamiento
 horizontal, imágenes rotas ni controles superpuestos. Las reglas del tema
 público se aplican dentro de `.ludier-public`.
+
+## Interacción y movimiento
+
+- En servicios, «Soy constructora» abre la página de atención a constructoras.
+  «Explorar servicios» desplaza al catálogo; son acciones distintas.
+- Usar `Reveal` para entradas al entrar en pantalla. El contenido debe seguir
+  visible sin JavaScript y con movimiento reducido.
+- La muestra de obras usa controles manuales, transiciones entre fotos reales
+  y enlaces a los proyectos. Evitar cambios automáticos que interrumpan la lectura.
+- Reservar los efectos de luz, acercamiento y elevación para las interacciones;
+  mantenerlos en la paleta original y desactivarlos con movimiento reducido.
