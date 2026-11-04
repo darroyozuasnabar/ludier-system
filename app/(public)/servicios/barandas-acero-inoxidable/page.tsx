@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
+import Reveal from "@/components/public/Reveal";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -183,7 +184,7 @@ function CtaButtons({ className = "" }: { className?: string }) {
     <div className={`flex flex-wrap gap-3 ${className}`}>
       <Link
         href={QUOTE_URL}
-        className="ludier-button ludier-button-primary"
+        className="ludier-button ludier-button-primary transition-colors duration-300 motion-reduce:transition-none! motion-reduce:transform-none! motion-reduce:translate-none! motion-reduce:scale-100!"
       >
         <ClipboardList className="h-4 w-4" aria-hidden /> Cotizar mi proyecto
       </Link>
@@ -191,7 +192,7 @@ function CtaButtons({ className = "" }: { className?: string }) {
         href={WHATSAPP_URL}
         location="hero"
         page="barandas-inoxidable"
-        className="ludier-button ludier-button-secondary ludier-button-secondary-dark"
+        className="ludier-button ludier-button-secondary ludier-button-secondary-dark transition-colors duration-300 motion-reduce:transition-none! motion-reduce:transform-none! motion-reduce:translate-none! motion-reduce:scale-100!"
       >
         <MessageCircle className="h-4 w-4" aria-hidden /> Escribir por WhatsApp
       </WhatsAppLink>
@@ -280,53 +281,63 @@ export default function BarandasInoxidablePage() {
             <div className="grid items-center gap-12 lg:grid-cols-2">
               <div>
                 <p className="text-sm font-medium text-[#FF5A1F]">Para constructoras e inmobiliarias</p>
-                <h1 className="mt-4 text-4xl font-semibold leading-tight md:text-5xl" style={{ fontFamily: FONT_DISPLAY }}>
-                  {/* FIX SEO BARANDAS: ampliar el H1 manteniendo su estilo y enfoque de obra. */}
-                  Barandas Metálicas y de Acero Inoxidable para Obras en Lima
-                </h1>
-                <p className="mt-6 max-w-xl text-lg leading-relaxed text-[#B4B9BF]">
-                  {/* FIX SEO BARANDAS: incluir barandas metálicas y escaleras al inicio. */}
-                  Fabricamos e instalamos <strong className="text-white">barandas metálicas para escaleras</strong>, balcones y terrazas, con opciones de acero inoxidable 304 y 316 para proyectos residenciales y comerciales de Lima. Tú nos envías los planos; nosotros entregamos la baranda instalada, con el avance que tu obra necesita.
-                </p>
+                <Reveal>
+                  <h1 className="mt-4 text-4xl font-semibold leading-tight md:text-5xl" style={{ fontFamily: FONT_DISPLAY }}>
+                    {/* FIX SEO BARANDAS: ampliar el H1 manteniendo su estilo y enfoque de obra. */}
+                    Barandas Metálicas y de Acero Inoxidable para Obras en Lima
+                  </h1>
+                </Reveal>
+                <Reveal delay={100}>
+                  <p className="mt-6 max-w-xl text-lg leading-relaxed text-[#B4B9BF]">
+                    {/* FIX SEO BARANDAS: incluir barandas metálicas y escaleras al inicio. */}
+                    Fabricamos e instalamos <strong className="text-white">barandas metálicas para escaleras</strong>, balcones y terrazas, con opciones de acero inoxidable 304 y 316 para proyectos residenciales y comerciales de Lima. Tú nos envías los planos; nosotros entregamos la baranda instalada, con el avance que tu obra necesita.
+                  </p>
+                </Reveal>
 
-                <ul className="mt-6 space-y-2 text-sm text-white/90">
-                  {[
-                    "Acero inoxidable 304, con opción 316 para zonas marinas",
-                    "Montaje con personal propio, coordinado con tu supervisión",
-                    "Cotización en 24 horas con planos o metrado",
-                  ].map((t) => (
-                    <li key={t} className="flex items-start gap-2">
-                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#FF5A1F]" aria-hidden />
-                      {t}
-                    </li>
-                  ))}
-                </ul>
+                <Reveal delay={300}>
+                  <ul className="mt-6 space-y-2 text-sm text-white/90">
+                    {[
+                      "Acero inoxidable 304, con opción 316 para zonas marinas",
+                      "Montaje con personal propio, coordinado con tu supervisión",
+                      "Cotización en 24 horas con planos o metrado",
+                    ].map((t) => (
+                      <li key={t} className="flex items-start gap-2">
+                        <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#FF5A1F]" aria-hidden />
+                        {t}
+                      </li>
+                    ))}
+                  </ul>
+                </Reveal>
 
-                <CtaButtons className="mt-8" />
+                <Reveal delay={200}>
+                  <CtaButtons className="mt-8" />
+                </Reveal>
               </div>
 
-              <figure className="relative aspect-[4/3] overflow-hidden rounded-sm border border-[#3A3F45] shadow-2xl">
-                <Image
-                  src="/img/proyectos/zendai/zendai_img2.jpg"
-                  alt="Barandas de acero inoxidable instaladas en balcones de un proyecto residencial en Lima"
-                  fill
-                  sizes="(min-width: 1024px) 560px, 100vw"
-                  className="object-cover"
-                  priority
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-                <figcaption className="absolute bottom-4 left-4 right-4">
-                  <p className="text-sm font-semibold">Proyecto Zendai, La Victoria</p>
-                  <p className="text-xs text-white/70">Barandas metálicas y de acero inoxidable</p>
-                </figcaption>
-              </figure>
+              <Reveal delay={150}>
+                <figure className="relative aspect-[4/3] overflow-hidden rounded-sm border border-[#3A3F45] shadow-2xl">
+                  <Image
+                    src="/img/proyectos/zendai/zendai_img2.jpg"
+                    alt="Barandas de acero inoxidable instaladas en balcones de un proyecto residencial en Lima"
+                    fill
+                    sizes="(min-width: 1024px) 560px, 100vw"
+                    className="object-cover"
+                    priority
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                  <figcaption className="absolute bottom-4 left-4 right-4">
+                    <p className="text-sm font-semibold">Proyecto Zendai, La Victoria</p>
+                    <p className="text-xs text-white/70">Barandas metálicas y de acero inoxidable</p>
+                  </figcaption>
+                </figure>
+              </Reveal>
             </div>
           </div>
         </section>
 
         {/* FRANJA DE CONFIANZA */}
         <section className="border-b border-[#E3E1D8] bg-white py-5" aria-label="Por qué trabajar con LUDIER">
-          <div className="mx-auto grid max-w-6xl grid-cols-2 gap-4 px-4 md:grid-cols-4">
+          <Reveal delay={300} className="mx-auto grid max-w-6xl grid-cols-2 gap-4 px-4 md:grid-cols-4">
             {[
               { icon: ShieldCheck, label: "Acero inoxidable 304 y 316" },
               { icon: HardHat, label: "Montaje con personal propio" },
@@ -338,7 +349,7 @@ export default function BarandasInoxidablePage() {
                 {label}
               </div>
             ))}
-          </div>
+          </Reveal>
         </section>
 
         {/* CONTENIDO */}
@@ -347,266 +358,284 @@ export default function BarandasInoxidablePage() {
           <div className="min-w-0 space-y-16 lg:col-span-2">
             {/* Material */}
             <section aria-labelledby="material">
-              <h2 id="material" className="text-2xl font-semibold md:text-3xl" style={{ fontFamily: FONT_DISPLAY }}>
-                {/* FIX SEO BARANDAS: orientar la elección de material a la categoría general. */}
-                ¿Qué material elegir para tus barandas metálicas?
-              </h2>
-              <p className="mt-4 max-w-2xl leading-relaxed text-[#565C63]">
-                En Lima la humedad y la brisa marina desgastan el acero convencional. Fabricamos barandas de acero inoxidable en grado 304 o 316, y también en acero al carbono con pintura epóxica como alternativa más económica. Esta es la guía rápida para decidir:
-              </p>
+              <Reveal>
+                <h2 id="material" className="text-2xl font-semibold md:text-3xl" style={{ fontFamily: FONT_DISPLAY }}>
+                  {/* FIX SEO BARANDAS: orientar la elección de material a la categoría general. */}
+                  ¿Qué material elegir para tus barandas metálicas?
+                </h2>
+                <p className="mt-4 max-w-2xl leading-relaxed text-[#565C63]">
+                  En Lima la humedad y la brisa marina desgastan el acero convencional. Fabricamos barandas de acero inoxidable en grado 304 o 316, y también en acero al carbono con pintura epóxica como alternativa más económica. Esta es la guía rápida para decidir:
+                </p>
 
-              {/* FIX OVERFLOW MOBILE: E — limitar el scroll horizontal al wrapper de tabla. */}
-              <div className="mt-6 overflow-x-auto max-w-full">
-                <table className="w-full min-w-[560px] border-collapse bg-white text-left text-sm">
-                  <caption className="sr-only">Comparación de materiales para barandas de acero inoxidable</caption>
-                  <thead>
-                    <tr className="border-b border-[#E3E1D8] bg-[#EFEEE8] text-[#1E2126]">
-                      <th scope="col" className="p-3 font-semibold">Material</th>
-                      <th scope="col" className="p-3 font-semibold">Ideal para</th>
-                      <th scope="col" className="p-3 font-semibold">Resistencia a la corrosión</th>
-                      <th scope="col" className="p-3 font-semibold">Costo</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {MATERIALS.map((m) => (
-                      <tr key={m.name} className={`border-b border-[#E3E1D8] ${m.featured ? "bg-[#FFF3EC]" : ""}`}>
-                        <th scope="row" className="p-3 font-semibold">
-                          {m.name}
-                          {m.featured && (
-                            <span className="ml-2 rounded-sm bg-[#FF5A1F] px-1.5 py-0.5 text-xs font-medium text-white">
-                              Más pedido
-                            </span>
-                          )}
-                        </th>
-                        <td className="p-3 text-[#565C63]">{m.use}</td>
-                        <td className="p-3 text-[#565C63]">{m.corrosion}</td>
-                        <td className="p-3 text-[#565C63]">{m.cost}</td>
+                {/* FIX OVERFLOW MOBILE: E — limitar el scroll horizontal al wrapper de tabla. */}
+                <div className="mt-6 overflow-x-auto max-w-full">
+                  <table className="w-full min-w-[560px] border-collapse bg-white text-left text-sm">
+                    <caption className="sr-only">Comparación de materiales para barandas de acero inoxidable</caption>
+                    <thead>
+                      <tr className="border-b border-[#E3E1D8] bg-[#EFEEE8] text-[#1E2126]">
+                        <th scope="col" className="p-3 font-semibold">Material</th>
+                        <th scope="col" className="p-3 font-semibold">Ideal para</th>
+                        <th scope="col" className="p-3 font-semibold">Resistencia a la corrosión</th>
+                        <th scope="col" className="p-3 font-semibold">Costo</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {MATERIALS.map((m) => (
+                        <tr key={m.name} className={`border-b border-[#E3E1D8] ${m.featured ? "bg-[#FFF3EC]" : ""}`}>
+                          <th scope="row" className="p-3 font-semibold">
+                            {m.name}
+                            {m.featured && (
+                              <span className="ml-2 rounded-sm bg-[#FF5A1F] px-1.5 py-0.5 text-xs font-medium text-white">
+                                Más pedido
+                              </span>
+                            )}
+                          </th>
+                          <td className="p-3 text-[#565C63]">{m.use}</td>
+                          <td className="p-3 text-[#565C63]">{m.corrosion}</td>
+                          <td className="p-3 text-[#565C63]">{m.cost}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
 
-              <div className="mt-8 grid gap-4 sm:grid-cols-2">
-                {[
-                  { icon: CheckCircle2, title: "Durabilidad en exteriores", text: "El inoxidable evita repintados y retoques frecuentes en balcones y terrazas expuestos." },
-                  { icon: FileCheck, title: "Diseño según normativa", text: "Alturas, separaciones y anclajes conforme al RNE y a las especificaciones de tu proyecto." },
-                  { icon: HardHat, title: "Montaje en obra", text: "Personal propio para instalar en edificios en construcción, coordinado con tu supervisión." },
-                  { icon: ShieldCheck, title: "Acabado a elección", text: "Brillante o satinado, según el criterio de arquitectura." },
-                ].map(({ icon: Icon, title, text }) => (
-                  <div key={title} className="border-l-4 border-[#FF5A1F] bg-white p-5">
-                    <Icon className="mb-2 h-5 w-5 text-[#FF5A1F]" aria-hidden />
-                    <h3 className="text-base font-semibold">{title}</h3>
-                    <p className="mt-1 text-sm leading-relaxed text-[#565C63]">{text}</p>
-                  </div>
-                ))}
-              </div>
+                <div className="mt-8 grid gap-4 sm:grid-cols-2">
+                  {[
+                    { icon: CheckCircle2, title: "Durabilidad en exteriores", text: "El inoxidable evita repintados y retoques frecuentes en balcones y terrazas expuestos." },
+                    { icon: FileCheck, title: "Diseño según normativa", text: "Alturas, separaciones y anclajes conforme al RNE y a las especificaciones de tu proyecto." },
+                    { icon: HardHat, title: "Montaje en obra", text: "Personal propio para instalar en edificios en construcción, coordinado con tu supervisión." },
+                    { icon: ShieldCheck, title: "Acabado a elección", text: "Brillante o satinado, según el criterio de arquitectura." },
+                  ].map(({ icon: Icon, title, text }) => (
+                    <div key={title} className="border-l-4 border-[#FF5A1F] bg-white p-5">
+                      <Icon className="mb-2 h-5 w-5 text-[#FF5A1F]" aria-hidden />
+                      <h3 className="text-base font-semibold">{title}</h3>
+                      <p className="mt-1 text-sm leading-relaxed text-[#565C63]">{text}</p>
+                    </div>
+                  ))}
+                </div>
+              </Reveal>
             </section>
 
             {/* ¿Por qué elegir acero inoxidable? (NUEVO BLOQUE SEO) */}
             <section aria-labelledby="por-que-inoxidable">
-              <h2 id="por-que-inoxidable" className="text-2xl font-semibold md:text-3xl" style={{ fontFamily: FONT_DISPLAY }}>
-                {/* FIX SEO BARANDAS: conservar intención comercial y ambas familias de material. */}
-                ¿Por qué elegir nuestras barandas metálicas y de acero inoxidable?
-              </h2>
-              <p className="mt-4 max-w-2xl leading-relaxed text-[#565C63]">
-                Las barandas de acero inoxidable son la solución preferida por constructoras e inmobiliarias para proyectos de alta exigencia. Sus ventajas frente al acero al carbono con pintura o al hierro forjado son claras:
-              </p>
+              <Reveal>
+                <h2 id="por-que-inoxidable" className="text-2xl font-semibold md:text-3xl" style={{ fontFamily: FONT_DISPLAY }}>
+                  {/* FIX SEO BARANDAS: conservar intención comercial y ambas familias de material. */}
+                  ¿Por qué elegir nuestras barandas metálicas y de acero inoxidable?
+                </h2>
+                <p className="mt-4 max-w-2xl leading-relaxed text-[#565C63]">
+                  Las barandas de acero inoxidable son la solución preferida por constructoras e inmobiliarias para proyectos de alta exigencia. Sus ventajas frente al acero al carbono con pintura o al hierro forjado son claras:
+                </p>
 
-              <ul className="mt-5 max-w-2xl space-y-3 text-[#565C63]">
-                <li className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[#FF5A1F]" aria-hidden />
-                  <span><strong className="text-[#1E2126]">Resistencia superior a la corrosión:</strong> el inoxidable 304 resiste la humedad costera de Lima por décadas, sin óxido ni repintados.</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[#FF5A1F]" aria-hidden />
-                  <span><strong className="text-[#1E2126]">Mantenimiento mínimo:</strong> a diferencia del acero pintado, no requiere repintado cada 2-3 años. Solo limpieza periódica.</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[#FF5A1F]" aria-hidden />
-                  <span><strong className="text-[#1E2126]">Estética premium:</strong> el acabado brillante o satinado del acero inoxidable aporta valor arquitectónico a la fachada.</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[#FF5A1F]" aria-hidden />
-                  <span><strong className="text-[#1E2126]">Cumplimiento normativo:</strong> fabricamos según el RNE y las especificaciones técnicas de tu proyecto.</span>
-                </li>
-              </ul>
+                <ul className="mt-5 max-w-2xl space-y-3 text-[#565C63]">
+                  <li className="flex items-start gap-3">
+                    <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[#FF5A1F]" aria-hidden />
+                    <span><strong className="text-[#1E2126]">Resistencia superior a la corrosión:</strong> el inoxidable 304 resiste la humedad costera de Lima por décadas, sin óxido ni repintados.</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[#FF5A1F]" aria-hidden />
+                    <span><strong className="text-[#1E2126]">Mantenimiento mínimo:</strong> a diferencia del acero pintado, no requiere repintado cada 2-3 años. Solo limpieza periódica.</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[#FF5A1F]" aria-hidden />
+                    <span><strong className="text-[#1E2126]">Estética premium:</strong> el acabado brillante o satinado del acero inoxidable aporta valor arquitectónico a la fachada.</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[#FF5A1F]" aria-hidden />
+                    <span><strong className="text-[#1E2126]">Cumplimiento normativo:</strong> fabricamos según el RNE y las especificaciones técnicas de tu proyecto.</span>
+                  </li>
+                </ul>
+              </Reveal>
             </section>
 
             {/* Proceso */}
             <section aria-labelledby="proceso">
-              <h2 id="proceso" className="text-2xl font-semibold md:text-3xl" style={{ fontFamily: FONT_DISPLAY }}>
-                Cómo fabricamos e instalamos tus barandas de acero inoxidable
-              </h2>
-              <ol className="mt-6 grid gap-4 sm:grid-cols-2">
-                {PROCESS.map(({ icon: Icon, title, text }, i) => (
-                  <li key={title} className="flex gap-4 bg-white p-5">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center bg-[#14161A] text-lg text-white" style={{ fontFamily: FONT_DISPLAY }}>
-                      {i + 1}
-                    </span>
-                    {/* FIX OVERFLOW MOBILE: C — permitir que el texto del proceso se reduzca. */}
-                    <div className="min-w-0">
-                      <h3 className="flex items-center gap-2 text-base font-semibold break-words">
-                        {title}
-                        <Icon className="h-4 w-4 text-[#FF5A1F]" aria-hidden />
-                      </h3>
-                      <p className="mt-1 text-sm leading-relaxed text-[#565C63]">{text}</p>
-                    </div>
-                  </li>
-                ))}
-              </ol>
+              <Reveal>
+                <h2 id="proceso" className="text-2xl font-semibold md:text-3xl" style={{ fontFamily: FONT_DISPLAY }}>
+                  Cómo fabricamos e instalamos tus barandas de acero inoxidable
+                </h2>
+                <ol className="mt-6 grid gap-4 sm:grid-cols-2">
+                  {PROCESS.map(({ icon: Icon, title, text }, i) => (
+                    <li key={title} className="flex gap-4 bg-white p-5">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center bg-[#14161A] text-lg text-white" style={{ fontFamily: FONT_DISPLAY }}>
+                        {i + 1}
+                      </span>
+                      {/* FIX OVERFLOW MOBILE: C — permitir que el texto del proceso se reduzca. */}
+                      <div className="min-w-0">
+                        <h3 className="flex items-center gap-2 text-base font-semibold break-words">
+                          {title}
+                          <Icon className="h-4 w-4 text-[#FF5A1F]" aria-hidden />
+                        </h3>
+                        <p className="mt-1 text-sm leading-relaxed text-[#565C63]">{text}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              </Reveal>
             </section>
 
             {/* Proyectos */}
             <section aria-labelledby="proyectos">
-              <h2 id="proyectos" className="text-2xl font-semibold md:text-3xl" style={{ fontFamily: FONT_DISPLAY }}>
-                Obras donde ya instalamos barandas de acero inoxidable
-              </h2>
-              <p className="mt-4 max-w-2xl leading-relaxed text-[#565C63]">
-                Somos una empresa especializada en soluciones metalmecánicas para proyectos de construcción. Contamos con experiencia comprobada en carpintería metálica para edificios multifamiliares. Estos son dos de nuestros proyectos.
-              </p>
-              <div className="mt-6 grid gap-6 sm:grid-cols-2">
-                {PROJECTS.map((p) => (
-                  <Link
-                    key={p.href}
-                    href={p.href}
-                    className="group block overflow-hidden border border-[#E3E1D8] bg-white transition-shadow hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#FF5A1F]"
-                  >
-                    <div className="relative h-44 bg-[#14161A]">
-                      <Image src={p.img} alt={p.alt} fill sizes="(min-width: 640px) 320px, 100vw" className="object-cover" />
-                    </div>
-                    <div className="p-4">
-                      <p className="text-sm font-semibold">{p.title}</p>
-                      <p className="mt-1 text-sm text-[#565C63]">{p.text}</p>
-                      <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-[#FF5A1F]">
-                        Ver proyecto <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" aria-hidden />
-                      </span>
-                    </div>
-                  </Link>
-                ))}
-              </div>
+              <Reveal>
+                <h2 id="proyectos" className="text-2xl font-semibold md:text-3xl" style={{ fontFamily: FONT_DISPLAY }}>
+                  Obras donde ya instalamos barandas de acero inoxidable
+                </h2>
+                <p className="mt-4 max-w-2xl leading-relaxed text-[#565C63]">
+                  Somos una empresa especializada en soluciones metalmecánicas para proyectos de construcción. Contamos con experiencia comprobada en carpintería metálica para edificios multifamiliares. Estos son dos de nuestros proyectos.
+                </p>
+                <div className="mt-6 grid gap-6 sm:grid-cols-2">
+                  {PROJECTS.map((p, index) => (
+                    <Reveal key={p.href} delay={index * 100} className="h-full min-w-0">
+                      <Link
+                        href={p.href}
+                        className="h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-xl motion-reduce:transform-none! motion-reduce:translate-none! motion-reduce:scale-100! motion-reduce:transition-none! group block overflow-hidden border border-[#E3E1D8] bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#FF5A1F]"
+                      >
+                        <div className="relative h-44 overflow-hidden bg-[#14161A]">
+                          <Image src={p.img} alt={p.alt} fill sizes="(min-width: 640px) 320px, 100vw" className="transition-transform duration-500 group-hover:scale-105 motion-reduce:transform-none! motion-reduce:translate-none! motion-reduce:scale-100! motion-reduce:transition-none! object-cover" />
+                        </div>
+                        <div className="p-4">
+                          <p className="text-sm font-semibold">{p.title}</p>
+                          <p className="mt-1 text-sm text-[#565C63]">{p.text}</p>
+                          <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-[#FF5A1F]">
+                            Ver proyecto <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1 duration-300 motion-reduce:transform-none! motion-reduce:translate-none! motion-reduce:scale-100! motion-reduce:transition-none!" aria-hidden />
+                          </span>
+                        </div>
+                      </Link>
+                    </Reveal>
+                  ))}
+                </div>
+              </Reveal>
             </section>
 
             {/* Otras subcategorías */}
             <section aria-labelledby="otras-subcategorias">
-              <h2 id="otras-subcategorias" className="text-2xl font-semibold md:text-3xl" style={{ fontFamily: FONT_DISPLAY }}>
-                Otras subcategorías de Barandas y Pasamanos
-              </h2>
-              <p className="mt-4 max-w-2xl leading-relaxed text-[#565C63]">
-                ¿Buscas otro tipo de baranda o pasamanos? Estas son las otras soluciones que ofrecemos dentro de esta categoría:
-              </p>
-              <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                {OTHER_SUBCATEGORIES.map((sub, i) => (
-                  <Link
-                    key={i}
-                    href={`/servicios/${sub.slug}`}
-                    className="group flex items-center gap-4 bg-white border border-[#E3E1D8] p-4 rounded-sm hover:border-[#FF5A1F]/40 hover:shadow-md transition-all"
-                  >
-                    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-sm">
-                      <Image
-                        src={sub.img}
-                        alt={sub.title}
-                        fill
-                        sizes="64px"
-                        className="object-cover transition-transform duration-300 group-hover:scale-110"
-                      />
-                    </div>
-                    {/* FIX OVERFLOW MOBILE: B — ajustar títulos largos junto a la miniatura fija. */}
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-sm font-semibold text-[#1E2126] group-hover:text-[#FF5A1F] transition-colors break-words">
-                        {sub.title}
-                      </h3>
-                      <p className="text-xs text-[#565C63] line-clamp-2 mt-1">{sub.description}</p>
-                    </div>
-                    <ChevronRight className="h-4 w-4 text-[#8B8F86] transition-transform group-hover:translate-x-1" aria-hidden />
-                  </Link>
-                ))}
-              </div>
+              <Reveal>
+                <h2 id="otras-subcategorias" className="text-2xl font-semibold md:text-3xl" style={{ fontFamily: FONT_DISPLAY }}>
+                  Otras subcategorías de Barandas y Pasamanos
+                </h2>
+                <p className="mt-4 max-w-2xl leading-relaxed text-[#565C63]">
+                  ¿Buscas otro tipo de baranda o pasamanos? Estas son las otras soluciones que ofrecemos dentro de esta categoría:
+                </p>
+                <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                  {OTHER_SUBCATEGORIES.map((sub, i) => (
+                    <Reveal key={i} delay={i * 100} className="h-full min-w-0">
+                      <Link
+                        href={`/servicios/${sub.slug}`}
+                        className="h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-xl motion-reduce:transform-none! motion-reduce:translate-none! motion-reduce:scale-100! motion-reduce:transition-none! group flex items-center gap-4 bg-white border border-[#E3E1D8] p-4 rounded-sm"
+                      >
+                        <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-sm">
+                          <Image
+                            src={sub.img}
+                            alt={sub.title}
+                            fill
+                            sizes="64px"
+                            className="transition-transform duration-500 group-hover:scale-105 motion-reduce:transform-none! motion-reduce:translate-none! motion-reduce:scale-100! motion-reduce:transition-none! object-cover"
+                          />
+                        </div>
+                        {/* FIX OVERFLOW MOBILE: B — ajustar títulos largos junto a la miniatura fija. */}
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-sm font-semibold text-[#1E2126] transition-colors break-words">
+                            {sub.title}
+                          </h3>
+                          <p className="text-xs text-[#565C63] line-clamp-2 mt-1">{sub.description}</p>
+                        </div>
+                        <ChevronRight className="h-4 w-4 text-[#8B8F86] transition-transform group-hover:translate-x-1 duration-300 motion-reduce:transform-none! motion-reduce:translate-none! motion-reduce:scale-100! motion-reduce:transition-none!" aria-hidden />
+                      </Link>
+                    </Reveal>
+                  ))}
+                </div>
+              </Reveal>
             </section>
 
             {/* Qué enviar */}
             <section aria-labelledby="enviar" className="bg-[#14161A] p-8 text-white">
-              <h2 id="enviar" className="text-2xl font-semibold" style={{ fontFamily: FONT_DISPLAY }}>
-                Qué enviar para recibir tu cotización
-              </h2>
-              <ul className="mt-5 space-y-3">
-                {QUOTE_CHECKLIST.map((item) => (
-                  <li key={item} className="flex items-start gap-3 text-sm text-white/90">
-                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#FF5A1F]" aria-hidden />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <p className="mt-5 text-sm text-white/70">¿Aún no tienes todo? Escríbenos igual y te ayudamos a definir el alcance.</p>
-              <CtaButtons className="mt-6" />
+              <Reveal>
+                <h2 id="enviar" className="text-2xl font-semibold" style={{ fontFamily: FONT_DISPLAY }}>
+                  Qué enviar para recibir tu cotización
+                </h2>
+                <ul className="mt-5 space-y-3">
+                  {QUOTE_CHECKLIST.map((item) => (
+                    <li key={item} className="flex items-start gap-3 text-sm text-white/90">
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#FF5A1F]" aria-hidden />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-5 text-sm text-white/70">¿Aún no tienes todo? Escríbenos igual y te ayudamos a definir el alcance.</p>
+                <CtaButtons className="mt-6" />
+              </Reveal>
             </section>
 
             {/* FAQ */}
             <section aria-labelledby="faq">
-              <h2 id="faq" className="text-2xl font-semibold md:text-3xl" style={{ fontFamily: FONT_DISPLAY }}>
-                Preguntas frecuentes sobre barandas de acero inoxidable
-              </h2>
-              <div className="mt-6 space-y-3">
-                {FAQS.map((f) => (
-                  <details key={f.q} className="group border border-[#E3E1D8] bg-white p-4 open:border-[#FF5A1F]/50">
-                    <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold">
-                      {f.q}
-                      <ChevronRight className="h-4 w-4 shrink-0 text-[#FF5A1F] transition-transform group-open:rotate-90" aria-hidden />
-                    </summary>
-                    <p className="mt-3 text-sm leading-relaxed text-[#565C63]">{f.a}</p>
-                  </details>
-                ))}
-              </div>
+              <Reveal>
+                <h2 id="faq" className="text-2xl font-semibold md:text-3xl" style={{ fontFamily: FONT_DISPLAY }}>
+                  Preguntas frecuentes sobre barandas de acero inoxidable
+                </h2>
+                <div className="mt-6 space-y-3">
+                  {FAQS.map((f) => (
+                    <details key={f.q} className="group border border-[#E3E1D8] bg-white p-4 open:border-[#FF5A1F]/50">
+                      <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold">
+                        {f.q}
+                        <ChevronRight className="h-4 w-4 shrink-0 text-[#FF5A1F] transition-transform group-open:rotate-90" aria-hidden />
+                      </summary>
+                      <p className="mt-3 text-sm leading-relaxed text-[#565C63]">{f.a}</p>
+                    </details>
+                  ))}
+                </div>
+              </Reveal>
             </section>
           </div>
 
           {/* SIDEBAR */}
           {/* FIX OVERFLOW MOBILE: A — evitar que el sidebar imponga un ancho mínimo. */}
           <aside className="min-w-0 h-fit space-y-6 lg:sticky lg:top-24">
-            <div className="bg-[#FF5A1F] p-6 text-white shadow-xl">
-              <h3 className="text-xl font-semibold" style={{ fontFamily: FONT_DISPLAY }}>
-                ¿Tienes los planos de tu obra?
-              </h3>
-              <p className="mt-2 mb-6 text-sm text-white/90">
-                Envíalos o comparte el metrado y te respondemos en menos de 24 horas.
-              </p>
-              <Link
-                href={QUOTE_URL}
-                className="block bg-white px-4 py-3 text-center text-sm font-bold text-[#FF5A1F] transition-colors hover:bg-[#F7F7F4] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-              >
-                Solicitar cotización
-              </Link>
-              <WhatsAppLink
-                href={WHATSAPP_URL}
-                location="sidebar"
-                page="barandas-inoxidable"
-                className="mt-3 flex items-center justify-center gap-2 border border-white/60 px-4 py-3 text-sm font-semibold transition-colors hover:bg-white/10"
-              >
-                <MessageCircle className="h-4 w-4" aria-hidden /> WhatsApp
-              </WhatsAppLink>
-            </div>
+            <Reveal delay={400} className="space-y-6">
+              <div className="bg-[#FF5A1F] p-6 text-white shadow-xl">
+                <h3 className="text-xl font-semibold" style={{ fontFamily: FONT_DISPLAY }}>
+                  ¿Tienes los planos de tu obra?
+                </h3>
+                <p className="mt-2 mb-6 text-sm text-white/90">
+                  Envíalos o comparte el metrado y te respondemos en menos de 24 horas.
+                </p>
+                <Link
+                  href={QUOTE_URL}
+                  className="block bg-white px-4 py-3 text-center text-sm font-bold text-[#FF5A1F] transition-colors hover:bg-[#F7F7F4] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white duration-300 motion-reduce:transition-none! motion-reduce:transform-none! motion-reduce:translate-none! motion-reduce:scale-100!"
+                >
+                  Solicitar cotización
+                </Link>
+                <WhatsAppLink
+                  href={WHATSAPP_URL}
+                  location="sidebar"
+                  page="barandas-inoxidable"
+                  className="mt-3 flex items-center justify-center gap-2 border border-white/60 px-4 py-3 text-sm font-semibold transition-colors hover:bg-white/10 duration-300 motion-reduce:transition-none! motion-reduce:transform-none! motion-reduce:translate-none! motion-reduce:scale-100!"
+                >
+                  <MessageCircle className="h-4 w-4" aria-hidden /> WhatsApp
+                </WhatsAppLink>
+              </div>
 
-            <div className="border border-[#E3E1D8] bg-white p-6">
-              <h3 className="mb-4 text-base font-semibold" style={{ fontFamily: FONT_DISPLAY }}>
-                Contacto directo
-              </h3>
-              <ul className="space-y-3 text-sm text-[#565C63]">
-                <li>
-                  <a href={`tel:${PHONE_TEL}`} className="flex items-center gap-2 hover:text-[#FF5A1F]">
-                    <PhoneCall className="h-4 w-4 text-[#FF5A1F]" aria-hidden />
-                    {PHONE_DISPLAY}
-                  </a>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-[#FF5A1F]" aria-hidden />
-                  Lunes a viernes, 8 a. m. a 6 p. m.
-                </li>
-                <li className="flex items-center gap-2">
-                  <Building2 className="h-4 w-4 text-[#FF5A1F]" aria-hidden />
-                  San Juan de Miraflores, Lima
-                </li>
-              </ul>
-            </div>
+              <div className="border border-[#E3E1D8] bg-white p-6">
+                <h3 className="mb-4 text-base font-semibold" style={{ fontFamily: FONT_DISPLAY }}>
+                  Contacto directo
+                </h3>
+                <ul className="space-y-3 text-sm text-[#565C63]">
+                  <li>
+                    <a href={`tel:${PHONE_TEL}`} className="flex items-center gap-2 hover:text-[#FF5A1F]">
+                      <PhoneCall className="h-4 w-4 text-[#FF5A1F]" aria-hidden />
+                      {PHONE_DISPLAY}
+                    </a>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-[#FF5A1F]" aria-hidden />
+                    Lunes a viernes, 8 a. m. a 6 p. m.
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Building2 className="h-4 w-4 text-[#FF5A1F]" aria-hidden />
+                    San Juan de Miraflores, Lima
+                  </li>
+                </ul>
+              </div>
+            </Reveal>
           </aside>
         </div>
 
@@ -617,7 +646,7 @@ export default function BarandasInoxidablePage() {
             href={WHATSAPP_URL}
             location="mobile_bar"
             page="barandas-inoxidable"
-            className="flex items-center justify-center gap-2 py-3.5 text-sm font-semibold text-white"
+            className="flex items-center justify-center gap-2 py-3.5 text-sm font-semibold text-white transition-colors duration-300 motion-reduce:transition-none! motion-reduce:transform-none! motion-reduce:translate-none! motion-reduce:scale-100!"
           >
             <MessageCircle className="h-4 w-4" aria-hidden /> WhatsApp
           </WhatsAppLink>

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { notFound, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import Reveal from "@/components/public/Reveal";
 import {
   ArrowLeft,
   ArrowRight,
@@ -106,14 +107,18 @@ function ImageCarousel({
   };
 
   useEffect(() => {
-    if (!isMultiple || !isPlaying || isHovering) {
+    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const updateAutoplay = () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
-      return;
-    }
+      if (!isMultiple || !isPlaying || isHovering || motion.matches) return;
+      intervalRef.current = setInterval(goToNext, autoplayDelay);
+    };
 
-    intervalRef.current = setInterval(goToNext, autoplayDelay);
+    updateAutoplay();
+    motion.addEventListener("change", updateAutoplay);
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
+      motion.removeEventListener("change", updateAutoplay);
     };
   }, [isMultiple, isPlaying, isHovering, goToNext, autoplayDelay]);
 
@@ -123,7 +128,7 @@ function ImageCarousel({
         <img
           src={imagenes[0]}
           alt={nombre}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:transform-none! motion-reduce:translate-none! motion-reduce:scale-100! motion-reduce:transition-none!"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
       </div>
@@ -145,7 +150,7 @@ function ImageCarousel({
             <img
               src={img}
               alt={`${nombre} - imagen ${idx + 1}`}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:transform-none! motion-reduce:translate-none! motion-reduce:scale-100! motion-reduce:transition-none!"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
           </div>
@@ -172,7 +177,7 @@ function ImageCarousel({
           e.stopPropagation();
           goToPrev();
         }}
-        className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-black/50 hover:bg-black/70 flex items-center justify-center text-white transition-all hover:scale-110"
+        className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-black/50 hover:bg-black/70 flex items-center justify-center text-white transition-all hover:scale-110 duration-300 motion-reduce:transition-none! motion-reduce:transform-none! motion-reduce:translate-none! motion-reduce:scale-100!"
         aria-label="Anterior"
       >
         <ChevronLeft className="h-4 w-4" />
@@ -182,7 +187,7 @@ function ImageCarousel({
           e.stopPropagation();
           goToNext();
         }}
-        className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-black/50 hover:bg-black/70 flex items-center justify-center text-white transition-all hover:scale-110"
+        className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-black/50 hover:bg-black/70 flex items-center justify-center text-white transition-all hover:scale-110 duration-300 motion-reduce:transition-none! motion-reduce:transform-none! motion-reduce:translate-none! motion-reduce:scale-100!"
         aria-label="Siguiente"
       >
         <ChevronRight className="h-4 w-4" />
@@ -197,7 +202,7 @@ function ImageCarousel({
           e.stopPropagation();
           setIsPlaying(!isPlaying);
         }}
-        className="absolute top-2 left-2 z-10 w-7 h-7 rounded-full bg-black/50 hover:bg-black/70 flex items-center justify-center text-white transition-all hover:scale-110"
+        className="absolute top-2 left-2 z-10 w-7 h-7 rounded-full bg-black/50 hover:bg-black/70 flex items-center justify-center text-white transition-all hover:scale-110 duration-300 motion-reduce:transition-none! motion-reduce:transform-none! motion-reduce:translate-none! motion-reduce:scale-100!"
         aria-label={isPlaying ? "Pausar" : "Reproducir"}
       >
         {isPlaying ? (
@@ -684,26 +689,6 @@ function CornerMarks({ active = false }: { active?: boolean }) {
   );
 }
 
-function useScrollReveal<T extends HTMLElement>(threshold = 0.12) {
-  const ref = useRef<T | null>(null);
-  const [inView, setInView] = useState(false);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => setInView(entry.isIntersecting),
-      { threshold, rootMargin: "-60px 0px -60px 0px" },
-    );
-
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [threshold]);
-
-  return { ref, inView };
-}
-
 // ============================================================
 // PÁGINA DE DETALLE
 // ============================================================
@@ -718,12 +703,6 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
   }
 
   const Icon = categoria.icon;
-  const { ref: heroRef, inView: heroInView } =
-    useScrollReveal<HTMLDivElement>(0.1);
-  const { ref: gridRef, inView: gridInView } =
-    useScrollReveal<HTMLDivElement>(0.1);
-  const { ref: ctaRef, inView: ctaInView } =
-    useScrollReveal<HTMLDivElement>(0.1);
 
   const isRichSubServicios =
     categoria.subServicios.length > 0 &&
@@ -769,7 +748,10 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
       if (el) {
         // Pequeño delay para que el layout (imágenes) se estabilice
         scrollTimeout = setTimeout(() => {
-          el.scrollIntoView({ behavior: "smooth", block: "start" });
+          el.scrollIntoView({
+            behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
+            block: "start",
+          });
         }, 120);
       }
     }
@@ -811,14 +793,7 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
         />
 
         <div
-          ref={heroRef}
           className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8"
-          style={{
-            opacity: heroInView ? 1 : 0,
-            transform: heroInView ? "translateY(0)" : "translateY(30px)",
-            transition:
-              "opacity 700ms cubic-bezier(0.16,1,0.3,1), transform 700ms cubic-bezier(0.16,1,0.3,1)",
-          }}
         >
           <Link
             href="/servicios"
@@ -837,63 +812,73 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
                 <span className="h-px w-6 bg-[#FF5A1F]" />
                 {categoria.tag}
               </span>
-              <h1
-                className="mt-4 text-4xl font-semibold tracking-tight text-white sm:text-5xl md:text-6xl"
-                style={{ fontFamily: FONT_DISPLAY }}
-              >
-                {categoria.title}
-              </h1>
-              <p className="mt-4 text-lg text-[#9AA0A6] leading-relaxed">
-                {categoria.description}
-              </p>
-
-              <div className="mt-6 flex flex-wrap gap-3">
-                {categoria.beneficios.slice(0, 2).map((beneficio, i) => (
-                  <span
-                    key={i}
-                    className="flex items-center gap-1.5 text-xs text-[#8A8F96] bg-[#1D2024] px-3 py-1.5 rounded-sm border border-[#3A3F45]"
-                  >
-                    <CheckCircle className="h-3 w-3 text-[#FF5A1F]" />
-                    {beneficio}
-                  </span>
-                ))}
-              </div>
-
-              <div className="mt-8 flex flex-wrap gap-4">
-                <Link
-                  href={`/contacto?servicio=${categoria.slug}`}
-                  className="inline-flex items-center gap-2 bg-[#FF5A1F] px-6 py-3 text-sm font-semibold uppercase tracking-wide text-white shadow-lg shadow-[#FF5A1F]/20 transition-all hover:bg-[#FF7A44] hover:shadow-[#FF5A1F]/40 hover:-translate-y-1"
+              <Reveal>
+                <h1
+                  className="mt-4 text-4xl font-semibold tracking-tight text-white sm:text-5xl md:text-6xl"
+                  style={{ fontFamily: FONT_DISPLAY }}
                 >
-                  <PhoneCall className="h-4 w-4" />
-                  Cotizar este servicio
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </div>
+                  {categoria.title}
+                </h1>
+              </Reveal>
+              <Reveal delay={100}>
+                <p className="mt-4 text-lg text-[#9AA0A6] leading-relaxed">
+                  {categoria.description}
+                </p>
+              </Reveal>
+
+              <Reveal delay={300}>
+                <div className="mt-6 flex flex-wrap gap-3">
+                  {categoria.beneficios.slice(0, 2).map((beneficio, i) => (
+                    <span
+                      key={i}
+                      className="flex items-center gap-1.5 text-xs text-[#8A8F96] bg-[#1D2024] px-3 py-1.5 rounded-sm border border-[#3A3F45]"
+                    >
+                      <CheckCircle className="h-3 w-3 text-[#FF5A1F]" />
+                      {beneficio}
+                    </span>
+                  ))}
+                </div>
+              </Reveal>
+
+              <Reveal delay={200}>
+                <div className="mt-8 flex flex-wrap gap-4">
+                  <Link
+                    href={`/contacto?servicio=${categoria.slug}`}
+                    className="inline-flex items-center gap-2 bg-[#FF5A1F] px-6 py-3 text-sm font-semibold uppercase tracking-wide text-white shadow-lg shadow-[#FF5A1F]/20 transition-all hover:bg-[#FF7A44] hover:shadow-[#FF5A1F]/40 hover:-translate-y-1 duration-300 motion-reduce:transition-none! motion-reduce:transform-none! motion-reduce:translate-none! motion-reduce:scale-100! group/cta"
+                  >
+                    <PhoneCall className="h-4 w-4" />
+                    Cotizar este servicio
+                    <ArrowRight className="h-4 w-4 transition-transform duration-300 motion-reduce:transform-none! motion-reduce:translate-none! motion-reduce:scale-100! motion-reduce:transition-none! group-hover/cta:translate-x-1" />
+                  </Link>
+                </div>
+              </Reveal>
             </div>
 
-            <div className="relative">
-              <div className="relative aspect-[4/3] rounded-sm overflow-hidden border border-[#3A3F45] bg-[#1D2024]">
-                <img
-                  src={categoria.image}
-                  alt={categoria.title}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                <div className="absolute bottom-4 left-4 right-4">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-sm bg-[#FF5A1F]/20 border border-[#FF5A1F]/30">
-                      <Icon className="h-6 w-6 text-[#FF5A1F]" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-white">
-                        {categoria.title}
-                      </p>
-                      <p className="text-xs text-white/60">{categoria.tag}</p>
+            <Reveal delay={150}>
+              <div className="relative">
+                <div className="relative aspect-[4/3] rounded-sm overflow-hidden border border-[#3A3F45] bg-[#1D2024]">
+                  <img
+                    src={categoria.image}
+                    alt={categoria.title}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                  <div className="absolute bottom-4 left-4 right-4">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-sm bg-[#FF5A1F]/20 border border-[#FF5A1F]/30">
+                        <Icon className="h-6 w-6 text-[#FF5A1F]" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-white">
+                          {categoria.title}
+                        </p>
+                        <p className="text-xs text-white/60">{categoria.tag}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
+            </Reveal>
           </div>
         </div>
       </section>
@@ -901,16 +886,9 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
       {/* SUB-SERVICIOS */}
       <section className="py-20 lg:py-28">
         <div
-          ref={gridRef}
           className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8"
-          style={{
-            opacity: gridInView ? 1 : 0,
-            transform: gridInView ? "translateY(0)" : "translateY(30px)",
-            transition:
-              "opacity 700ms cubic-bezier(0.16,1,0.3,1), transform 700ms cubic-bezier(0.16,1,0.3,1)",
-          }}
         >
-          <div className="text-center mb-14">
+          <Reveal className="text-center mb-14">
             <span
               className="inline-block text-xs font-medium uppercase tracking-[0.2em] text-[#8B8F86] px-3 py-1 border border-[#E3E1D8]"
               style={{ fontFamily: FONT_MONO }}
@@ -928,7 +906,7 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
               Conoce la lista completa de servicios que ofrecemos dentro de esta
               categoría.
             </p>
-          </div>
+          </Reveal>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {isRichSubServicios
@@ -987,7 +965,7 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
                           {esDestacado ? (
                             <Link
                               href={landingUrl}
-                              className="hover:text-[#FF5A1F] transition-colors"
+                              className="transition-colors duration-300"
                             >
                               {sub.nombre}
                             </Link>
@@ -1006,10 +984,10 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
                             {/* BOTÓN PRINCIPAL → landing con la información */}
                             <Link
                               href={landingUrl}
-                              className="group/btn flex items-center justify-center gap-2 w-full py-3.5 px-4 bg-[#FF5A1F] text-white text-sm font-bold uppercase tracking-wide rounded-sm shadow-md shadow-[#FF5A1F]/25 transition-all hover:bg-[#FF7A44] hover:shadow-lg hover:shadow-[#FF5A1F]/40"
+                              className="group/btn flex items-center justify-center gap-2 w-full py-3.5 px-4 bg-[#FF5A1F] text-white text-sm font-bold uppercase tracking-wide rounded-sm shadow-md shadow-[#FF5A1F]/25 transition-all hover:bg-[#FF7A44] hover:shadow-lg hover:shadow-[#FF5A1F]/40 duration-300 motion-reduce:transition-none! motion-reduce:transform-none! motion-reduce:translate-none! motion-reduce:scale-100! group/cta"
                             >
                               Ver ficha técnica B2B y cotizar
-                              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover/btn:translate-x-1" />
+                              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover/btn:translate-x-1 motion-reduce:transform-none! motion-reduce:translate-none! motion-reduce:scale-100! motion-reduce:transition-none!" />
                             </Link>
                             <p className="mt-2 text-center text-xs text-[#565C63]">
                               {esInoxidable
@@ -1022,7 +1000,7 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
                               href={whatsappUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex items-center justify-center gap-2 w-full mt-3 py-2.5 px-4 border border-[#E3E1D8] text-[#1E2126] hover:bg-[#F7F7F4] text-sm font-semibold rounded-sm transition-colors"
+                              className="flex items-center justify-center gap-2 w-full mt-3 py-2.5 px-4 border border-[#E3E1D8] text-[#1E2126] hover:bg-[#F7F7F4] text-sm font-semibold rounded-sm transition-colors duration-300 motion-reduce:transition-none! motion-reduce:transform-none! motion-reduce:translate-none! motion-reduce:scale-100!"
                             >
                               <Image
                                 src="/img/WhatsAppLogo.jpg"
@@ -1036,7 +1014,7 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
                             </a>
                           </div>
                         ) : (
-                          <div className="mt-4 h-1 w-10 bg-[#E3E1D8] rounded-full transition-all duration-300 group-hover:w-16 group-hover:bg-[#FF5A1F]/40" />
+                          <div className="mt-4 h-1 w-10 bg-[#E3E1D8] rounded-full" />
                         )}
                       </div>
                     </>
@@ -1045,43 +1023,31 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
                   // Destacados (Inoxidable o Chute) → tarjeta normal (div) con sus propios enlaces
                   if (esDestacado) {
                     return (
-                      <div
-                        key={index}
-                        id={subId}
-                        className={`subcat-card scroll-mt-28 group relative flex flex-col bg-white border-2 border-[#FF5A1F]/50 rounded-sm overflow-hidden transition-all duration-500 hover:border-[#FF5A1F] hover:shadow-2xl hover:shadow-[#FF5A1F]/20 hover:-translate-y-2 ${
-                          isActive ? "subcat-card--active" : ""
-                        }`}
-                        style={{
-                          opacity: gridInView ? 1 : 0,
-                          transform: gridInView
-                            ? "translateY(0)"
-                            : "translateY(30px)",
-                          transition: `opacity 600ms cubic-bezier(0.16,1,0.3,1) ${index * 100}ms, transform 600ms cubic-bezier(0.16,1,0.3,1) ${index * 100}ms, border-color 300ms, box-shadow 300ms`,
-                        }}
-                      >
-                        {CardContent}
-                      </div>
+                      <Reveal key={index} delay={index * 100} className="h-full min-w-0">
+                        <div
+                          id={subId}
+                          className={`h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-xl motion-reduce:transform-none! motion-reduce:translate-none! motion-reduce:scale-100! motion-reduce:transition-none! subcat-card scroll-mt-28 group relative flex flex-col bg-white border-2 border-[#FF5A1F]/50 rounded-sm overflow-hidden ${
+                            isActive ? "subcat-card--active" : ""
+                          }`}
+                        >
+                          {CardContent}
+                        </div>
+                      </Reveal>
                     );
                   }
 
                   // Resto de tarjetas → div normal (no clickeable)
                   return (
-                    <div
-                      key={index}
-                      id={subId}
-                      className={`subcat-card scroll-mt-28 group relative flex flex-col bg-white border border-[#E3E1D8] rounded-sm overflow-hidden transition-all duration-500 hover:border-[#FF5A1F]/40 hover:shadow-xl hover:-translate-y-2 ${
-                        isActive ? "subcat-card--active" : ""
-                      }`}
-                      style={{
-                        opacity: gridInView ? 1 : 0,
-                        transform: gridInView
-                          ? "translateY(0)"
-                          : "translateY(30px)",
-                        transition: `opacity 600ms cubic-bezier(0.16,1,0.3,1) ${index * 100}ms, transform 600ms cubic-bezier(0.16,1,0.3,1) ${index * 100}ms`,
-                      }}
-                    >
-                      {CardContent}
-                    </div>
+                    <Reveal key={index} delay={index * 100} className="h-full min-w-0">
+                      <div
+                        id={subId}
+                        className={`h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-xl motion-reduce:transform-none! motion-reduce:translate-none! motion-reduce:scale-100! motion-reduce:transition-none! subcat-card scroll-mt-28 group relative flex flex-col bg-white border border-[#E3E1D8] rounded-sm overflow-hidden ${
+                          isActive ? "subcat-card--active" : ""
+                        }`}
+                      >
+                        {CardContent}
+                      </div>
+                    </Reveal>
                   );
                 })
               : (categoria.subServicios as any[]).map((sub, index) => {
@@ -1091,68 +1057,62 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
                   const isActive = activeId === subId;
 
                   return (
-                    <div
-                      key={index}
-                      id={subId}
-                      className={`subcat-card scroll-mt-28 group relative flex items-start gap-4 p-4 bg-white border border-[#E3E1D8] rounded-sm transition-all hover:border-[#FF5A1F]/30 hover:shadow-md ${
-                        isActive ? "subcat-card--active" : ""
-                      }`}
-                      style={{
-                        opacity: gridInView ? 1 : 0,
-                        transform: gridInView
-                          ? "translateY(0)"
-                          : "translateY(30px)",
-                        transition: `opacity 600ms cubic-bezier(0.16,1,0.3,1) ${index * 100}ms, transform 600ms cubic-bezier(0.16,1,0.3,1) ${index * 100}ms`,
-                      }}
-                    >
-                      <CornerMarks />
+                    <Reveal key={index} delay={index * 100} className="h-full min-w-0">
+                      <div
+                        id={subId}
+                        className={`h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-xl motion-reduce:transform-none! motion-reduce:translate-none! motion-reduce:scale-100! motion-reduce:transition-none! subcat-card scroll-mt-28 group relative flex items-start gap-4 p-4 bg-white border border-[#E3E1D8] rounded-sm ${
+                          isActive ? "subcat-card--active" : ""
+                        }`}
+                      >
+                        <CornerMarks />
 
-                      {/* Badge de tarjeta seleccionada */}
-                      <div className="subcat-selected-badge">
-                        <CheckCircle className="h-3 w-3" aria-hidden />
-                        Estás viendo este servicio
-                      </div>
+                        {/* Badge de tarjeta seleccionada */}
+                        <div className="subcat-selected-badge">
+                          <CheckCircle className="h-3 w-3" aria-hidden />
+                          Estás viendo este servicio
+                        </div>
 
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm bg-[#FF5A1F]/10 border border-[#FF5A1F]/20">
-                        <CheckCircle className="h-4 w-4 text-[#FF5A1F]" />
-                      </div>
-                      <div>
-                        {(() => {
-                          const nombre = subNombre;
-                          const esInoxidable = /inoxidable/i.test(nombre);
-                          const esChute = /chute/i.test(nombre);
-                          const esDestacado = esInoxidable || esChute;
-                          const landingUrl = esInoxidable
-                            ? "/servicios/barandas-acero-inoxidable"
-                            : "/servicios/chutes-metalicos-para-construccion";
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm bg-[#FF5A1F]/10 border border-[#FF5A1F]/20">
+                          <CheckCircle className="h-4 w-4 text-[#FF5A1F]" />
+                        </div>
+                        <div>
+                          {(() => {
+                            const nombre = subNombre;
+                            const esInoxidable = /inoxidable/i.test(nombre);
+                            const esChute = /chute/i.test(nombre);
+                            const esDestacado = esInoxidable || esChute;
+                            const landingUrl = esInoxidable
+                              ? "/servicios/barandas-acero-inoxidable"
+                              : "/servicios/chutes-metalicos-para-construccion";
 
-                          return (
-                            <>
-                              <h3
-                                className="text-sm font-semibold text-[#1E2126]"
-                                style={{ fontFamily: FONT_DISPLAY }}
-                              >
-                                {esDestacado ? (
-                                  <Link
-                                    href={landingUrl}
-                                    className="text-[#FF5A1F] hover:underline"
-                                  >
-                                    {nombre}
-                                  </Link>
-                                ) : (
-                                  nombre
-                                )}
-                              </h3>
-                              <p className="text-xs text-[#8B8F86] mt-0.5">
-                                {esDestacado
-                                  ? "Ver ficha técnica B2B y cotizar"
-                                  : "Solución metalmecánica profesional"}
-                              </p>
-                            </>
-                          );
-                        })()}
+                            return (
+                              <>
+                                <h3
+                                  className="text-sm font-semibold text-[#1E2126]"
+                                  style={{ fontFamily: FONT_DISPLAY }}
+                                >
+                                  {esDestacado ? (
+                                    <Link
+                                      href={landingUrl}
+                                      className="text-[#FF5A1F] hover:underline"
+                                    >
+                                      {nombre}
+                                    </Link>
+                                  ) : (
+                                    nombre
+                                  )}
+                                </h3>
+                                <p className="text-xs text-[#8B8F86] mt-0.5">
+                                  {esDestacado
+                                    ? "Ver ficha técnica B2B y cotizar"
+                                    : "Solución metalmecánica profesional"}
+                                </p>
+                              </>
+                            );
+                          })()}
+                        </div>
                       </div>
-                    </div>
+                    </Reveal>
                   );
                 })}
           </div>
@@ -1161,15 +1121,8 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
 
       {/* CTA */}
       <section className="bg-white py-20 lg:py-28">
-        <div
-          ref={ctaRef}
+        <Reveal
           className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8"
-          style={{
-            opacity: ctaInView ? 1 : 0,
-            transform: ctaInView ? "translateY(0)" : "translateY(30px)",
-            transition:
-              "opacity 700ms cubic-bezier(0.16,1,0.3,1), transform 700ms cubic-bezier(0.16,1,0.3,1)",
-          }}
         >
           <span
             className="inline-block text-xs font-medium uppercase tracking-[0.2em] text-[#8B8F86] px-3 py-1 border border-[#E3E1D8]"
@@ -1194,15 +1147,15 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
           <div className="mt-8 flex flex-wrap justify-center gap-4">
             <Link
               href={`/contacto?servicio=${categoria.slug}`}
-              className="group inline-flex items-center gap-2 bg-[#FF5A1F] px-8 py-4 text-sm font-semibold uppercase tracking-wide text-white shadow-lg shadow-[#FF5A1F]/20 transition-all hover:bg-[#FF7A44] hover:shadow-[#FF5A1F]/40 hover:-translate-y-1"
+              className="group inline-flex items-center gap-2 bg-[#FF5A1F] px-8 py-4 text-sm font-semibold uppercase tracking-wide text-white shadow-lg shadow-[#FF5A1F]/20 transition-all hover:bg-[#FF7A44] hover:shadow-[#FF5A1F]/40 hover:-translate-y-1 duration-300 motion-reduce:transition-none! motion-reduce:transform-none! motion-reduce:translate-none! motion-reduce:scale-100! group/cta"
             >
               <PhoneCall className="h-4 w-4" />
               Cotizar {categoria.title}
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1 duration-300 motion-reduce:transform-none! motion-reduce:translate-none! motion-reduce:scale-100! motion-reduce:transition-none!" />
             </Link>
             <Link
               href="/proyectos"
-              className="group inline-flex items-center gap-2 border border-[#E3E1D8] px-8 py-4 text-sm font-semibold uppercase tracking-wide text-[#1E2126] transition-all hover:border-[#FF5A1F] hover:text-[#FF5A1F]"
+              className="group inline-flex items-center gap-2 border border-[#E3E1D8] px-8 py-4 text-sm font-semibold uppercase tracking-wide text-[#1E2126] transition-all hover:border-[#FF5A1F] hover:text-[#FF5A1F] duration-300 motion-reduce:transition-none! motion-reduce:transform-none! motion-reduce:translate-none! motion-reduce:scale-100!"
             >
               Ver proyectos relacionados
             </Link>
@@ -1224,7 +1177,7 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
               Asesoría personalizada
             </span>
           </div>
-        </div>
+        </Reveal>
       </section>
 
       <style jsx>{`
