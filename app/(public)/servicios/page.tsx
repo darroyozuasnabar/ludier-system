@@ -137,7 +137,7 @@ export default function ServiciosPage() {
       <ServiciosHero />
 
       {/* ============================================================
-          ESTADÍSTICAS DE CONFIANZA
+          ESTADÍSTICAS DE CONFIANZA (CON REVEAL Y HOVER)
           ============================================================ */}
       <section className="py-12 bg-white border-b border-[#E3E1D8]">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -148,13 +148,13 @@ export default function ServiciosPage() {
                 <Reveal
                   key={index}
                   delay={index * 70}
-                  className="flex flex-col items-center p-4 text-center"
+                  className="group flex flex-col items-center p-4 text-center"
                 >
-                  <div className="flex h-12 w-12 items-center justify-center rounded-sm bg-[#FF5A1F]/10 border border-[#FF5A1F]/20">
-                    <Icon className="h-6 w-6 text-[#FF5A1F]" />
+                  <div className="flex h-12 w-12 items-center justify-center rounded-sm bg-[#FF5A1F]/10 border border-[#FF5A1F]/20 transition-all duration-300 group-hover:scale-110 group-hover:bg-[#FF5A1F] group-hover:text-white">
+                    <Icon className="h-6 w-6 text-[#FF5A1F] transition-colors group-hover:text-white" />
                   </div>
                   <p
-                    className="mt-3 text-2xl font-semibold text-[#1E2126]"
+                    className="mt-3 text-2xl font-semibold text-[#1E2126] transition-colors group-hover:text-[#FF5A1F]"
                     style={{ fontFamily: FONT_DISPLAY }}
                   >
                     {stat.value}
@@ -207,9 +207,11 @@ export default function ServiciosPage() {
       </section>
 
       {/* ============================================================
-          BENEFICIOS - POR QUÉ ELEGIRNOS
+          BENEFICIOS - POR QUÉ ELEGIRNOS (CON FONDO MEJORADO)
           ============================================================ */}
-      <section className="bg-[#14161A] py-20 lg:py-28 relative overflow-hidden">
+      <section className="relative overflow-hidden bg-[#14161A] py-20 lg:py-28">
+        {/* Fondo con gradiente y partículas sutiles */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#FF5A1F]/5 via-transparent to-transparent opacity-50" />
         <div className="pointer-events-none absolute inset-0 opacity-[0.03] bg-[url('/img/grid-pattern.svg')] bg-repeat" />
         <div
           className="pointer-events-none absolute -right-32 top-1/2 h-[500px] w-[500px] -translate-y-1/2 rounded-full opacity-[0.04]"
@@ -243,24 +245,26 @@ export default function ServiciosPage() {
               return (
                 <Reveal key={beneficio.title} delay={index * 70} className="h-full">
                   <div
-                    className="group relative h-full bg-[#1D2024] border border-[#3A3F45] p-6 rounded-sm transition-all hover:border-[#FF5A1F]/40 hover:-translate-y-2 hover:shadow-2xl hover:shadow-[#FF5A1F]/5"
+                    className="group relative h-full overflow-hidden rounded-sm border border-[#3A3F45] bg-[#1D2024] p-6 transition-all duration-500 hover:-translate-y-2 hover:border-[#FF5A1F]/40 hover:shadow-2xl hover:shadow-[#FF5A1F]/5"
                   >
-                    <CornerMarks />
-                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-sm bg-[#FF5A1F]/10 border border-[#FF5A1F]/20">
-                      <Icon className="h-6 w-6 text-[#FF5A1F]" />
+                    {/* Efecto de luz en hover */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#FF5A1F]/10 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                    <CornerMarks active={true} />
+                    <div className="relative z-10 mb-4 flex h-12 w-12 items-center justify-center rounded-sm border border-[#FF5A1F]/20 bg-[#FF5A1F]/10 transition-all duration-300 group-hover:scale-110 group-hover:bg-[#FF5A1F]">
+                      <Icon className="h-6 w-6 text-[#FF5A1F] transition-colors group-hover:text-white" />
                     </div>
                     <h3
-                      className="text-lg font-semibold text-white"
+                      className="relative z-10 text-lg font-semibold text-white transition-colors group-hover:text-[#FF5A1F]"
                       style={{ fontFamily: FONT_DISPLAY }}
                     >
                       {beneficio.title}
                     </h3>
-                    <p className="mt-2 text-sm text-[#9AA0A6] leading-relaxed" style={{ fontFamily: FONT_BODY }}>
+                    <p className="relative z-10 mt-2 text-sm leading-relaxed text-[#9AA0A6]" style={{ fontFamily: FONT_BODY }}>
                       {beneficio.desc}
                     </p>
-                    <div className="mt-4 flex items-center gap-2">
+                    <div className="relative z-10 mt-4 flex items-center gap-2">
                       <CheckCircle className="h-3 w-3 text-[#FF5A1F]" />
-                      <span className="text-[10px] text-[#6E7379] uppercase tracking-wider">Garantizado</span>
+                      <span className="text-[10px] uppercase tracking-wider text-[#6E7379] transition-colors group-hover:text-[#FF5A1F]">Garantizado</span>
                     </div>
                   </div>
                 </Reveal>
@@ -271,12 +275,10 @@ export default function ServiciosPage() {
       </section>
 
       {/* ============================================================
-          CTA FINAL
+          CTA FINAL (CON REVEAL Y BOTÓN MEJORADO)
           ============================================================ */}
       <section className="bg-white py-16 lg:py-20 border-t border-[#E3E1D8]">
-        <Reveal
-          className="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8"
-        >
+        <Reveal className="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
           <h2
             className="text-3xl font-semibold text-[#1E2126]"
             style={{ fontFamily: FONT_DISPLAY }}
@@ -289,12 +291,12 @@ export default function ServiciosPage() {
           </p>
           <Link
             href="/contacto"
-            className="ludier-button ludier-button-primary mt-6"
+            className="ludier-button ludier-button-primary mt-6 inline-flex items-center gap-3"
             style={{ fontFamily: FONT_BODY }}
           >
             <PhoneCall className="h-4 w-4" />
             Cotizar ahora
-            <ArrowRight className="h-4 w-4" />
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </Link>
           <div className="mt-4 flex justify-center gap-4 text-xs text-[#8B8F86]">
             <span>✓ Respuesta en 24h</span>
