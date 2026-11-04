@@ -1,5 +1,3 @@
-"use client";
-
 import type { Metadata } from "next";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -32,14 +30,29 @@ const DESCRIPTION =
   "Fabricación e instalación de estructuras metálicas, barandas, escaleras, portones y chutes en Lima. Atención a constructoras y trabajos según planos.";
 
 // --- SEO ---
-// Nota: los metadatos no funcionan en client components, pero como usamos "use client"
-// en este archivo, los metadatos no se exportarán. Para que funcionen, deben ir en el
-// layout o en un archivo page.tsx separado. Sin embargo, como el usuario ya tenía un
-// page.tsx con metadatos, vamos a mantener la estructura de Server Component para el SEO.
-// Para el contador, crearemos un pequeño componente client dentro del mismo archivo.
+export const metadata: Metadata = {
+  title: { absolute: TITLE },
+  description: DESCRIPTION,
+  alternates: { canonical: PAGE_URL },
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: PAGE_URL,
+    type: "website",
+    siteName: "LUDIER",
+    locale: "es_PE",
+    images: [{ url: "/img/Qantua.jpg", alt: "Trabajos metalmecánicos de LUDIER en el proyecto Qantua" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+    images: ["/img/Qantua.jpg"],
+  },
+};
 
 // ============================================================
-// COMPONENTE CLIENTE PARA EL CONTADOR (SOLO PARA ESTA PÁGINA)
+// COMPONENTE CLIENTE PARA EL CONTADOR
 // ============================================================
 function StatCounter({ value }: { value: string }) {
   const [count, setCount] = useState(0);
@@ -121,7 +134,7 @@ function CornerMarks({ active = false }: { active?: boolean }) {
 }
 
 // ============================================================
-// PÁGINA PRINCIPAL (SERVER COMPONENT)
+// PÁGINA PRINCIPAL
 // ============================================================
 export default function ServiciosPage() {
   const collectionJsonLd = {
