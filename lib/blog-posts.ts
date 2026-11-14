@@ -1480,6 +1480,7 @@ export const POSTS: BlogPost[] = [
     titulo: "Cercos perimetrales para industrias y constructoras: Guía 2026",
     extracto:
       "Todo sobre cercos perimetrales: tipos, materiales, normativas y precios. Para industrias, constructoras y proyectos residenciales.",
+    // FIX CERCOS: el CTA final dirige a la nueva ficha B2B de cercos perimetrales.
     contenido: `
       <p>Los cercos perimetrales son la primera línea de seguridad de cualquier propiedad industrial, comercial o residencial. En sectores como construcción, minería y manufactura, un cerco bien diseñado no es un lujo: es una necesidad operativa y legal.</p>
 
@@ -1635,7 +1636,7 @@ export const POSTS: BlogPost[] = [
       <div style="margin-top: 40px; padding: 24px; background-color: #FFF3EC; border-left: 4px solid #FF5A1F;">
         <p style="margin: 0 0 12px 0; font-weight: 600; color: #1E2126;">¿Necesitas cercos perimetrales para tu obra o industria?</p>
         <p style="margin: 0 0 16px 0; color: #565C63;">Visita nuestra ficha técnica de cercos, cerramientos y soluciones para constructoras.</p>
-        <a href="/servicios/cercos-cerramientos" style="display: inline-block; padding: 12px 24px; background-color: #FF5A1F; color: #ffffff !important; text-decoration: none; font-weight: 600; border-radius: 2px; margin-right: 12px; margin-bottom: 12px;">Ver ficha técnica de cercos →</a>
+        <a href="/servicios/cercos-perimetrales-para-obras" style="display: inline-block; padding: 12px 24px; background-color: #FF5A1F; color: #ffffff !important; text-decoration: none; font-weight: 600; border-radius: 2px; margin-right: 12px; margin-bottom: 12px;">Ver ficha técnica de cercos perimetrales →</a>
         <a href="/proyectos/lince" style="display: inline-block; padding: 12px 24px; background-color: #1E2126; color: #ffffff !important; text-decoration: none; font-weight: 600; border-radius: 2px; margin-bottom: 12px;">Ver obra en Lince →</a>
       </div>
     `,
