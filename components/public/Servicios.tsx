@@ -1,5 +1,3 @@
-import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import Reveal from "@/components/public/Reveal";
 import ServicioCard from "@/components/public/ServicioCard";
 import ConstructorasCTA from "@/components/public/ConstructorasCTA";
@@ -168,16 +166,6 @@ export default function Servicios() {
           <Reveal><ConstructorasCTA /></Reveal>
         </div>
 
-        {/* CTA */}
-        <div className="mt-16 text-center">
-          <Link
-            href="/contacto"
-            className="ludier-button ludier-button-primary"
-          >
-            <span>Cotizar ahora</span>
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
       </div>
     </section>
   );
