@@ -85,7 +85,7 @@ export const authOptions: NextAuthOptions = {
               .select()
               .single();
 
-            if (insertError || !newUser) {
+            if (insertError || !newUser || !newUser.active) {
               console.error("❌ Error creando usuario:", insertError);
               return null;
             }
@@ -96,6 +96,11 @@ export const authOptions: NextAuthOptions = {
               name: newUser.name,
               role: newUser.role || undefined,
             };
+          }
+
+          // SECURITY F1: no iniciar sesiones para usuarios inactivos o sin estado activo.
+          if (!userData.active) {
+            return null;
           }
 
           return {

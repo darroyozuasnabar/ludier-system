@@ -14,6 +14,10 @@ export async function POST(
     if (!token) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
+    // SECURITY F1: los tokens CLIENTE y roles no autorizados no acceden al CRM.
+    if (!["FUNDADOR", "ADMIN", "FIELD_ENGINEER"].includes(token.role ?? "")) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+    }
 
     const { id } = await params;
     const body = await req.json().catch(() => ({}));

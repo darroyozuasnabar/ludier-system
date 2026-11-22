@@ -16,6 +16,10 @@ export async function GET(
     if (!token) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
+    // SECURITY F1: los tokens CLIENTE y roles no autorizados no acceden al CRM.
+    if (!["FUNDADOR", "ADMIN", "FIELD_ENGINEER"].includes(token.role ?? "")) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+    }
 
     const { id } = await params;
 
@@ -67,6 +71,10 @@ export async function PUT(
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
     if (!token) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
+    // SECURITY F1: los tokens CLIENTE y roles no autorizados no acceden al CRM.
+    if (!["FUNDADOR", "ADMIN", "FIELD_ENGINEER"].includes(token.role ?? "")) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 });
     }
 
     const { id } = await params;
@@ -207,6 +215,10 @@ export async function DELETE(
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
     if (!token) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
+    // SECURITY F1: los tokens CLIENTE y roles no autorizados no acceden al CRM.
+    if (!["FUNDADOR", "ADMIN", "FIELD_ENGINEER"].includes(token.role ?? "")) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 });
     }
 
     const { id } = await params;

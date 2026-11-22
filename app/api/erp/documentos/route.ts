@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createBrowserClient } from '@supabase/ssr';
 import { randomUUID } from 'crypto';
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -10,6 +12,15 @@ const supabase = createBrowserClient(
 // GET: Listar documentos
 export async function GET(req: NextRequest) {
   try {
+    // SECURITY F1: validar identidad y permisos antes de ejecutar la operacion.
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
+    if (!["FUNDADOR", "ADMIN", "FIELD_ENGINEER", "PRODUCTION", "VIEWER"].includes(session.user?.role ?? "")) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+    }
+
     const { searchParams } = new URL(req.url);
     const tipo = searchParams.get('tipo');
     const proyectoId = searchParams.get('proyectoId');
@@ -66,6 +77,15 @@ export async function GET(req: NextRequest) {
 // POST: Subir documento
 export async function POST(req: NextRequest) {
   try {
+    // SECURITY F1: validar identidad y permisos antes de ejecutar la operacion.
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
+    if (!["FUNDADOR", "ADMIN", "FIELD_ENGINEER", "PRODUCTION"].includes(session.user?.role ?? "")) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+    }
+
     const formData = await req.formData();
     
     const file = formData.get('file') as File;

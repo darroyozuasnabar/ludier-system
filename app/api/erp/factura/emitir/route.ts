@@ -4,6 +4,8 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from "next/headers";
 import { rateLimit } from '@/lib/rate-limit';
 import { z } from 'zod';
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 // ============================================================
 // 🔥 CLIENTE SUPABASE
@@ -99,6 +101,15 @@ async function getNextNumero(supabase: any, serie: string): Promise<number> {
 // ============================================================
 export async function POST(request: Request) {
   try {
+    // SECURITY F1: validar identidad y permisos antes de ejecutar la operacion.
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
+    if (!["FUNDADOR", "ADMIN"].includes(session.user?.role ?? "")) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+    }
+
     // 🔥 1. Rate Limiting
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0] ?? 'anonymous';
     const { success } = await rateLimit.limit(ip);

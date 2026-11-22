@@ -4,6 +4,8 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { rateLimit } from '@/lib/rate-limit';
 import { z } from 'zod';
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 // 🔥 Esquema de validación para conversión
 const convertirSchema = z.object({
@@ -42,6 +44,15 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // SECURITY F1: validar identidad y permisos antes de ejecutar la operacion.
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
+    if (!["FUNDADOR", "ADMIN", "FIELD_ENGINEER"].includes(session.user?.role ?? "")) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+    }
+
     // 🔥 1. Rate limiting
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0] ?? 'anonymous';
     const { success } = await rateLimit.limit(ip);

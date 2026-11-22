@@ -5,6 +5,8 @@ import { cookies } from 'next/headers';
 import { rateLimit } from '@/lib/rate-limit';
 import { randomUUID } from 'crypto';
 import { z } from 'zod';
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 // ============================================================
 // 🔥 CLIENTE SUPABASE
@@ -51,6 +53,15 @@ const fotoSchema = z.object({
 // ============================================================
 export async function GET(req: NextRequest) {
   try {
+    // SECURITY F1: validar identidad y permisos antes de ejecutar la operacion.
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
+    if (!["FUNDADOR", "ADMIN", "FIELD_ENGINEER", "PRODUCTION"].includes(session.user?.role ?? "")) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+    }
+
     const { searchParams } = new URL(req.url);
     const categoria = searchParams.get('categoria');
     const proyectoId = searchParams.get('proyectoId');
@@ -111,6 +122,15 @@ export async function GET(req: NextRequest) {
 // ============================================================
 export async function POST(req: NextRequest) {
   try {
+    // SECURITY F1: validar identidad y permisos antes de ejecutar la operacion.
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
+    if (!["FUNDADOR", "ADMIN", "FIELD_ENGINEER", "PRODUCTION"].includes(session.user?.role ?? "")) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+    }
+
     // 🔥 1. Rate Limiting
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0] ?? 'anonymous';
     const { success } = await rateLimit.limit(ip);

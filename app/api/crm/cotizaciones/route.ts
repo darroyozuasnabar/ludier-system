@@ -13,6 +13,10 @@ export async function GET(req: NextRequest) {
     if (!token) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
+    // SECURITY F1: los tokens CLIENTE y roles no autorizados no acceden al CRM.
+    if (!["FUNDADOR", "ADMIN", "FIELD_ENGINEER"].includes(token.role ?? "")) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+    }
 
     const { searchParams } = new URL(req.url);
     const busqueda = searchParams.get("busqueda") || searchParams.get("q") || "";
@@ -21,6 +25,9 @@ export async function GET(req: NextRequest) {
     const fechaDesde = searchParams.get("fechaDesde") || "";
     const fechaHasta = searchParams.get("fechaHasta") || "";
 
+    // TODO SECURITY F1: filtrar FIELD_ENGINEER por proyectos asignados cuando exista
+    // esa relacion en BD. cliente_user_id es del CLIENTE y creado_por es autoria,
+    // no asignacion de ingeniero; no sustituir uno por otro.
     const where: any = {};
 
     if (busqueda) {
@@ -97,6 +104,10 @@ export async function POST(req: NextRequest) {
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
     if (!token) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
+    // SECURITY F1: los tokens CLIENTE y roles no autorizados no acceden al CRM.
+    if (!["FUNDADOR", "ADMIN", "FIELD_ENGINEER"].includes(token.role ?? "")) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 });
     }
 
     const body = await req.json();
