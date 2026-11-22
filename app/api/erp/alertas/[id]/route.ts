@@ -4,6 +4,8 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { rateLimit } from '@/lib/rate-limit';
 import { z } from 'zod';
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 // ============================================================
 // 🔥 CLIENTE SUPABASE
@@ -51,6 +53,15 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // SECURITY F1: validar identidad y permisos antes de ejecutar la operacion.
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
+    if (!["FUNDADOR", "ADMIN", "FIELD_ENGINEER", "PRODUCTION", "VIEWER"].includes(session.user?.role ?? "")) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+    }
+
     const { id } = await params;
     const supabase = await createSupabaseClient();
 
@@ -90,6 +101,15 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // SECURITY F1: validar identidad y permisos antes de ejecutar la operacion.
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
+    if (!["FUNDADOR", "ADMIN", "FIELD_ENGINEER", "PRODUCTION"].includes(session.user?.role ?? "")) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+    }
+
     // 🔥 Rate Limiting
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0] ?? 'anonymous';
     const { success } = await rateLimit.limit(ip);
@@ -156,6 +176,15 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // SECURITY F1: validar identidad y permisos antes de ejecutar la operacion.
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
+    if (!["FUNDADOR", "ADMIN"].includes(session.user?.role ?? "")) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+    }
+
     // 🔥 Rate Limiting
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0] ?? 'anonymous';
     const { success } = await rateLimit.limit(ip);
@@ -204,6 +233,15 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // SECURITY F1: validar identidad y permisos antes de ejecutar la operacion.
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
+    if (!["FUNDADOR", "ADMIN", "FIELD_ENGINEER", "PRODUCTION"].includes(session.user?.role ?? "")) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+    }
+
     // 🔥 Rate Limiting
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0] ?? 'anonymous';
     const { success } = await rateLimit.limit(ip);

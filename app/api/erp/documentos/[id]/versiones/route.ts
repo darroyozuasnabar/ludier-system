@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from "next/headers";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 const createSupabaseClient = async () => {
   const cookieStore = await cookies();
@@ -79,6 +81,15 @@ async function getNextNumero(supabase: any, serie: string): Promise<number> {
 
 export async function POST(request: Request) {
   try {
+    // SECURITY F1: validar identidad y permisos antes de ejecutar la operacion.
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
+    if (!["FUNDADOR", "ADMIN"].includes(session.user?.role ?? "")) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+    }
+
     const { valorizacionId, projectId } = await request.json();
     
     const supabase = await createSupabaseClient();
