@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import {
+  ArrowLeft,
   ArrowRight,
   ArrowDownToLine,
   ArrowUpRight,
@@ -23,6 +24,7 @@ import {
   Wrench,
 } from "lucide-react";
 import WhatsAppLink from "@/components/public/WhatsAppLink";
+import Reveal from "@/components/public/Reveal";
 import { proyectosData } from "@/lib/proyectos-data";
 
 const SITE_URL = "https://grupoludier.com";
@@ -71,7 +73,6 @@ export const metadata: Metadata = {
 };
 
 const TRUST_ITEMS = [
-  // FIX HOMOLOGACIÓN: identificar a Hodelpe y el alcance para Grupo LAR.
   { icon: ShieldCheck, text: "Homologados por Hodelpe" },
   { icon: HardHat, text: "Personal propio" },
   { icon: Clock, text: "Respuesta en 24h" },
@@ -162,237 +163,313 @@ const serviceLd = {
   },
 };
 
+function JsonLd({ data }: { data: object }) {
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+    />
+  );
+}
+
+function CtaButtons({ className = "" }: { className?: string }) {
+  return (
+    <div className={`flex flex-wrap gap-3 ${className}`}>
+      <Link href={QUOTE_URL} className="ludier-button ludier-button-primary">
+        <ClipboardList className="h-4 w-4" aria-hidden /> Cotizar mi proyecto
+      </Link>
+      <WhatsAppLink
+        href={WHATSAPP_URL}
+        location="hero"
+        page={PAGE_PATH}
+        className="ludier-button ludier-button-secondary ludier-button-secondary-dark"
+      >
+        <MessageCircle className="h-4 w-4" aria-hidden /> Escribir por WhatsApp
+      </WhatsAppLink>
+    </div>
+  );
+}
+
 export default function EmpresasEstructurasMetalicasPage() {
   return (
-    <div className="bg-[#F7F7F4] pt-16 text-[#1E2126] md:pt-20" style={{ fontFamily: FONT_BODY }}>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceLd).replace(/</g, "\\u003c") }}
-      />
+    <>
+      <JsonLd data={serviceLd} />
 
-      {/* FICHA B2B: hero oscuro con fotografía de Qantua y contraste para el contenido. */}
-      <section aria-labelledby="titulo-empresas" className="relative overflow-hidden bg-[#14161A] px-4 py-12 text-white lg:py-24">
-        <Image src={HERO_IMAGE} alt="Vista del proyecto Qantua de Grupo LAR, donde LUDIER ejecutó trabajos metalmecánicos" fill sizes="100vw" loading="eager" className="object-cover object-[center_70%]" />
-        <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-r from-[#14161A]/95 via-[#14161A]/85 to-[#14161A]/65" />
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-[0.05]" style={{ backgroundImage: "linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)", backgroundSize: "48px 48px" }} />
-        <div aria-hidden="true" className="absolute inset-x-0 top-0 h-1 bg-[#FF5A1F]" />
-        <div className="relative mx-auto max-w-6xl">
-          <nav aria-label="Migas de pan" className="mb-7 flex flex-wrap items-center gap-2 text-sm text-[#C8CDD2]">
-            <Link href="/servicios" className="inline-flex min-h-11 items-center hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#FF5A1F]">Servicios</Link>
-            <ChevronRight className="h-4 w-4" aria-hidden="true" />
-            <span>Proveedores para constructoras</span>
-          </nav>
-          <div className="max-w-3xl">
-            <p className="flex items-center gap-3 text-xs font-medium uppercase tracking-[0.16em] text-[#C8CDD2]" style={{ fontFamily: FONT_MONO }}>
-              <span className="h-px w-8 shrink-0 bg-[#FF5A1F]" aria-hidden="true" /> Tu aliado en obra
-            </p>
-            <h1 id="titulo-empresas" className="mt-4 break-words text-balance text-4xl font-semibold leading-tight md:text-5xl" style={{ fontFamily: FONT_DISPLAY }}>
-              Fabricante de <span className="text-[#FF5A1F]">Estructuras Metálicas</span> para Constructoras en Lima
-            </h1>
-            <p className="mt-6 max-w-2xl text-base leading-relaxed text-[#C8CDD2] sm:text-lg">
-              +10 años de experiencia, cuadrillas propias y homologados por Hodelpe para Grupo LAR.
-              Fabricación e instalación según tus planos, con coordinación directa
-              con residentes de obra y equipos de compras.
-            </p>
-            <ul className="mt-6 space-y-2 text-sm text-white/90">
-              {["Fabricación y montaje según planos y especificaciones", "Personal propio, coordinado con tu supervisión", "Experiencia en Qantua, Zendai y Catalina Tower"].map((item) => (
-                <li key={item} className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#FF5A1F]" aria-hidden="true" /><span>{item}</span></li>
-              ))}
-            </ul>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-              <Link href={QUOTE_URL} className="inline-flex min-h-11 items-center justify-center gap-2 bg-[#FF5A1F] px-6 py-3.5 text-center font-semibold text-[#14161A] transition-colors hover:bg-[#FF7A44] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
-                Cotizar mi obra ahora <ArrowRight className="h-5 w-5 shrink-0" aria-hidden="true" />
+      <main className="min-h-screen bg-[#F7F7F4] pb-24 text-[#1E2126] lg:pb-0" style={{ fontFamily: FONT_BODY }}>
+        {/* HERO con la foto de Qantua Integral */}
+        <section className="relative overflow-hidden bg-[#14161A] px-4 py-16 text-white lg:py-24">
+          <Image
+            src={HERO_IMAGE}
+            alt="Vista del proyecto Qantua de Grupo LAR, donde LUDIER ejecutó trabajos metalmecánicos"
+            fill
+            sizes="100vw"
+            className="object-cover object-[center_70%] opacity-40"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#14161A]/95 via-[#14161A]/85 to-[#14161A]/65" />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 opacity-[0.06]"
+            style={{
+              backgroundImage:
+                "linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)",
+              backgroundSize: "48px 48px",
+            }}
+          />
+          <div className="relative mx-auto max-w-6xl">
+            <nav aria-label="Migas de pan" className="mb-8 flex flex-wrap items-center gap-2 text-sm text-[#8A8F96]">
+              <Link href="/servicios" className="inline-flex items-center gap-2 transition-colors hover:text-[#FF5A1F]">
+                <ArrowLeft className="h-4 w-4" aria-hidden /> Servicios
               </Link>
-              <Link href="#obras-respaldo" className="inline-flex min-h-11 items-center justify-center gap-2 border border-[#59616B] px-5 py-3.5 text-center font-semibold hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#FF5A1F]">
-                Ver obras ejecutadas <ArrowDownToLine className="h-4 w-4 shrink-0" aria-hidden="true" />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
+              <ChevronRight className="h-3 w-3" aria-hidden />
+              <span className="text-white/80">Proveedores para Constructoras</span>
+            </nav>
 
-      <section aria-label="Respaldo para tu obra" className="border-b border-[#E3E1D8] bg-white px-4 sm:px-6 lg:px-8">
-        <ul className="mx-auto grid max-w-6xl grid-cols-1 gap-5 py-7 md:grid-cols-3 md:gap-8">
-          {TRUST_ITEMS.map(({ icon: Icon, text }) => (
-            <li key={text} className="flex min-w-0 items-center gap-4 text-sm font-semibold leading-relaxed">
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center border border-[#FF5A1F]/20 bg-[#FF5A1F]/10"><Icon className="h-6 w-6 text-[#B83B12]" aria-hidden="true" /></span>
-              <span>{text}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      {/* FICHA B2B: contenido y sidebar con la misma distribución que techos. */}
-      <div className="mx-auto grid max-w-6xl grid-cols-1 gap-12 px-4 py-12 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="min-w-0 space-y-12">
-          <section aria-labelledby="por-que-elegirnos">
-            <div>
-              <p className="mb-4 text-xs font-medium uppercase tracking-[0.16em] text-[#555B63]" style={{ fontFamily: FONT_MONO }}>Capacidad técnica y respaldo</p>
-              <h2 id="por-que-elegirnos" className="text-balance text-2xl font-semibold md:text-3xl" style={{ fontFamily: FONT_DISPLAY }}>
-                Por qué las constructoras nos eligen
-              </h2>
-              <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {BENEFITS.map(({ icon: Icon, title, text }) => (
-                  <article key={title} className="min-w-0 border-l-4 border-[#FF5A1F] bg-white p-6">
-                    <Icon className="h-8 w-8 text-[#B83B12]" aria-hidden="true" />
-                    <h3 className="mt-5 text-xl font-semibold" style={{ fontFamily: FONT_DISPLAY }}>{title}</h3>
-                    <p className="mt-3 text-base leading-relaxed text-[#555B63]">{text}</p>
-                  </article>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          <section aria-labelledby="obras-respaldo">
-            <div>
-              <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                  <p className="mb-4 text-xs font-medium uppercase tracking-[0.16em] text-[#555B63]" style={{ fontFamily: FONT_MONO }}>Experiencia en campo</p>
-                  <h2 id="obras-respaldo" className="scroll-mt-28 text-balance text-2xl font-semibold md:text-3xl" style={{ fontFamily: FONT_DISPLAY }}>
-                    Obras que nos respaldan
-                  </h2>
-                  <p className="mt-4 max-w-2xl text-base leading-relaxed text-[#555B63]">
-                    Proyectos reales, alcances definidos y coordinación con constructoras en Lima.
-                  </p>
-                </div>
-                <Link href="/proyectos" className="inline-flex min-h-11 shrink-0 items-center gap-2 font-semibold hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#FF5A1F]">
-                  Ver portafolio <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                </Link>
-              </div>
-              <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3">
-                {PROJECTS.map((project) => (
-                  <Link key={project.slug} href={`/proyectos/${project.slug}`} className="group flex min-w-0 flex-col border border-[#E3E1D8] bg-white transition-colors hover:border-[#FF5A1F] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#FF5A1F]">
-                    <div className="relative aspect-[4/3] w-full overflow-hidden">
-                      <Image
-                        src={project.imagen}
-                        alt={`${project.titulo}, proyecto atendido por LUDIER en Lima`}
-                        fill
-                        sizes="(min-width: 1280px) 240px, (min-width: 1024px) 22vw, (min-width: 768px) 33vw, 100vw"
-                        className="object-cover"
-                      />
-                    </div>
-                    <div className="flex flex-1 flex-col p-4">
-                      <p className="mb-3 flex items-center gap-2 text-xs font-medium text-[#555B63]"><MapPin className="h-4 w-4 shrink-0" aria-hidden="true" /> Lima, Perú</p>
-                      <h3 className="break-words text-xl font-semibold group-hover:underline" style={{ fontFamily: FONT_DISPLAY }}>{project.titulo}</h3>
-                      <p className="mt-2 text-sm text-[#555B63]">{project.cliente}</p>
-                      <p className="mt-4 text-base leading-relaxed text-[#555B63]">{PROJECT_DESCRIPTIONS[project.slug]}</p>
-                      <span className="mt-auto inline-flex min-h-11 items-center gap-2 pt-5 font-semibold text-[#B83B12]">
-                        Ver intervención <ArrowUpRight className="h-4 w-4 shrink-0" aria-hidden="true" />
-                      </span>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          <section aria-labelledby="servicios-fabricamos">
-            <div>
-              <p className="mb-4 text-xs font-medium uppercase tracking-[0.16em] text-[#555B63]" style={{ fontFamily: FONT_MONO }}>De taller a obra</p>
-              <h2 id="servicios-fabricamos" className="text-balance text-2xl font-semibold md:text-3xl" style={{ fontFamily: FONT_DISPLAY }}>
-                Servicios que fabricamos
-              </h2>
-              <p className="mt-4 max-w-2xl text-base leading-relaxed text-[#555B63]">Revisa cada especialidad y compártenos las partidas que necesitas cotizar.</p>
-              <ul className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {SERVICES.map(({ icon: Icon, title, text, href }) => (
-                  <li key={href} className="min-w-0">
-                    <Link href={href} className="group flex h-full min-h-11 flex-col border border-[#E3E1D8] bg-white p-4 transition-colors hover:border-[#FF5A1F] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#FF5A1F]">
-                      <div className="mb-5 flex items-center justify-between gap-4">
-                        <span className="flex h-12 w-12 items-center justify-center border border-[#E3E1D8] bg-[#F7F7F4]"><Icon className="h-6 w-6 text-[#B83B12]" aria-hidden="true" /></span>
-                        <ArrowUpRight className="h-5 w-5 text-[#555B63]" aria-hidden="true" />
-                      </div>
-                      <h3 className="break-words text-xl font-semibold group-hover:underline" style={{ fontFamily: FONT_DISPLAY }}>{title}</h3>
-                      <p className="mt-3 text-base leading-relaxed text-[#555B63]">{text}</p>
-                      <span className="mt-auto pt-5 text-sm font-semibold text-[#B83B12]">Ver servicio</span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </section>
-
-          {/* REDISEÑO B2B: requisitos claros y contacto directo sin añadir otro formulario. */}
-          <section aria-labelledby="que-enviar" className="bg-[#14161A] p-6 text-white sm:p-8">
-            <div>
-              <div className="min-w-0">
-                <ClipboardList className="mb-6 h-9 w-9 text-[#FF5A1F]" aria-hidden="true" />
-                <h2 id="que-enviar" className="text-balance text-2xl font-semibold" style={{ fontFamily: FONT_DISPLAY }}>Qué enviar para recibir tu cotización</h2>
-                <p className="mt-4 text-base leading-relaxed text-[#C8CDD2]">Con esta información podemos evaluar el alcance y preparar una propuesta para tu equipo de compras.</p>
-                <p className="mt-5 flex items-start gap-3 text-sm leading-relaxed text-[#C8CDD2]"><Ruler className="mt-0.5 h-5 w-5 shrink-0 text-[#FF5A1F]" aria-hidden="true" /> ¿Aún no tienes todo? Escríbenos y te ayudamos a definir lo que falta.</p>
-              </div>
-              <div className="mt-6 min-w-0">
-                <ul className="space-y-5">
-                  {QUOTE_CHECKLIST.map((item) => (
-                    <li key={item} className="flex items-start gap-3 text-base leading-relaxed text-[#E3E1D8]"><CheckCircle2 className="mt-1 h-5 w-5 shrink-0 text-[#FF5A1F]" aria-hidden="true" /><span>{item}</span></li>
+            <div className="max-w-3xl">
+              <Reveal>
+                <p className="text-sm font-medium text-[#FF5A1F]">Para constructoras y proyectos industriales</p>
+                <h1 className="mt-4 text-4xl font-semibold leading-tight md:text-5xl" style={{ fontFamily: FONT_DISPLAY }}>
+                  Fabricante de Estructuras Metálicas para Constructoras en Lima
+                </h1>
+              </Reveal>
+              <Reveal delay={100}>
+                <p className="mt-6 max-w-xl text-lg leading-relaxed text-[#B4B9BF]">
+                  +10 años de experiencia, cuadrillas propias y homologados por Hodelpe para Grupo LAR. Fabricación e instalación según tus planos, con coordinación directa con residentes de obra y equipos de compras.
+                </p>
+              </Reveal>
+              <Reveal delay={200}>
+                <ul className="mt-6 space-y-2 text-sm text-white/90">
+                  {["Fabricación y montaje según planos y especificaciones", "Personal propio, coordinado con tu supervisión", "Experiencia en Qantua, Zendai y Catalina Tower"].map((item) => (
+                    <li key={item} className="flex items-start gap-2">
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#FF5A1F]" aria-hidden="true" />
+                      <span>{item}</span>
+                    </li>
                   ))}
                 </ul>
-                <WhatsAppLink href={WHATSAPP_URL} location="landing-empresas-requisitos" page={PAGE_PATH} className="mt-8 inline-flex min-h-11 w-full items-center justify-center gap-2 bg-[#FF5A1F] px-5 py-3.5 text-center font-semibold text-[#14161A] transition-colors hover:bg-[#FF7A44] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
-                  <MessageCircle className="h-5 w-5 shrink-0" aria-hidden="true" /> Enviar planos por WhatsApp
-                </WhatsAppLink>
-              </div>
+              </Reveal>
+              <Reveal delay={300}>
+                <CtaButtons className="mt-8" />
+              </Reveal>
+            </div>
+          </div>
+        </section>
+
+        {/* FRANJA DE CONFIANZA */}
+        <Reveal delay={300}>
+          <section className="border-b border-[#E3E1D8] bg-white py-5" aria-label="Respaldo para tu obra">
+            <div className="mx-auto grid max-w-6xl grid-cols-2 gap-4 px-4 md:grid-cols-3">
+              {TRUST_ITEMS.map(({ icon: Icon, text }) => (
+                <div key={text} className="flex items-center justify-center gap-2 text-sm font-medium">
+                  <Icon className="h-5 w-5 shrink-0 text-[#FF5A1F]" aria-hidden="true" />
+                  {text}
+                </div>
+              ))}
             </div>
           </section>
+        </Reveal>
 
-          <section aria-labelledby="preguntas-frecuentes">
-            <div className="space-y-6">
-              <div className="min-w-0">
-                <p className="mb-4 text-xs font-medium uppercase tracking-[0.16em] text-[#555B63]" style={{ fontFamily: FONT_MONO }}>Antes de contratar</p>
-                <h2 id="preguntas-frecuentes" className="text-balance text-2xl font-semibold md:text-3xl" style={{ fontFamily: FONT_DISPLAY }}>Preguntas frecuentes de constructoras</h2>
-                <p className="mt-4 max-w-xl text-base leading-relaxed text-[#555B63]">Seguridad, documentación y alcance: resolvemos las consultas de tu equipo antes de empezar.</p>
-              </div>
-              <div className="min-w-0 space-y-3">
-                {FAQS.map(({ question, answer }) => (
-                  <details key={question} className="group border border-[#E3E1D8] bg-white open:border-[#B83B12]">
-                    <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 p-5 text-base font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#FF5A1F]">
-                      <span className="min-w-0">{question}</span><ChevronRight className="h-5 w-5 shrink-0 text-[#B83B12] transition-transform group-open:rotate-90 motion-reduce:transition-none" aria-hidden="true" />
-                    </summary>
-                    <p className="px-5 pb-5 text-base leading-relaxed text-[#555B63]">{answer}</p>
-                  </details>
-                ))}
-              </div>
+        {/* CONTENIDO PRINCIPAL */}
+        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-12 px-4 py-16 lg:grid-cols-3">
+          <div className="min-w-0 space-y-16 lg:col-span-2">
+
+            {/* Por qué elegirnos */}
+            <Reveal>
+              <section aria-labelledby="por-que-elegirnos">
+                <h2 id="por-que-elegirnos" className="text-2xl font-semibold md:text-3xl" style={{ fontFamily: FONT_DISPLAY }}>
+                  Por qué las constructoras nos eligen
+                </h2>
+                <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                  {BENEFITS.map(({ icon: Icon, title, text }) => (
+                    <div key={title} className="border-l-4 border-[#FF5A1F] bg-white p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+                      <Icon className="mb-2 h-5 w-5 text-[#FF5A1F]" aria-hidden="true" />
+                      <h3 className="text-base font-semibold">{title}</h3>
+                      <p className="mt-1 text-sm leading-relaxed text-[#565C63]">{text}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </Reveal>
+
+            {/* Proyectos */}
+            <Reveal>
+              <section aria-labelledby="obras-respaldo">
+                <h2 id="obras-respaldo" className="text-2xl font-semibold md:text-3xl" style={{ fontFamily: FONT_DISPLAY }}>
+                  Obras que nos respaldan
+                </h2>
+                <p className="mt-4 max-w-2xl leading-relaxed text-[#565C63]">
+                  Proyectos reales, alcances definidos y coordinación con constructoras en Lima.
+                </p>
+                <div className="mt-6 grid gap-6 sm:grid-cols-2 md:grid-cols-3">
+                  {PROJECTS.map((project, index) => (
+                    <Reveal key={project.slug} delay={index * 100}>
+                      <Link
+                        href={`/proyectos/${project.slug}`}
+                        className="group block overflow-hidden border border-[#E3E1D8] bg-white transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-[#FF5A1F] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#FF5A1F]"
+                      >
+                        <div className="relative h-44 bg-[#14161A]">
+                          <Image
+                            src={project.imagen}
+                            alt={`${project.titulo}, proyecto atendido por LUDIER en Lima`}
+                            fill
+                            sizes="(min-width: 768px) 33vw, 100vw"
+                            className="object-cover transition-transform duration-500 group-hover:scale-105"
+                          />
+                        </div>
+                        <div className="p-4">
+                          <p className="text-sm font-semibold">{project.titulo}</p>
+                          <p className="mt-1 text-sm text-[#565C63]">{project.cliente}</p>
+                          <p className="mt-2 text-xs text-[#565C63] line-clamp-2">{PROJECT_DESCRIPTIONS[project.slug]}</p>
+                          <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-[#FF5A1F]">
+                            Ver proyecto <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
+                          </span>
+                        </div>
+                      </Link>
+                    </Reveal>
+                  ))}
+                </div>
+              </section>
+            </Reveal>
+
+            {/* Servicios */}
+            <Reveal>
+              <section aria-labelledby="servicios-fabricamos">
+                <h2 id="servicios-fabricamos" className="text-2xl font-semibold md:text-3xl" style={{ fontFamily: FONT_DISPLAY }}>
+                  Servicios que fabricamos
+                </h2>
+                <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {SERVICES.map(({ icon: Icon, title, text, href }, index) => (
+                    <Reveal key={href} delay={index * 100}>
+                      <li className="h-full">
+                        <Link
+                          href={href}
+                          className="group flex h-full flex-col border border-[#E3E1D8] bg-white p-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-[#FF5A1F]"
+                        >
+                          <div className="mb-4 flex items-center justify-between">
+                            <span className="flex h-10 w-10 items-center justify-center border border-[#E3E1D8] bg-[#F7F7F4] transition-colors group-hover:bg-[#FFF3EC]">
+                              <Icon className="h-5 w-5 text-[#B8390F] transition-transform group-hover:scale-110" aria-hidden="true" />
+                            </span>
+                            <ArrowUpRight className="h-4 w-4 text-[#555B63] transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" aria-hidden="true" />
+                          </div>
+                          <h3 className="text-sm font-semibold group-hover:text-[#FF5A1F] transition-colors" style={{ fontFamily: FONT_DISPLAY }}>{title}</h3>
+                          <p className="mt-2 text-xs text-[#565C63]">{text}</p>
+                        </Link>
+                      </li>
+                    </Reveal>
+                  ))}
+                </ul>
+              </section>
+            </Reveal>
+
+            {/* Qué enviar */}
+            <Reveal>
+              <section aria-labelledby="que-enviar" className="bg-[#14161A] p-8 text-white">
+                <h2 id="que-enviar" className="text-2xl font-semibold" style={{ fontFamily: FONT_DISPLAY }}>
+                  Qué enviar para recibir tu cotización
+                </h2>
+                <p className="mt-4 text-sm text-white/80">Con esta información podemos evaluar el alcance y preparar una propuesta para tu equipo de compras.</p>
+                <ul className="mt-5 space-y-3">
+                  {QUOTE_CHECKLIST.map((item) => (
+                    <li key={item} className="flex items-start gap-3 text-sm text-white/90">
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#FF5A1F]" aria-hidden="true" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-5 text-sm text-white/70">¿Aún no tienes todo? Escríbenos igual y te ayudamos a definir el alcance.</p>
+                <CtaButtons className="mt-6" />
+              </section>
+            </Reveal>
+
+            {/* FAQ */}
+            <Reveal>
+              <section aria-labelledby="faq">
+                <h2 id="faq" className="text-2xl font-semibold md:text-3xl" style={{ fontFamily: FONT_DISPLAY }}>
+                  Preguntas frecuentes de constructoras
+                </h2>
+                <div className="mt-6 space-y-3">
+                  {FAQS.map(({ question, answer }) => (
+                    <details key={question} className="group border border-[#E3E1D8] bg-white p-4 open:border-[#FF5A1F]/50 transition-colors">
+                      <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold">
+                        <span className="group-hover:text-[#FF5A1F] transition-colors">{question}</span>
+                        <ChevronRight className="h-4 w-4 shrink-0 text-[#FF5A1F] transition-transform group-open:rotate-90" aria-hidden="true" />
+                      </summary>
+                      <p className="mt-3 text-sm leading-relaxed text-[#565C63]">{answer}</p>
+                    </details>
+                  ))}
+                </div>
+              </section>
+            </Reveal>
+          </div>
+
+          {/* SIDEBAR */}
+          <Reveal delay={400} className="min-w-0 h-fit space-y-6 lg:sticky lg:top-24">
+            <div className="bg-[#FF5A1F] p-6 text-white shadow-xl">
+              <h3 className="text-xl font-semibold" style={{ fontFamily: FONT_DISPLAY }}>
+                ¿Buscas un proveedor para tu obra?
+              </h3>
+              <p className="mt-2 mb-6 text-sm text-white/90">
+                Compártenos planos, metrados y fechas. Te damos una primera respuesta en 24 horas.
+              </p>
+              <Link
+                href={QUOTE_URL}
+                className="block bg-white px-4 py-3 text-center text-sm font-bold text-[#FF5A1F] transition-colors hover:bg-[#F7F7F4]"
+              >
+                Solicitar cotización
+              </Link>
+              <WhatsAppLink
+                href={WHATSAPP_URL}
+                location="sidebar"
+                page={PAGE_PATH}
+                className="mt-3 flex items-center justify-center gap-2 border border-white/60 px-4 py-3 text-sm font-semibold transition-colors hover:bg-white/10"
+              >
+                <MessageCircle className="h-4 w-4" aria-hidden="true" /> WhatsApp
+              </WhatsAppLink>
             </div>
-          </section>
-
+            <div className="border border-[#E3E1D8] bg-white p-6">
+              <h3 className="mb-4 text-base font-semibold" style={{ fontFamily: FONT_DISPLAY }}>
+                Contacto directo
+              </h3>
+              <ul className="space-y-3 text-sm text-[#565C63]">
+                <li>
+                  <a href={`tel:${PHONE_TEL}`} className="flex items-center gap-2 hover:text-[#FF5A1F] transition-colors">
+                    <PhoneCall className="h-4 w-4 text-[#FF5A1F]" aria-hidden="true" />
+                    {PHONE_DISPLAY}
+                  </a>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-[#FF5A1F]" aria-hidden="true" />
+                  Lunes a viernes, 8 a. m. a 6 p. m.
+                </li>
+                <li className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-[#FF5A1F]" aria-hidden="true" />
+                  San Juan de Miraflores, Lima
+                </li>
+              </ul>
+            </div>
+          </Reveal>
         </div>
-        <aside aria-label="Cotización y contacto" className="min-w-0 h-fit space-y-6 lg:sticky lg:top-24">
-          <div className="bg-[#FF5A1F] p-6 text-[#14161A] shadow-xl">
-            <h2 className="text-xl font-semibold" style={{ fontFamily: FONT_DISPLAY }}>¿Buscas un proveedor para tu obra?</h2>
-            <p className="mb-6 mt-2 text-sm leading-relaxed">Compártenos planos, metrados y fechas. Te damos una primera respuesta en 24 horas.</p>
-            <Link href={QUOTE_URL} className="block min-h-11 bg-white px-4 py-3 text-center text-sm font-bold hover:bg-[#F7F7F4] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#14161A]">Solicitar cotización</Link>
-            <WhatsAppLink href={WHATSAPP_URL} location="landing-empresas-sidebar" page={PAGE_PATH} className="mt-3 flex min-h-11 items-center justify-center gap-2 border border-[#14161A]/60 px-4 py-3 text-sm font-semibold hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#14161A]">
-              <MessageCircle className="h-4 w-4 shrink-0" aria-hidden="true" /> Cotizar por WhatsApp
-            </WhatsAppLink>
-          </div>
-          <div className="border border-[#E3E1D8] bg-white p-6">
-            <h2 className="mb-4 text-base font-semibold" style={{ fontFamily: FONT_DISPLAY }}>Contacto directo</h2>
-            <ul className="space-y-3 text-sm text-[#565C63]">
-              <li><a href={`tel:${PHONE_TEL}`} className="flex min-h-11 items-center gap-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#FF5A1F]"><PhoneCall className="h-4 w-4 shrink-0 text-[#B83B12]" aria-hidden="true" />{PHONE_DISPLAY}</a></li>
-              <li className="flex items-start gap-2"><Clock className="mt-0.5 h-4 w-4 shrink-0 text-[#B83B12]" aria-hidden="true" /><span>Lunes a viernes, 8 a. m. a 6 p. m.</span></li>
-              <li className="flex items-start gap-2"><MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#B83B12]" aria-hidden="true" /><span>San Juan de Miraflores, Lima</span></li>
-            </ul>
-          </div>
-        </aside>
-      </div>
 
-      <section aria-labelledby="cotizar-planos" className="bg-[#14161A] px-4 py-14 text-white sm:px-6 lg:px-8 lg:py-20">
-        <div className="mx-auto max-w-6xl pb-12 sm:pb-0">
-          <h2 id="cotizar-planos" className="max-w-3xl text-balance text-3xl font-semibold sm:text-4xl" style={{ fontFamily: FONT_DISPLAY }}>
-            ¿Tienes planos y necesitas una cotización formal?
-          </h2>
-          <p className="mt-4 max-w-2xl text-base leading-relaxed text-[#C8CDD2]">
-            Cuéntanos el alcance, la ubicación y el plazo de tu obra.
-            Revisamos tus requerimientos y coordinamos contigo una propuesta técnica y comercial.
-          </p>
-          <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:flex-wrap">
-            <WhatsAppLink href={WHATSAPP_URL} location="landing-empresas-final" page={PAGE_PATH} className="inline-flex min-h-11 items-center justify-center gap-2 bg-[#FF5A1F] px-6 py-3.5 text-center font-semibold text-[#14161A] transition-colors hover:bg-[#FF7A44] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
-              <MessageCircle className="h-5 w-5 shrink-0" aria-hidden="true" /> Cotizar por WhatsApp
-            </WhatsAppLink>
-            <Link href={QUOTE_URL} className="inline-flex min-h-11 items-center justify-center gap-2 border border-[#C8CDD2] px-6 py-3.5 text-center font-semibold hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#FF5A1F]">
-              <FileCheck className="h-5 w-5 shrink-0" aria-hidden="true" /> Enviar planos
-            </Link>
-          </div>
+        {/* BARRA FIJA MÓVIL */}
+        <div
+          style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+          className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-2 border-t border-[#3A3F45] bg-[#14161A] lg:hidden"
+        >
+          <WhatsAppLink
+            href={WHATSAPP_URL}
+            location="mobile_bar"
+            page={PAGE_PATH}
+            className="flex items-center justify-center gap-2 py-3.5 text-sm font-semibold text-white"
+          >
+            <MessageCircle className="h-4 w-4" aria-hidden="true" /> WhatsApp
+          </WhatsAppLink>
+          <Link
+            href={QUOTE_URL}
+            className="flex items-center justify-center gap-2 bg-[#FF5A1F] py-3.5 text-sm font-semibold text-white"
+          >
+            <ClipboardList className="h-4 w-4" aria-hidden="true" /> Cotizar
+          </Link>
         </div>
-      </section>
-    </div>
+      </main>
+    </>
   );
 }

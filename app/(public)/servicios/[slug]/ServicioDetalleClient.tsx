@@ -515,14 +515,14 @@ const categorias: Categoria[] = [
   },
 
   // ==========================================================
-  // 5. SOLUCIONES PARA CONSTRUCTORAS
+  // 5. CERCOS Y PROTECCIONES PARA OBRA
   // ==========================================================
   {
     slug: "cercos-cerramientos",
     icon: HardHat,
-    title: "Soluciones para Constructoras",
+    title: "Cercos y protecciones para obra",
     description:
-      "Especialistas en cerco perimetral para obra y cercos prefabricados. Ofrecemos cerramientos temporales, chutes metálicos y soluciones ágiles para constructoras que buscan cumplir plazos y normativas.",
+      "Fabricamos e instalamos cercos perimetrales, cerramientos temporales y protecciones provisionales para obras. También atendemos adecuaciones, montajes y refuerzos según los requerimientos de tu proyecto.",
     image: "/img/cercosPerimetricos.jpg",
     tag: "8 servicios",
     beneficios: [
@@ -938,12 +938,17 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
                   const esChute = /chute/i.test(sub.nombre);
                   const esTechos = /techo/i.test(sub.nombre);
                   const esDestacado = esInoxidable || esChute || esTechos;
+                  // FIX CERCOS: habilitar la ficha B2B solo en Puertas y Portones.
+                  const esCercos = /^cercos metálicos$/i.test(sub.nombre.trim()) && categoria.slug === "puertas-portones";
 
+                  // FIX CERCOS: conservar los destinos existentes y añadir la nueva landing.
                   const landingUrl = esInoxidable
                     ? "/servicios/barandas-acero-inoxidable"
                     : esChute
                       ? "/servicios/chutes-metalicos-para-construccion"
-                      : "/servicios/estructuras-metalicas-para-techos";
+                      : esCercos
+                        ? "/servicios/cercos-perimetrales-para-obras"
+                        : "/servicios/estructuras-metalicas-para-techos";
 
                   const whatsappUrl = esInoxidable
                     ? WHATSAPP_INOX_URL
@@ -958,12 +963,19 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
                   // Contenido interno de la tarjeta (reutilizable)
                   const CardContent = (
                     <>
-                      <CornerMarks active={esDestacado} />
+                      <CornerMarks active={esDestacado || esCercos} />
 
                       {esDestacado && (
                         <div className="absolute top-3 left-3 z-20 inline-flex items-center gap-1.5 bg-[#FF5A1F] text-white text-[10px] font-bold uppercase tracking-[0.12em] px-2.5 py-1 rounded-sm shadow-lg shadow-[#FF5A1F]/30">
                           <Zap className="h-3 w-3" />
                           Alta Rotación B2B
+                        </div>
+                      )}
+
+                      {/* FIX CERCOS: identificar la nueva ficha sobre su imagen. */}
+                      {esCercos && (
+                        <div className="absolute top-3 right-3 z-20 inline-flex items-center gap-1.5 bg-[#14161A] text-white text-[10px] font-bold uppercase tracking-[0.12em] px-2.5 py-1 rounded-sm shadow-lg">
+                          Ficha B2B
                         </div>
                       )}
 
@@ -984,7 +996,8 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
                           className="text-lg font-bold text-[#1E2126] leading-tight"
                           style={{ fontFamily: FONT_DISPLAY }}
                         >
-                          {esDestacado ? (
+                          {/* FIX CERCOS: enlazar también el título de Cercos metálicos. */}
+                          {esDestacado || esCercos ? (
                             <Link
                               href={landingUrl}
                               className="hover:text-[#FF5A1F] transition-colors"
@@ -1001,6 +1014,7 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
                           {sub.descripcion}
                         </p>
 
+                        {/* FIX CERCOS: añadir su CTA sin cambiar los CTA de otros servicios. */}
                         {esDestacado ? (
                           <div className="mt-5 pt-5 border-t-2 border-[#FF5A1F]/30">
                             {/* BOTÓN PRINCIPAL → landing con la información */}
@@ -1035,6 +1049,19 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
                               Cotizar por WhatsApp
                             </a>
                           </div>
+                        ) : esCercos ? (
+                          <div className="mt-5 pt-5 border-t-2 border-[#FF5A1F]/30">
+                            <Link
+                              href={landingUrl}
+                              className="group/btn flex items-center justify-center gap-2 w-full py-3.5 px-4 bg-[#FF5A1F] text-white text-sm font-bold uppercase tracking-wide rounded-sm shadow-md shadow-[#FF5A1F]/25 transition-all hover:bg-[#FF7A44] hover:shadow-lg hover:shadow-[#FF5A1F]/40"
+                            >
+                              Ver Ficha B2B de Cerco Perimetral
+                              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover/btn:translate-x-1" />
+                            </Link>
+                            <p className="mt-2 text-center text-xs text-[#565C63]">
+                              Fase 0 de tu obra · Norma G.050 · Cotización en 24h
+                            </p>
+                          </div>
                         ) : (
                           <div className="mt-4 h-1 w-10 bg-[#E3E1D8] rounded-full transition-all duration-300 group-hover:w-16 group-hover:bg-[#FF5A1F]/40" />
                         )}
@@ -1042,8 +1069,8 @@ export default function ServicioDetalleClient({ slug }: { slug: string }) {
                     </>
                   );
 
-                  // Destacados (Inoxidable o Chute) → tarjeta normal (div) con sus propios enlaces
-                  if (esDestacado) {
+                  // FIX CERCOS: reutilizar el contenedor destacado y conservar el grid.
+                  if (esDestacado || esCercos) {
                     return (
                       <div
                         key={index}

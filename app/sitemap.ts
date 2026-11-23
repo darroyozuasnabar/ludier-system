@@ -29,25 +29,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.8,
     },
-    // FIX SEO F2: incorporar las tres landings B2B sin retirar URLs existentes.
-    {
-      url: `${SITE_URL}/servicios/estructuras-metalicas-para-techos`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-    {
-      url: `${SITE_URL}/servicios/barandas-acero-inoxidable`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-    {
-      url: `${SITE_URL}/servicios/chutes-metalicos-para-construccion`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
     {
       url: `${SITE_URL}/proyectos`,
       lastModified: now,
@@ -86,8 +67,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ];
 
-  // ── Páginas de servicios (6 categorías) ──
-  const servicePages: MetadataRoute.Sitemap = Object.keys(SERVICIOS_SEO).map(
+  // FIX SEO F2: mantener las tres fichas B2B incorporadas por main, sin duplicarlas.
+  // Categorías generales y fichas especializadas con URL canónica propia.
+  const serviceSlugs = [
+    ...Object.keys(SERVICIOS_SEO),
+    "estructuras-metalicas-para-techos",
+    "barandas-acero-inoxidable",
+    "chutes-metalicos-para-construccion",
+  ];
+  const servicePages: MetadataRoute.Sitemap = serviceSlugs.map(
     (slug) => ({
       url: `${SITE_URL}/servicios/${slug}`,
       lastModified: now,

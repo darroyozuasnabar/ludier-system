@@ -1,7 +1,9 @@
 # Auditoría técnica y funcional de LUDIER
 
-**Fecha:** 21 de noviembre de 2026, America/Lima.  
-**Modalidad:** diagnóstico y plan; sin correcciones de aplicación.  
+**Fecha:** 21 de noviembre de 2026, America/Lima.
+
+**Modalidad:** diagnóstico y plan; sin correcciones de aplicación.
+
 **Única escritura de documentación:** este archivo, solicitado como entregable.
 
 ## Resumen

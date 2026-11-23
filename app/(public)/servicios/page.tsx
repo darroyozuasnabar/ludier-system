@@ -1,183 +1,71 @@
-"use client";
-
-import { useEffect, useRef, useState } from "react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ArrowRight,
   ShieldCheck,
   HardHat,
-  Wrench,
   Building2,
-  Shield,
-  Gauge,
-  DoorOpen,
   CheckCircle,
   Clock,
   PhoneCall,
   Award,
   Users,
-  TrendingUp,
-  Zap,
-  Truck,
-  FileCheck,
 } from "lucide-react";
 
-const FONT_DISPLAY = 'var(--font-display, Oswald, ui-sans-serif, sans-serif)';
-const FONT_BODY = 'var(--font-body, Inter, ui-sans-serif, system-ui, sans-serif)';
-const FONT_MONO = 'var(--font-mono, "JetBrains Mono", ui-monospace, monospace)';
+import Reveal from "@/components/public/Reveal";
+import ServiciosHero from "@/components/public/ServiciosHero";
+import ServicioCard from "@/components/public/ServicioCard";
+import ConstructorasCTA from "@/components/public/ConstructorasCTA";
+import StatCounter from "@/components/public/StatCounter";
+import { SERVICIOS_CATALOGO } from "@/lib/servicios-catalogo";
 
-// ============================================================
-// DATOS DE CATEGORÍAS DE SERVICIOS (6 LÍNEAS DE NEGOCIO)
-// ============================================================
+const FONT_DISPLAY = "var(--font-display)";
+const FONT_BODY = "var(--font-body)";
+const FONT_MONO = "var(--font-mono)";
 
-type Categoria = {
-  slug: string;
-  b2bSlug?: string; // <-- NUEVO: Slug de la landing B2B si existe
-  icon: any;
-  title: string;
-  description: string;
-  subServicios: string[];
-  image: string;
-  tag: string;
+const SITE_URL = "https://grupoludier.com";
+const PAGE_URL = `${SITE_URL}/servicios`;
+const TITLE = "Servicios de Metalmecánica en Lima | LUDIER";
+const DESCRIPTION =
+  "Fabricación e instalación de estructuras metálicas, barandas, escaleras, portones y chutes en Lima. Atención a constructoras y trabajos según planos.";
+
+export const metadata: Metadata = {
+  title: { absolute: TITLE },
+  description: DESCRIPTION,
+  alternates: { canonical: PAGE_URL },
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: PAGE_URL,
+    type: "website",
+    siteName: "LUDIER",
+    locale: "es_PE",
+    images: [{ url: "/img/Qantua.jpg", alt: "Trabajos metalmecánicos de LUDIER en el proyecto Qantua" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+    images: ["/img/Qantua.jpg"],
+  },
 };
 
-const categorias: Categoria[] = [
-  {
-    slug: "estructuras-metalicas",
-    b2bSlug: "estructuras-metalicas-para-techos", // <-- Enlaza a la landing B2B
-    icon: Building2,
-    title: "Estructuras Metálicas",
-    description:
-      "Diseñamos, fabricamos e instalamos estructuras metálicas para proyectos residenciales, comerciales e industriales.",
-    subServicios: [
-      "Estructuras para azotea",
-      "Coberturas metálicas",
-      "Techos metálicos",
-      "Marquesinas",
-      "Plataformas metálicas",
-      "Soportes metálicos",
-      "Vigas metálicas",
-      "Estructuras especiales",
-      "Estructuras para paneles solares",
-      "Cuartos metálicos para equipos",
-      "Jaulas metálicas",
-    ],
-    image: "/img/estructurasMetalicas.png",
-    tag: "11 servicios",
+const collectionJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  name: TITLE,
+  description: DESCRIPTION,
+  url: PAGE_URL,
+  mainEntity: {
+    "@type": "ItemList",
+    itemListElement: SERVICIOS_CATALOGO.map((servicio, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: servicio.title,
+      url: `${SITE_URL}${servicio.href}`,
+    })),
   },
-  {
-    slug: "barandas-pasamanos",
-    b2bSlug: "barandas-acero-inoxidable", // <-- Enlaza a la landing B2B
-    icon: Shield,
-    title: "Barandas y Pasamanos",
-    description:
-      "Fabricación e instalación de barandas metálicas y de acero inoxidable para balcones, escaleras y terrazas. Resistencia a la intemperie y diseño a medida.",
-    subServicios: [
-      "Barandas metálicas",
-      "Barandas para balcones",
-      "Barandas de escaleras",
-      "Barandas de azotea",
-      "Barandas de seguridad",
-      "Pasamanos metálicos",
-      "Pasamanos para escaleras de emergencia",
-      "Pasamanos adosados a muro",
-    ],
-    image: "/img/barandaBalcones.jpg",
-    tag: "8 servicios",
-  },
-  {
-    slug: "escaleras-metalicas",
-    // Sin b2bSlug: enlaza a la categoría general
-    icon: Gauge,
-    title: "Escaleras Metálicas",
-    description:
-      "Fabricamos soluciones metálicas para acceso, circulación y evacuación, adaptadas a cada proyecto y normativa.",
-    subServicios: [
-      "Escaleras metálicas",
-      "Escaleras de emergencia",
-      "Escaleras marineras",
-      "Escaleras industriales",
-      "Plataformas con escaleras",
-      "Accesos técnicos",
-    ],
-    image: "/img/escaleras-de-emergencia.jpg",
-    tag: "6 servicios",
-  },
-  {
-    slug: "puertas-portones",
-    // Sin b2bSlug: enlaza a la categoría general
-    icon: DoorOpen,
-    title: "Puertas, Portones y Cerramientos",
-    description:
-      "Desarrollamos soluciones de seguridad y control de accesos para edificaciones y proyectos de infraestructura.",
-    subServicios: [
-      "Portones metálicos",
-      "Puertas metálicas",
-      "Puertas cortafuego",
-      "Cercos metálicos",
-      "Cerramientos industriales",
-      "Protección perimetral",
-      "Mallas de seguridad",
-    ],
-    image: "/img/portones.jpeg",
-    tag: "7 servicios",
-  },
-  {
-    slug: "cercos-cerramientos",
-    b2bSlug: "chutes-metalicos-para-construccion", // <-- Enlaza a la landing B2B
-    icon: HardHat,
-    title: "Soluciones para Constructoras",
-    description:
-      "Especialistas en cerco perimetral para obra y cercos prefabricados. Ofrecemos cerramientos temporales, chutes metálicos y soluciones ágiles para constructoras.",
-    subServicios: [
-      "Chutes metálicos",
-      "Cerramientos temporales",
-      "Barandas provisionales",
-      "Protecciones para obra",
-      "Adecuaciones metálicas",
-      "Modificaciones en obra",
-      "Montajes especiales",
-      "Refuerzos estructurales",
-    ],
-    image: "/img/cercosPerimetricos.jpg",
-    tag: "8 servicios",
-  },
-  {
-    slug: "fabricacion-medida",
-    // Sin b2bSlug: enlaza a la categoría general
-    icon: Wrench,
-    title: "Fabricación a Medida",
-    description:
-      "Desarrollamos soluciones metálicas personalizadas de acuerdo con planos, especificaciones técnicas y requerimientos del cliente.",
-    subServicios: [
-      "Rejillas metálicas",
-      "Sumideros metálicos",
-      "Tapas metálicas",
-      "Bastidores",
-      "Racks",
-      "Soportes especiales",
-      "Elementos metálicos personalizados",
-      "Fabricación según planos",
-    ],
-    image: "/img/soldaduraPersonalizada.jpg",
-    tag: "8 servicios",
-  },
-  // ACCESO B2B: séptima tarjeta; las seis categorías anteriores se conservan intactas.
-  {
-    slug: "empresas-estructuras-metalicas",
-    b2bSlug: "empresas-estructuras-metalicas",
-    icon: Building2,
-    title: "Proveedores para Constructoras",
-    description: "Soluciones metalmecánicas para obras. Homologados para Grupo LAR.",
-    subServicios: ["Fabricación según planos", "Montaje en obra", "Homologación por Hodelpe"],
-    image: "/img/proyectos/qantua/28-vistaIntegralQantuaF1&F2.jpeg",
-    tag: "Atención B2B",
-  },
-];
-
-// ============================================================
-// DATOS ESTRATÉGICOS
-// ============================================================
+};
 
 const STATS = [
   { value: "10+", label: "Años de experiencia", icon: Award },
@@ -187,37 +75,15 @@ const STATS = [
 ];
 
 const beneficios = [
-  {
-    icon: ShieldCheck,
-    title: "Calidad certificada",
-    desc: "Materiales de primera calidad y acabados superiores en cada proyecto.",
-  },
-  {
-    icon: Clock,
-    title: "Entregas puntuales",
-    desc: "Cumplimos los plazos establecidos con planificación rigurosa.",
-  },
-  {
-    icon: HardHat,
-    title: "Seguridad garantizada",
-    desc: "Equipos con EPP certificado y protocolos de seguridad en obra.",
-  },
-  {
-    icon: Users,
-    title: "Atención personalizada",
-    desc: "Cada proyecto recibe atención directa de nuestros líderes.",
-  },
+  { icon: ShieldCheck, title: "Calidad certificada", desc: "Materiales de primera calidad y acabados superiores en cada proyecto." },
+  { icon: Clock, title: "Entregas puntuales", desc: "Cumplimos los plazos establecidos con planificación rigurosa." },
+  { icon: HardHat, title: "Seguridad garantizada", desc: "Equipos con EPP certificado y protocolos de seguridad en obra." },
+  { icon: Users, title: "Atención personalizada", desc: "Cada proyecto recibe atención directa de nuestros líderes." },
 ];
-
-// ============================================================
-// COMPONENTES
-// ============================================================
 
 function CornerMarks({ active = false }: { active?: boolean }) {
   const base = "pointer-events-none absolute h-3 w-3 transition-all duration-500";
-  const border = active
-    ? "border-[#FF5A1F] opacity-100"
-    : "border-[#3A3F45] opacity-50";
+  const border = active ? "border-[#FF5A1F] opacity-100" : "border-[#3A3F45] opacity-50";
   return (
     <>
       <span className={`${base} left-3 top-3 border-l-2 border-t-2 ${border}`} />
@@ -228,382 +94,134 @@ function CornerMarks({ active = false }: { active?: boolean }) {
   );
 }
 
-function useScrollReveal<T extends HTMLElement>(threshold = 0.12) {
-  const ref = useRef<T | null>(null);
-  const [inView, setInView] = useState(false);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => setInView(entry.isIntersecting),
-      { threshold, rootMargin: "-60px 0px -60px 0px" }
-    );
-
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [threshold]);
-
-  return { ref, inView };
-}
-
-function CategoriaCard({ categoria, index }: { categoria: Categoria; index: number }) {
-  const Icon = categoria.icon;
-  const { ref, inView } = useScrollReveal<HTMLAnchorElement>(0.1);
-
-  // Estrategia: Si tiene b2bSlug, el enlace principal va a la landing B2B.
-  const href = categoria.b2bSlug
-    ? `/servicios/${categoria.b2bSlug}`
-    : `/servicios/${categoria.slug}`;
-
-  return (
-    <Link
-      href={href}
-      ref={ref}
-      className="group relative block bg-white border border-[#E3E1D8] rounded-sm overflow-hidden transition-all hover:border-[#FF5A1F]/40 hover:shadow-xl hover:-translate-y-2"
-      style={{
-        opacity: inView ? 1 : 0,
-        transform: inView ? "translateY(0)" : "translateY(30px)",
-        transition: `opacity 700ms cubic-bezier(0.16,1,0.3,1) ${index * 100}ms, transform 700ms cubic-bezier(0.16,1,0.3,1) ${index * 100}ms`,
-      }}
-    >
-      <CornerMarks active={!!categoria.b2bSlug} />
-
-      {/* Imagen de fondo */}
-      <div className="relative h-48 overflow-hidden bg-[#14161A]">
-        <img
-          src={categoria.image}
-          alt={categoria.title}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-        <div className="absolute bottom-3 left-3">
-          <span
-            className="text-[10px] font-medium text-white bg-black/50 px-2 py-1 rounded-sm"
-            style={{ fontFamily: FONT_MONO }}
-          >
-            {categoria.tag}
-          </span>
-        </div>
-        {categoria.b2bSlug && (
-          <div className="absolute top-3 right-3">
-            <span className="text-[9px] font-bold text-white bg-[#FF5A1F] px-2 py-1 rounded-sm uppercase tracking-wider shadow-lg">
-              Ficha B2B
-            </span>
-          </div>
-        )}
-      </div>
-
-      {/* Contenido */}
-      <div className="p-6">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm bg-[#FF5A1F]/10 border border-[#FF5A1F]/20">
-            <Icon className="h-5 w-5 text-[#FF5A1F]" />
-          </div>
-          <h3
-            className="text-lg font-semibold text-[#1E2126]"
-            style={{ fontFamily: FONT_DISPLAY }}
-          >
-            {categoria.title}
-          </h3>
-        </div>
-
-        <p className="text-sm text-[#565C63] leading-relaxed mb-4 line-clamp-2">
-          {categoria.description}
-        </p>
-
-        <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-1 text-sm font-medium text-[#FF5A1F]">
-            <span>{categoria.b2bSlug ? "Ver ficha técnica B2B" : "Ver todos los servicios"}</span>
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-          </div>
-          {categoria.b2bSlug && (
-            <span className="text-[10px] text-[#8B8F86]">
-              Incluye todas las subcategorías
-            </span>
-          )}
-        </div>
-      </div>
-
-      {/* Línea inferior animada */}
-      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#FF5A1F] scale-x-0 transition-transform duration-500 origin-left group-hover:scale-x-100" />
-    </Link>
-  );
-}
-
-// ============================================================
-// PÁGINA PRINCIPAL
-// ============================================================
-
 export default function ServiciosPage() {
-  const { ref: heroRef, inView: heroInView } = useScrollReveal<HTMLDivElement>(0.1);
-  const { ref: ctaRef, inView: ctaInView } = useScrollReveal<HTMLDivElement>(0.1);
-
   return (
     <div className="min-h-screen bg-[#F7F7F4]" style={{ fontFamily: FONT_BODY }}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd).replace(/</g, "\\u003c") }}
+      />
 
-      {/* ============================================================
-          HERO
-          ============================================================ */}
-      <section className="relative overflow-hidden bg-[#14161A] py-28 lg:py-36">
-        <div className="pointer-events-none absolute inset-0 opacity-[0.03] bg-[url('/img/grid-pattern.svg')] bg-repeat" />
-        <div
-          className="pointer-events-none absolute inset-0 opacity-[0.04]"
-          style={{
-            backgroundImage:
-              "repeating-linear-gradient(115deg, #C7CBD1 0px, #C7CBD1 1px, transparent 1px, transparent 64px)",
-          }}
-        />
-        <div
-          className="pointer-events-none absolute -left-32 top-1/2 h-[600px] w-[600px] -translate-y-1/2 rounded-full opacity-[0.08]"
-          style={{ background: "radial-gradient(circle, #FF5A1F 0%, transparent 70%)" }}
-        />
-        <div
-          className="absolute top-0 left-0 right-0 h-[4px]"
-          style={{
-            backgroundImage:
-              "repeating-linear-gradient(135deg, #FF5A1F 0px, #FF5A1F 14px, #14161A 14px, #14161A 28px)",
-          }}
-        />
+      <ServiciosHero />
 
-        <div
-          ref={heroRef}
-          className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8"
-          style={{
-            opacity: heroInView ? 1 : 0,
-            transform: heroInView ? "translateY(0)" : "translateY(30px)",
-            transition: "opacity 800ms cubic-bezier(0.16,1,0.3,1), transform 800ms cubic-bezier(0.16,1,0.3,1)",
-          }}
-        >
-          <div className="max-w-3xl">
-            <span
-              className="inline-flex items-center gap-2.5 text-xs font-medium uppercase tracking-[0.22em] text-[#8A8F96]"
-              style={{ fontFamily: FONT_MONO }}
-            >
-              <span className="h-px w-6 bg-[#FF5A1F]" />
-              Nuestros servicios
-            </span>
-            <h1
-              className="mt-6 text-4xl font-semibold tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl"
-              style={{ fontFamily: FONT_DISPLAY }}
-            >
-              Soluciones integrales
-              <br />
-              en{" "}
-              <span className="relative inline-block">
-                <span className="text-[#FF5A1F]">metalmecánica</span>
-                <span className="absolute -bottom-1 left-0 right-0 h-1 bg-[#FF5A1F]/30 rounded-full blur-sm" />
-              </span>
-            </h1>
-            <p className="mt-6 text-lg text-[#9AA0A6] max-w-xl leading-relaxed">
-              Explora nuestras 6 líneas de negocio. Desde estructuras metálicas
-              hasta fabricación a medida, tenemos la solución para tu proyecto.
-            </p>
-
-            <div className="mt-8 flex flex-wrap gap-4">
-              <Link
-                href="/contacto"
-                className="inline-flex items-center gap-2 bg-[#FF5A1F] px-6 py-3 text-sm font-semibold uppercase tracking-wide text-white shadow-lg shadow-[#FF5A1F]/20 transition-all hover:bg-[#FF7A44] hover:shadow-[#FF5A1F]/40 hover:-translate-y-1"
-              >
-                <PhoneCall className="h-4 w-4" />
-                Cotizar ahora
-              </Link>
-            </div>
-
-            <div className="mt-6 flex flex-wrap gap-4 text-xs text-[#8A8F96]">
-              <span className="flex items-center gap-1">
-                <CheckCircle className="h-3 w-3 text-[#FF5A1F]" />
-                Más de 10 años de experiencia
-              </span>
-              <span className="text-[#3A3F45]">|</span>
-              <span className="flex items-center gap-1">
-                <CheckCircle className="h-3 w-3 text-[#FF5A1F]" />
-                20+ proyectos ejecutados
-              </span>
-              <span className="text-[#3A3F45]">|</span>
-              <span className="flex items-center gap-1">
-                <CheckCircle className="h-3 w-3 text-[#FF5A1F]" />
-                95% cumplimiento de plazos
-              </span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ============================================================
-          ESTADÍSTICAS DE CONFIANZA
-          ============================================================ */}
+      {/* ESTADÍSTICAS CON CONTADOR */}
       <section className="py-12 bg-white border-b border-[#E3E1D8]">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
             {STATS.map((stat, index) => {
               const Icon = stat.icon;
               return (
-                <div
-                  key={index}
-                  className="flex flex-col items-center p-4 text-center"
-                >
-                  <div className="flex h-12 w-12 items-center justify-center rounded-sm bg-[#FF5A1F]/10 border border-[#FF5A1F]/20">
-                    <Icon className="h-6 w-6 text-[#FF5A1F]" />
+                <Reveal key={index} delay={index * 70} className="group flex flex-col items-center p-4 text-center">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-sm bg-[#FF5A1F]/10 border border-[#FF5A1F]/20 transition-all duration-300 group-hover:scale-110 group-hover:bg-[#FF5A1F] group-hover:text-white">
+                    <Icon className="h-6 w-6 text-[#FF5A1F] transition-colors group-hover:text-white" />
                   </div>
-                  <p
-                    className="mt-3 text-2xl font-semibold text-[#1E2126]"
-                    style={{ fontFamily: FONT_DISPLAY }}
-                  >
-                    {stat.value}
-                  </p>
-                  <p className="text-sm text-[#565C63]">{stat.label}</p>
-                </div>
+                  <StatCounter value={stat.value} />
+                  <p className="text-sm text-[#565C63]" style={{ fontFamily: FONT_BODY }}>{stat.label}</p>
+                </Reveal>
               );
             })}
           </div>
         </div>
       </section>
 
-      {/* ============================================================
-          GRID DE CATEGORÍAS
-          ============================================================ */}
-      <section className="py-20 lg:py-28">
+      {/* GRID DE CATEGORÍAS */}
+      <section id="catalogo-servicios" tabIndex={-1} className="scroll-mt-24 py-20 outline-none lg:py-28">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-14">
-            <span
-              className="inline-block text-xs font-medium uppercase tracking-[0.2em] text-[#8B8F86] px-3 py-1 border border-[#E3E1D8]"
-              style={{ fontFamily: FONT_MONO }}
-            >
+          <Reveal className="text-center mb-14">
+            <span className="inline-block text-xs font-medium uppercase tracking-[0.2em] text-[#8B8F86] px-3 py-1 border border-[#E3E1D8]" style={{ fontFamily: FONT_MONO }}>
               Nuestras líneas de negocio
             </span>
-            <h2
-              className="mt-4 text-3xl font-semibold text-[#1E2126] sm:text-4xl"
-              style={{ fontFamily: FONT_DISPLAY }}
-            >
-              Todo lo que necesitas en{" "}
-              <span className="text-[#FF5A1F]">metalmecánica</span>
+            <h2 className="mt-4 text-3xl font-semibold text-[#1E2126] sm:text-4xl" style={{ fontFamily: FONT_DISPLAY }}>
+              Todo lo que necesitas en <span className="text-[var(--ludier-accent-ink)]">metalmecánica</span>
             </h2>
-            <p className="mt-3 text-[#565C63] max-w-2xl mx-auto">
-              Cada categoría contiene una lista detallada de servicios con
-              imágenes y descripciones específicas.
+            <p className="mt-3 text-[#565C63] max-w-2xl mx-auto" style={{ fontFamily: FONT_BODY }}>
+              Explora los alcances, revisa trabajos realizados y encuentra la solución metálica que necesita tu proyecto.
             </p>
-          </div>
+          </Reveal>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {categorias.map((categoria, index) => (
-              <CategoriaCard key={categoria.slug} categoria={categoria} index={index} />
+            {SERVICIOS_CATALOGO.map((categoria, index) => (
+              <Reveal key={categoria.slug} className="h-full" delay={(index % 3) * 70}>
+                <ServicioCard servicio={categoria} />
+              </Reveal>
             ))}
+          </div>
+
+          <div id="constructoras" className="mt-12 scroll-mt-28 lg:mt-16">
+            <Reveal><ConstructorasCTA /></Reveal>
           </div>
         </div>
       </section>
 
-      {/* ============================================================
-          BENEFICIOS - POR QUÉ ELEGIRNOS
-          ============================================================ */}
-      <section className="bg-[#14161A] py-20 lg:py-28 relative overflow-hidden">
+      {/* BENEFICIOS */}
+      <section className="relative overflow-hidden bg-[#14161A] py-20 lg:py-28">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#FF5A1F]/5 via-transparent to-transparent opacity-50" />
         <div className="pointer-events-none absolute inset-0 opacity-[0.03] bg-[url('/img/grid-pattern.svg')] bg-repeat" />
-        <div
-          className="pointer-events-none absolute -right-32 top-1/2 h-[500px] w-[500px] -translate-y-1/2 rounded-full opacity-[0.04]"
-          style={{ background: "radial-gradient(circle, #FF5A1F 0%, transparent 70%)" }}
-        />
+        <div className="pointer-events-none absolute -right-32 top-1/2 h-[500px] w-[500px] -translate-y-1/2 rounded-full opacity-[0.04]" style={{ background: "radial-gradient(circle, #FF5A1F 0%, transparent 70%)" }} />
 
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-14">
-            <span
-              className="inline-block text-xs font-medium uppercase tracking-[0.2em] text-[#8A8F96] px-3 py-1 border border-[#3A3F45]"
-              style={{ fontFamily: FONT_MONO }}
-            >
+          <Reveal className="text-center mb-14">
+            <span className="inline-block text-xs font-medium uppercase tracking-[0.2em] text-[#8A8F96] px-3 py-1 border border-[#3A3F45]" style={{ fontFamily: FONT_MONO }}>
               Por qué elegirnos
             </span>
-            <h2
-              className="mt-4 text-4xl font-semibold text-white"
-              style={{ fontFamily: FONT_DISPLAY }}
-            >
-              La diferencia está en el{" "}
-              <span className="text-[#FF5A1F]">detalle</span>
+            <h2 className="mt-4 text-4xl font-semibold text-white" style={{ fontFamily: FONT_DISPLAY }}>
+              La diferencia está en el <span className="text-[#FF5A1F]">detalle</span>
             </h2>
-            <p className="mt-3 text-[#9AA0A6] max-w-2xl mx-auto">
-              4 razones por las que las principales constructoras del Perú confían
-              en LUDIER para sus proyectos más exigentes.
+            <p className="mt-3 text-[#9AA0A6] max-w-2xl mx-auto" style={{ fontFamily: FONT_BODY }}>
+              4 razones por las que las principales constructoras del Perú confían en LUDIER para sus proyectos más exigentes.
             </p>
-          </div>
+          </Reveal>
 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {beneficios.map((beneficio, index) => {
               const Icon = beneficio.icon;
               return (
-                <div
-                  key={index}
-                  className="group relative bg-[#1D2024] border border-[#3A3F45] p-6 rounded-sm transition-all hover:border-[#FF5A1F]/40 hover:-translate-y-2 hover:shadow-2xl hover:shadow-[#FF5A1F]/5"
-                >
-                  <CornerMarks />
-                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-sm bg-[#FF5A1F]/10 border border-[#FF5A1F]/20">
-                    <Icon className="h-6 w-6 text-[#FF5A1F]" />
+                <Reveal key={beneficio.title} delay={index * 70} className="h-full">
+                  <div className="group relative h-full overflow-hidden rounded-sm border border-[#3A3F45] bg-[#1D2024] p-6 transition-all duration-500 hover:-translate-y-2 hover:border-[#FF5A1F]/40 hover:shadow-2xl hover:shadow-[#FF5A1F]/5">
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#FF5A1F]/10 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                    <CornerMarks active={true} />
+                    <div className="relative z-10 mb-4 flex h-12 w-12 items-center justify-center rounded-sm border border-[#FF5A1F]/20 bg-[#FF5A1F]/10 transition-all duration-300 group-hover:scale-110 group-hover:bg-[#FF5A1F]">
+                      <Icon className="h-6 w-6 text-[#FF5A1F] transition-colors group-hover:text-white" />
+                    </div>
+                    <h3 className="relative z-10 text-lg font-semibold text-white transition-colors group-hover:text-[#FF5A1F]" style={{ fontFamily: FONT_DISPLAY }}>
+                      {beneficio.title}
+                    </h3>
+                    <p className="relative z-10 mt-2 text-sm leading-relaxed text-[#9AA0A6]" style={{ fontFamily: FONT_BODY }}>
+                      {beneficio.desc}
+                    </p>
+                    <div className="relative z-10 mt-4 flex items-center gap-2">
+                      <CheckCircle className="h-3 w-3 text-[#FF5A1F]" />
+                      <span className="text-[10px] uppercase tracking-wider text-[#6E7379] transition-colors group-hover:text-[#FF5A1F]">Garantizado</span>
+                    </div>
                   </div>
-                  <h3
-                    className="text-lg font-semibold text-white"
-                    style={{ fontFamily: FONT_DISPLAY }}
-                  >
-                    {beneficio.title}
-                  </h3>
-                  <p className="mt-2 text-sm text-[#9AA0A6] leading-relaxed">
-                    {beneficio.desc}
-                  </p>
-                  <div className="mt-4 flex items-center gap-2">
-                    <CheckCircle className="h-3 w-3 text-[#FF5A1F]" />
-                    <span className="text-[10px] text-[#6E7379] uppercase tracking-wider">Garantizado</span>
-                  </div>
-                </div>
+                </Reveal>
               );
             })}
           </div>
         </div>
       </section>
 
-      {/* ============================================================
-          CTA FINAL
-          ============================================================ */}
+      {/* CTA FINAL */}
       <section className="bg-white py-16 lg:py-20 border-t border-[#E3E1D8]">
-        <div
-          ref={ctaRef}
-          className="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8"
-          style={{
-            opacity: ctaInView ? 1 : 0,
-            transform: ctaInView ? "translateY(0)" : "translateY(20px)",
-            transition: "opacity 700ms cubic-bezier(0.16,1,0.3,1), transform 700ms cubic-bezier(0.16,1,0.3,1)",
-          }}
-        >
-          <h2
-            className="text-3xl font-semibold text-[#1E2126]"
-            style={{ fontFamily: FONT_DISPLAY }}
-          >
+        <Reveal className="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-semibold text-[#1E2126]" style={{ fontFamily: FONT_DISPLAY }}>
             ¿Tienes un proyecto en mente?
           </h2>
-          <p className="mt-3 text-[#565C63] max-w-xl mx-auto">
-            Cuéntanos qué necesitas y te ayudaremos a encontrar la mejor solución
-            metalmecánica para tu proyecto.
+          <p className="mt-3 text-[#565C63] max-w-xl mx-auto" style={{ fontFamily: FONT_BODY }}>
+            Cuéntanos qué necesitas y te ayudaremos a encontrar la mejor solución metalmecánica para tu proyecto.
           </p>
-          <Link
-            href="/contacto"
-            className="mt-6 inline-flex items-center gap-2 bg-[#FF5A1F] px-8 py-4 text-sm font-semibold uppercase tracking-wide text-white shadow-lg shadow-[#FF5A1F]/20 transition-all hover:bg-[#FF7A44] hover:shadow-[#FF5A1F]/40 hover:-translate-y-1"
-          >
+          <Link href="/contacto" className="ludier-button ludier-button-primary mt-6 inline-flex items-center gap-3" style={{ fontFamily: FONT_BODY }}>
             <PhoneCall className="h-4 w-4" />
             Cotizar ahora
-            <ArrowRight className="h-4 w-4" />
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </Link>
           <div className="mt-4 flex justify-center gap-4 text-xs text-[#8B8F86]">
             <span>✓ Respuesta en 24h</span>
             <span>✓ Cotización sin compromiso</span>
             <span>✓ Asesoría personalizada</span>
           </div>
-        </div>
+        </Reveal>
       </section>
-
-      <style jsx>{`
-        @media (prefers-reduced-motion: reduce) {
-          section * {
-            transition: none !important;
-            animation: none !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }

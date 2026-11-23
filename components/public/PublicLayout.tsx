@@ -14,16 +14,16 @@ export default function PublicLayout({
   // FIX UX L-04: estas páginas ya compensan el header; conservar su espacio sin duplicarlo.
   const pageReservesHeader = [
     "/",
+    "/servicios",
     "/contacto",
     "/faq",
     "/testimonios",
-    "/servicios/empresas-estructuras-metalicas",
     "/privacidad",
     "/terminos",
   ].includes(pathname);
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="ludier-public min-h-screen flex flex-col bg-white">
       <Navbar />
       {/* FIX UX L-04: el header mide 64px en móvil y 80px desde md. */}
       <main className={pageReservesHeader ? "flex-1" : "flex-1 pt-16 md:pt-20"}>
