@@ -31,9 +31,10 @@ const SITE_URL = "https://grupoludier.com";
 const PAGE_PATH = "/servicios/empresas-estructuras-metalicas";
 const PAGE_URL = `${SITE_URL}${PAGE_PATH}`;
 const QUOTE_URL = "/contacto?from=landing-empresas";
-const TITLE = "Empresas de Estructuras Metálicas en Lima | Fabricante LUDIER";
+// FIX SEO CONSTRUCTORAS: priorizar fabricación y conservar title.absolute.
+const TITLE = "Fabricación de Estructuras Metálicas en Lima | Constructoras | LUDIER";
 const DESCRIPTION =
-  "LUDIER es una empresa peruana con más de 10 años de experiencia en fabricación e instalación de estructuras metálicas para constructoras. Homologados por Hodelpe para Grupo LAR. Cotiza tu obra en 24h.";
+  "Fabricación e instalación de estructuras metálicas para constructoras en Lima. Homologados por Hodelpe para Grupo LAR. Naves industriales, edificios y almacenes. Cotiza en 24h.";
 const WHATSAPP_URL = `https://wa.me/51965391256?text=${encodeURIComponent(
   "Hola LUDIER, tengo planos de una obra en Lima y necesito una cotización formal de estructuras metálicas para mi constructora."
 )}`;
@@ -357,6 +358,25 @@ export default function EmpresasEstructurasMetalicasPage() {
                     </Reveal>
                   ))}
                 </ul>
+              </section>
+            </Reveal>
+
+            {/* FIX SEO CONSTRUCTORAS: ampliar el alcance de techos sin modificar secciones existentes. */}
+            <Reveal>
+              <section aria-labelledby="techos-naves-industriales">
+                <h2 id="techos-naves-industriales" className="text-2xl font-semibold md:text-3xl" style={{ fontFamily: FONT_DISPLAY }}>
+                  Techos metálicos para naves industriales y almacenes
+                </h2>
+                <p className="mt-4 max-w-2xl leading-relaxed text-[#565C63]">
+                  Fabricamos estructuras metálicas para techos de naves industriales y almacenes,
+                  con coberturas metálicas y estructuras de gran luz según los planos de tu proyecto.
+                  Cotiza techos metálicos para naves con fabricación y montaje coordinados con el
+                  avance de tu obra.
+                </p>
+                <Link href="/servicios/estructuras-metalicas-para-techos" className="ludier-button ludier-button-primary mt-6">
+                  Ver estructuras metálicas para techos
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </Link>
               </section>
             </Reveal>
 

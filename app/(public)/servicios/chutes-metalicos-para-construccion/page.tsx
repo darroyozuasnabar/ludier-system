@@ -436,6 +436,27 @@ export default function ChutesMetalicosPage() {
               </ol>
             </section>
 
+            {/* MICROCASO CHUTES: evidencia del proyecto Hilton, sin alterar las secciones existentes. */}
+            <section aria-labelledby="caso-exito-hilton">
+              <h2 id="caso-exito-hilton" className="text-2xl font-semibold md:text-3xl" style={{ fontFamily: FONT_DISPLAY }}>
+                Caso de éxito: Chute metálico en el Hotel Hilton
+              </h2>
+              <p className="mt-4 max-w-2xl leading-relaxed text-[#565C63]">
+                Instalamos un chute metálico de 19 pisos para la evacuación de escombros en el
+                Hotel Hilton (MDP Construcciones). El sistema incluyó 19 compuertas, anclajes
+                estructurales y curva de empalme en el primer piso.
+              </p>
+              <div className="relative mt-6 h-96 max-w-sm overflow-hidden border border-[#E3E1D8] bg-white">
+                <Image
+                  src="/img/proyectos/Hotel_Hilton/ChuteMetalicoHotelHilton_img1.jpeg"
+                  alt="Detalle del chute metálico instalado en altura en el Hotel Hilton"
+                  fill
+                  sizes="(min-width: 640px) 384px, 100vw"
+                  className="object-contain"
+                />
+              </div>
+            </section>
+
             {/* Proyectos (3 columnas en desktop) */}
             <section aria-labelledby="proyectos">
               <h2 id="proyectos" className="text-2xl font-semibold md:text-3xl" style={{ fontFamily: FONT_DISPLAY }}>

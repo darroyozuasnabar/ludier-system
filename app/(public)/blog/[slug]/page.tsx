@@ -34,8 +34,12 @@ export async function generateMetadata({
   const url = `${SITE_URL}/blog/${post.slug}`;
 
   return {
-    // FIX SEO F2: evitar la segunda marca en todos los artículos, conservando el título.
-    title: { absolute: `${post.titulo} | LUDIER` },
+    // FIX CTR PORTONES: mantener sus 57 caracteres; los demás títulos conservan su marca.
+    title: {
+      absolute: slug === "portones-metalicos-tipos-precios-guia"
+        ? post.titulo
+        : `${post.titulo} | LUDIER`,
+    },
     description: post.metaDescription,
     keywords: post.keywords,
     authors: [{ name: post.autor }],

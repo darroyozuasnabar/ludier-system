@@ -1287,8 +1287,8 @@ export const POSTS: BlogPost[] = [
   {
     id: 8,
     slug: "portones-metalicos-tipos-precios-guia",
-    // FIX CTR PORTONES: destacar tipos, modelos y precios por m² en búsquedas locales.
-    titulo: "Portones Metálicos: Tipos, Modelos y Precios por m² en Lima",
+    // FIX CTR PORTONES: título de 57 caracteres, conservando el cuerpo del artículo.
+    titulo: "Portones Metálicos en Lima: Precios por m² y Modelos 2026",
     extracto:
       "Fabricación e instalación de portones metálicos para constructoras e inmobiliarias en Lima. Precio por metro lineal, modelos corredizos y batientes. Cotiza hoy.",
     contenido: `
@@ -1466,9 +1466,9 @@ export const POSTS: BlogPost[] = [
       "precio portones metálicos",
       "portones para cochera",
     ],
-    // FIX CTR PORTONES: guía informativa y comercial; también alimenta og:description.
+    // FIX CTR PORTONES: descripción de 126 caracteres con CTA; también alimenta OG y Twitter.
     metaDescription:
-      "Guía completa de portones metálicos en Lima: descubre modelos corredizos, basculantes y precios por m². Compara opciones y cotiza tu portón en 24h.",
+      "Descubre tipos, modelos y precios por m² de portones metálicos en Lima. Compara opciones y cotiza tu portón en 24h. Guía 2026.",
   },
 
   // ============================================================
