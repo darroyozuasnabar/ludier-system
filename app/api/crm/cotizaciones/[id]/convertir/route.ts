@@ -2,7 +2,7 @@
 // Endpoint especial para convertir una cotización aprobada en un Proyecto/Obra activo en el ERP
 
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
+import { getActiveToken as getToken } from "@/lib/auth-session";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(
@@ -16,6 +16,11 @@ export async function POST(
     }
     // SECURITY F1: los tokens CLIENTE y roles no autorizados no acceden al CRM.
     if (!["FUNDADOR", "ADMIN", "FIELD_ENGINEER"].includes(token.role ?? "")) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+    }
+
+    // TODO SEGURIDAD F2: sin asignación de ingeniero, denegar antes de consultar/convertir.
+    if (token.role === "FIELD_ENGINEER") {
       return NextResponse.json({ error: "No autorizado" }, { status: 403 });
     }
 

@@ -1,7 +1,7 @@
 // proxy.ts
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getToken } from "next-auth/jwt";
+import { getActiveToken as getToken } from "@/lib/auth-session";
 
 // ============================================================
 // 🔥 CONFIGURACIÓN DE RUTAS PÚBLICAS
@@ -246,6 +246,19 @@ export async function proxy(req: NextRequest) {
     if (isClienteRoute) loginUrl.searchParams.set('tipo', 'cliente');
     loginUrl.searchParams.set('callbackUrl', path);
     const response = NextResponse.redirect(loginUrl, { status: 303 });
+    // FIX SEGURIDAD F2: retirar también cookies fragmentadas de una sesión rechazada.
+    for (const { name } of req.cookies.getAll()) {
+      if (/^(?:__Secure-)?next-auth\.session-token(?:\.\d+)?$/.test(name)) {
+        response.cookies.set(name, "", {
+          httpOnly: true,
+          secure: name.startsWith("__Secure-"),
+          sameSite: "lax",
+          path: "/",
+          expires: new Date(0),
+          maxAge: 0,
+        });
+      }
+    }
     return setSecurityHeaders(response);
   }
 

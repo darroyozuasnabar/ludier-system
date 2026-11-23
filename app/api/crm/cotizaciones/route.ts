@@ -2,7 +2,7 @@
 // Endpoints principales para listar y crear cotizaciones en el CRM de LUDIER
 
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
+import { getActiveToken as getToken } from "@/lib/auth-session";
 import { prisma } from "@/lib/prisma";
 import { cotizacionSchema, calcularTotales } from "@/lib/validations/cotizacion";
 import { z } from "zod";
@@ -18,6 +18,16 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "No autorizado" }, { status: 403 });
     }
 
+    // TODO SEGURIDAD F2: no existe asignación de ingenieros en Project/User.
+    // Hasta modelarla, denegar por defecto sin consultar cotizaciones globales.
+    if (token.role === "FIELD_ENGINEER") {
+      return NextResponse.json({
+        data: [],
+        estadisticas: { total: 0, montoTotalPEN: 0, montoTotalUSD: 0, aprobadas: 0, convertidas: 0 },
+        total: 0,
+      });
+    }
+
     const { searchParams } = new URL(req.url);
     const busqueda = searchParams.get("busqueda") || searchParams.get("q") || "";
     const estado = searchParams.get("estado") || "";
@@ -25,9 +35,6 @@ export async function GET(req: NextRequest) {
     const fechaDesde = searchParams.get("fechaDesde") || "";
     const fechaHasta = searchParams.get("fechaHasta") || "";
 
-    // TODO SECURITY F1: filtrar FIELD_ENGINEER por proyectos asignados cuando exista
-    // esa relacion en BD. cliente_user_id es del CLIENTE y creado_por es autoria,
-    // no asignacion de ingeniero; no sustituir uno por otro.
     const where: any = {};
 
     if (busqueda) {
@@ -107,6 +114,11 @@ export async function POST(req: NextRequest) {
     }
     // SECURITY F1: los tokens CLIENTE y roles no autorizados no acceden al CRM.
     if (!["FUNDADOR", "ADMIN", "FIELD_ENGINEER"].includes(token.role ?? "")) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+    }
+
+    // TODO SEGURIDAD F2: permitir altas del ingeniero solo con asignación verificable.
+    if (token.role === "FIELD_ENGINEER") {
       return NextResponse.json({ error: "No autorizado" }, { status: 403 });
     }
 

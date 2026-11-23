@@ -11,6 +11,9 @@ export default function WhatsAppButton({ offset = false }: { offset?: boolean })
     "/servicios/barandas-acero-inoxidable",
     "/servicios/chutes-metalicos-para-construccion",
     "/servicios/estructuras-metalicas-para-techos",
+    // FIX SEO COMERCIAL: estas dos fichas también tienen una barra móvil fija.
+    "/servicios/cercos-perimetrales-para-obras",
+    "/servicios/empresas-estructuras-metalicas",
   ].includes(pathname.replace(/\/$/, ""));
   const [isVisible, setIsVisible] = useState(false);
   const phoneNumber = "51965391256";

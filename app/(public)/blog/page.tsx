@@ -34,9 +34,10 @@ export const metadata: Metadata = {
     locale: "es_PE",
     images: [
       {
-        url: "/img/og_image.jpg",
-        width: 1200,
-        height: 630,
+        // FIX SEO COMERCIAL: fotografía existente de Qantua, con dimensiones reales.
+        url: "/img/proyectos/qantua/28-vistaIntegralQantuaF1&F2.jpeg",
+        width: 3686,
+        height: 2078,
         alt: "Blog LUDIER",
       },
     ],
@@ -46,7 +47,8 @@ export const metadata: Metadata = {
     title: "Blog LUDIER — Estructuras Metálicas y Construcción",
     description:
       "Guías técnicas, casos de obra y novedades del sector metalmecánico.",
-    images: ["/img/og_image.jpg"],
+    // FIX SEO COMERCIAL: compartir la misma imagen válida en Twitter y Open Graph.
+    images: ["/img/proyectos/qantua/28-vistaIntegralQantuaF1&F2.jpeg"],
   },
   robots: {
     index: true,

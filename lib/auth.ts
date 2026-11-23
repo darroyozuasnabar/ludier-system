@@ -6,6 +6,7 @@ import { headers } from "next/headers";
 import { loginSchema } from "@/lib/validations";
 import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
+import { decodeActiveJwt } from "@/lib/auth-session";
 
 declare module "next-auth" {
   interface User {
@@ -119,6 +120,8 @@ export const authOptions: NextAuthOptions = {
       }
     })
   ],
+  // FIX SEGURIDAD F2: también revalidar getServerSession y /api/auth/session.
+  jwt: { decode: decodeActiveJwt },
   session: {
     strategy: "jwt",
     maxAge: 30 * 60,

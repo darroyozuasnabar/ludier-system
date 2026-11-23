@@ -1,6 +1,6 @@
 // app/api/crm/clientes/[id]/route.ts
 import { NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
+import { getActiveToken as getToken } from "@/lib/auth-session";
 import { NextRequest } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 

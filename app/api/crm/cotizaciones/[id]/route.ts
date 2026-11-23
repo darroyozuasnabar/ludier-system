@@ -2,7 +2,7 @@
 // Endpoints para obtener por ID, actualizar y eliminar cotizaciones
 
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
+import { getActiveToken as getToken } from "@/lib/auth-session";
 import { prisma } from "@/lib/prisma";
 import { cotizacionUpdateSchema, calcularTotales } from "@/lib/validations/cotizacion";
 import { z } from "zod";
@@ -18,6 +18,11 @@ export async function GET(
     }
     // SECURITY F1: los tokens CLIENTE y roles no autorizados no acceden al CRM.
     if (!["FUNDADOR", "ADMIN", "FIELD_ENGINEER"].includes(token.role ?? "")) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+    }
+
+    // TODO SEGURIDAD F2: sin relación de asignación no se autoriza el acceso por ID.
+    if (token.role === "FIELD_ENGINEER") {
       return NextResponse.json({ error: "No autorizado" }, { status: 403 });
     }
 
@@ -74,6 +79,11 @@ export async function PUT(
     }
     // SECURITY F1: los tokens CLIENTE y roles no autorizados no acceden al CRM.
     if (!["FUNDADOR", "ADMIN", "FIELD_ENGINEER"].includes(token.role ?? "")) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+    }
+
+    // TODO SEGURIDAD F2: impedir que PUT eluda la comprobación de titularidad del GET.
+    if (token.role === "FIELD_ENGINEER") {
       return NextResponse.json({ error: "No autorizado" }, { status: 403 });
     }
 
@@ -218,6 +228,11 @@ export async function DELETE(
     }
     // SECURITY F1: los tokens CLIENTE y roles no autorizados no acceden al CRM.
     if (!["FUNDADOR", "ADMIN", "FIELD_ENGINEER"].includes(token.role ?? "")) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+    }
+
+    // TODO SEGURIDAD F2: no borrar cotizaciones sin asignación verificable.
+    if (token.role === "FIELD_ENGINEER") {
       return NextResponse.json({ error: "No autorizado" }, { status: 403 });
     }
 

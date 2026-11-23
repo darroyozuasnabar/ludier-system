@@ -67,13 +67,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ];
 
-  // FIX SEO F2: mantener las tres fichas B2B incorporadas por main, sin duplicarlas.
+  // FIX SEO COMERCIAL: incluir las cuatro fichas B2B, sin duplicar URLs.
   // Categorías generales y fichas especializadas con URL canónica propia.
   const serviceSlugs = [
     ...Object.keys(SERVICIOS_SEO),
     "estructuras-metalicas-para-techos",
     "barandas-acero-inoxidable",
     "chutes-metalicos-para-construccion",
+    "cercos-perimetrales-para-obras",
   ];
   const servicePages: MetadataRoute.Sitemap = serviceSlugs.map(
     (slug) => ({

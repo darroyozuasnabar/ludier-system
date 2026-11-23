@@ -1,9 +1,9 @@
 import { NextRequest } from "next/server";
-import { getToken } from "next-auth/jwt";
+import { getActiveToken as getToken } from "@/lib/auth-session";
 import { prisma } from "@/lib/prisma";
 import { POST } from "@/app/api/crm/cotizaciones/[id]/convertir/route";
 
-jest.mock("next-auth/jwt", () => ({ getToken: jest.fn() }));
+jest.mock("@/lib/auth-session", () => ({ getActiveToken: jest.fn() }));
 jest.mock("@/lib/prisma", () => ({
   prisma: {
     cotizacion: { findUnique: jest.fn() },
