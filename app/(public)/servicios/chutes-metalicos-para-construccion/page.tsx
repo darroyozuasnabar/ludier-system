@@ -38,7 +38,8 @@ const FONT_MONO = 'var(--font-mono, "JetBrains Mono", monospace)';
 // SEO
 // ============================================================
 export const metadata: Metadata = {
-  title: "Chutes Metálicos para Construcción en Lima | LUDIER",
+  // FIX SEO F2: conservar título y canonical B2B evitando una segunda marca.
+  title: { absolute: "Chutes Metálicos para Construcción en Lima | LUDIER" },
   description:
     "Fabricamos e instalamos chutes metálicos para evacuación de escombros en obras y edificios. Acero galvanizado de alta resistencia. Montaje seguro para constructoras. Cotiza en 24 horas.",
   keywords: [

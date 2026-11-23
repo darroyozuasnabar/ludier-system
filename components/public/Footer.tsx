@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import WhatsAppLink from "@/components/public/WhatsAppLink";
 import {
   Phone,
   Mail,
@@ -69,6 +71,9 @@ function CornerMarks({ className = "" }: { className?: string }) {
 }
 
 export default function Footer() {
+  // FIX COMERCIAL L-02: atribuir el clic a la página donde se muestra el footer.
+  const pathname = usePathname();
+
   return (
     <footer
       className="relative overflow-hidden bg-[#14161A] text-[#C7CBD1]"
@@ -128,10 +133,11 @@ export default function Footer() {
               calidad en Perú.
             </p>
 
-            <a
+            {/* FIX COMERCIAL L-02: mismo CTA y teléfono con el tracking compartido. */}
+            <WhatsAppLink
               href="https://wa.me/51965391256?text=Hola%20LUDIER%2C%20quiero%20cotizar%20un%20proyecto"
-              target="_blank"
-              rel="noopener noreferrer"
+              location="footer"
+              page={pathname}
               className="group inline-flex items-center gap-2 rounded-sm bg-[#25D366] px-4 py-2.5 text-sm font-medium text-[#0B1A0F] shadow-lg shadow-[#25D366]/10 transition-all duration-300 hover:bg-[#1FB855] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#25D366]"
             >
               <img
@@ -141,7 +147,7 @@ export default function Footer() {
               />
               <span>Contáctanos por WhatsApp</span>
               <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
-            </a>
+            </WhatsAppLink>
 
             <div className="flex gap-2.5 pt-1">
               {socialLinks.map((social) => {

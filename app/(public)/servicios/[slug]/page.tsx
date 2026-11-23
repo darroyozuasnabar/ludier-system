@@ -109,7 +109,7 @@ export async function generateMetadata({
 
   if (!meta) {
     return {
-      title: "Servicio no encontrado | LUDIER",
+      title: { absolute: "Servicio no encontrado | LUDIER" },
       description: "El servicio que buscas no está disponible.",
       robots: { index: false, follow: false },
     };
@@ -118,7 +118,8 @@ export async function generateMetadata({
   const url = `${SITE_URL}/servicios/${slug}`;
 
   return {
-    title: meta.title,
+    // FIX SEO F2: los textos originales ya incluyen la marca; no aplicar el template.
+    title: { absolute: meta.title },
     description: meta.description,
     keywords: meta.keywords,
     alternates: { canonical: url },

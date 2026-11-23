@@ -159,7 +159,7 @@ export default function EditarCotizacionPage({
   const loadCotizacion = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/cotizaciones/${id}`);
+      const response = await fetch(`/api/erp/cotizaciones/${id}`);
       const data = await response.json();
 
       if (!data.success) throw new Error(data.error);
@@ -290,7 +290,7 @@ export default function EditarCotizacionPage({
         })),
       };
 
-      const response = await fetch(`/api/cotizaciones/${id}`, {
+      const response = await fetch(`/api/erp/cotizaciones/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

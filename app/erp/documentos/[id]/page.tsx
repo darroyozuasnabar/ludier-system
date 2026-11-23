@@ -132,7 +132,7 @@ export default function DocumentoDetallePage({
   const loadDocumento = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/documentos/${id}`);
+      const response = await fetch(`/api/erp/documentos/${id}`);
       const data = await response.json();
 
       if (!data.success) throw new Error(data.error);
@@ -178,7 +178,7 @@ export default function DocumentoDetallePage({
     if (!confirm("¿Eliminar este documento?")) return;
 
     try {
-      const response = await fetch(`/api/documentos/${id}`, { method: "DELETE" });
+      const response = await fetch(`/api/erp/documentos/${id}`, { method: "DELETE" });
       const data = await response.json();
 
       if (!data.success) throw new Error(data.error);
@@ -198,7 +198,7 @@ export default function DocumentoDetallePage({
 
     setSaving(true);
     try {
-      const response = await fetch(`/api/documentos/${id}`, {
+      const response = await fetch(`/api/erp/documentos/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),

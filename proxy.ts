@@ -1,4 +1,4 @@
-// middleware.ts
+// proxy.ts
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
@@ -194,7 +194,8 @@ function setSecurityHeaders(response: NextResponse): NextResponse {
 // 🔥 MIDDLEWARE PRINCIPAL
 // ============================================================
 
-export async function middleware(req: NextRequest) {
+// FIX MANTENIMIENTO A-08: nueva convención de Next 16; lógica y matcher intactos.
+export async function proxy(req: NextRequest) {
   const path = req.nextUrl.pathname;
   const host = req.headers.get("host") || "";
 

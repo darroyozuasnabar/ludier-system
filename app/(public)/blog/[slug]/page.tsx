@@ -26,7 +26,7 @@ export async function generateMetadata({
 
   if (!post) {
     return {
-      title: "Artículo no encontrado | LUDIER",
+      title: { absolute: "Artículo no encontrado | LUDIER" },
       robots: { index: false, follow: false },
     };
   }
@@ -34,10 +34,8 @@ export async function generateMetadata({
   const url = `${SITE_URL}/blog/${post.slug}`;
 
   return {
-    // FIX SEO PORTONES: evitar la segunda marca añadida por title.template del layout.
-    title: slug === "portones-metalicos-tipos-precios-guia"
-      ? { absolute: `${post.titulo} | LUDIER` }
-      : `${post.titulo} | LUDIER`,
+    // FIX SEO F2: evitar la segunda marca en todos los artículos, conservando el título.
+    title: { absolute: `${post.titulo} | LUDIER` },
     description: post.metaDescription,
     keywords: post.keywords,
     authors: [{ name: post.autor }],

@@ -159,7 +159,7 @@ export default function SubirDocumentoPage() {
       formData.append("etiquetas", form.etiquetas);
       formData.append("subido_por", session?.user?.id || "");
 
-      const response = await fetch("/api/documentos", {
+      const response = await fetch("/api/erp/documentos", {
         method: "POST",
         body: formData,
       });

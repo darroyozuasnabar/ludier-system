@@ -2,7 +2,8 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Acceso al sistema | LUDIER",
+  // FIX SEO F2: conservar el título sin duplicar la marca del template global.
+  title: { absolute: "Acceso al sistema | LUDIER" },
   description: "Acceso restringido al sistema interno de LUDIER.",
   robots: {
     index: false,

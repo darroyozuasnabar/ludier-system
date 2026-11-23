@@ -226,7 +226,7 @@ export default function AlertasPage() {
     const generarAlertasAutomaticas = async () => {
         setGenerando(true);
         try {
-            const response = await fetch('/api/alertas?action=generar', {
+            const response = await fetch('/api/erp/alertas?action=generar', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -256,7 +256,7 @@ export default function AlertasPage() {
     // 🔥 NUEVA FUNCIÓN: Crear notificación de prueba manual
     const crearNotificacionPrueba = async () => {
         try {
-            const response = await fetch('/api/alertas', {
+            const response = await fetch('/api/erp/alertas', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

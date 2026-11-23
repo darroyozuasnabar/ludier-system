@@ -29,6 +29,25 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.8,
     },
+    // FIX SEO F2: incorporar las tres landings B2B sin retirar URLs existentes.
+    {
+      url: `${SITE_URL}/servicios/estructuras-metalicas-para-techos`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
+      url: `${SITE_URL}/servicios/barandas-acero-inoxidable`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
+      url: `${SITE_URL}/servicios/chutes-metalicos-para-construccion`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
     {
       url: `${SITE_URL}/proyectos`,
       lastModified: now,

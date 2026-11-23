@@ -141,7 +141,7 @@ export default function FotoDetallePage({
   const loadFoto = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/fotos/${id}`);
+      const response = await fetch(`/api/erp/fotos/${id}`);
       const data = await response.json();
 
       if (!data.success) throw new Error(data.error);
@@ -189,7 +189,7 @@ export default function FotoDetallePage({
     if (!confirm("¿Eliminar esta foto?")) return;
 
     try {
-      const response = await fetch(`/api/fotos/${id}`, { method: "DELETE" });
+      const response = await fetch(`/api/erp/fotos/${id}`, { method: "DELETE" });
       const data = await response.json();
 
       if (!data.success) throw new Error(data.error);
@@ -209,7 +209,7 @@ export default function FotoDetallePage({
 
     setSaving(true);
     try {
-      const response = await fetch(`/api/fotos/${id}`, {
+      const response = await fetch(`/api/erp/fotos/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),

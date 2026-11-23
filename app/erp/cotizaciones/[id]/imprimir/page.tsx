@@ -43,7 +43,7 @@ export default function ImprimirCotizacionPage({
     const loadCotizacion = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`/api/cotizaciones/${id}`);
+        const response = await fetch(`/api/erp/cotizaciones/${id}`);
         const data = await response.json();
         if (!data.success) throw new Error(data.error);
         setCotizacion(data.data);

@@ -58,7 +58,7 @@ export function FacturaElectronicaButton({ valorizacion, onSuccess }: FacturaEle
     setLoading(true);
     
     try {
-      const response = await fetch('/api/factura/emitir', {
+      const response = await fetch('/api/erp/factura/emitir', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -10,8 +10,13 @@ const config: Config = {
     "^@/(.*)$": "<rootDir>/$1",
   },
 
-  // Rutas de tests
-  testMatch: ["**/__tests__/**/*.test.ts", "**/__tests__/**/*.test.tsx"],
+  // FIX MANTENIMIENTO QA-02: incluir ambas carpetas, también tests/crm/clientes.test.ts.
+  testMatch: [
+    "**/__tests__/**/*.test.ts",
+    "**/__tests__/**/*.test.tsx",
+    "**/tests/**/*.test.ts",
+    "**/tests/**/*.test.tsx",
+  ],
 
   // Ignora la carpeta de Next.js y node_modules
   testPathIgnorePatterns: ["/node_modules/", "/.next/"],

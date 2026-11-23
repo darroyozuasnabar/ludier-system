@@ -68,13 +68,14 @@ function useScrollReveal<T extends HTMLElement>(threshold = 0.12) {
 // DATOS DE TESTIMONIOS
 // ============================================================
 const testimonios = [
+  // FIX UX L-03: referencia de obra existente; las tarjetas conservan sus avatares con iniciales.
   {
     id: 1,
     nombre: "Carlos Mendoza",
     cargo: "Gerente de Proyectos, Grupo LAR",
     testimonio:
       "LUDIER ha sido un socio estratégico en nuestros proyectos más exigentes. Su calidad en estructuras metálicas y cumplimiento de plazos es impecable.",
-    imagen: "/img/testimonio1.jpg",
+    imagen: "/img/Qantua.jpg",
     rating: 5,
   },
   {
@@ -83,7 +84,7 @@ const testimonios = [
     cargo: "Directora de Operaciones, MDP Construcciones",
     testimonio:
       "La instalación de chutes metálicos y barandas de seguridad en nuestros edificios ha sido perfecta. Recomiendo ampliamente sus servicios.",
-    imagen: "/img/testimonio2.jpg",
+    imagen: "/img/Qantua.jpg",
     rating: 5,
   },
   {
@@ -92,7 +93,7 @@ const testimonios = [
     cargo: "Jefe de Obra, Flat Canevaro",
     testimonio:
       "El cerco perimetral que instalaron en nuestro proyecto de Lince superó todas nuestras expectativas. Profesionalismo y calidad garantizados.",
-    imagen: "/img/testimonio3.jpg",
+    imagen: "/img/Qantua.jpg",
     rating: 5,
   },
   {
@@ -101,7 +102,7 @@ const testimonios = [
     cargo: "Arquitecta, Grupo Percola",
     testimonio:
       "Trabajar con LUDIER ha sido una experiencia increíble. Entienden las necesidades del proyecto y entregan soluciones personalizadas de primera calidad.",
-    imagen: "/img/testimonio4.jpg",
+    imagen: "/img/Qantua.jpg",
     rating: 5,
   },
   {
@@ -110,7 +111,7 @@ const testimonios = [
     cargo: "Supervisor de Obra, Real Edificaciones",
     testimonio:
       "La estructura metálica para nuestro proyecto residencial fue ejecutada con precisión y excelentes acabados. Sin duda los volveremos a contratar.",
-    imagen: "/img/testimonio5.jpg",
+    imagen: "/img/Qantua.jpg",
     rating: 5,
   },
   {
@@ -119,7 +120,7 @@ const testimonios = [
     cargo: "Directora de Proyectos, CHL",
     testimonio:
       "LUDIER nos ha brindado soluciones metalmecánicas integrales con un trato personalizado y un servicio postventa excepcional.",
-    imagen: "/img/testimonio6.jpg",
+    imagen: "/img/Qantua.jpg",
     rating: 5,
   },
 ];

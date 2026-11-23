@@ -1,7 +1,7 @@
 // __tests__/crm/cotizaciones.test.ts
 // Pruebas unitarias para el módulo de Cotizaciones del CRM LUDIER
 
-import { test, describe } from "node:test";
+import { test, describe } from "@jest/globals";
 import assert from "node:assert/strict";
 import { cotizacionSchema, calcularTotales } from "../../lib/validations/cotizacion";
 

@@ -50,8 +50,24 @@ export async function POST(
       );
     }
 
+    // FIX ERP E-04: solo una cotización aprobada puede generar una obra.
+    if (cotizacion.estado !== "APROBADA") {
+      return NextResponse.json(
+        { error: "Solo se puede convertir una cotización APROBADA" },
+        { status: 400 }
+      );
+    }
+
     // 3. Ejecutar la conversión atómica en transacción
     const resultado = await prisma.$transaction(async (tx) => {
+      // FIX ERP E-04: el modelo usa estado/project_id, no un booleano convertida.
+      // Reclamar la conversión antes de crear la obra; cualquier fallo revierte todo.
+      const updated = await tx.cotizacion.updateMany({
+        where: { id, estado: "APROBADA", project_id: null },
+        data: { estado: "CONVERTIDA_A_OBRA" },
+      });
+      if (updated.count === 0) return null;
+
       // 3.1 Crear Proyecto en el ERP
       const startDate = body.startDate ? new Date(body.startDate) : new Date();
       const expectedEndDate = body.expectedEndDate
@@ -106,6 +122,11 @@ export async function POST(
         cotizacion: cotizacionActualizada,
       };
     });
+
+    // FIX ERP E-04: otra solicitud pudo convertirla tras la lectura inicial.
+    if (!resultado) {
+      return NextResponse.json({ error: "Ya fue convertida" }, { status: 409 });
+    }
 
     return NextResponse.json(
       {

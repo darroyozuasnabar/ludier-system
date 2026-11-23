@@ -23,7 +23,7 @@ export async function generateMetadata({
   const proyecto = proyectosData.find((p) => p.slug === slug);
 
   if (!proyecto) {
-    return { title: "Proyecto no encontrado | LUDIER" };
+    return { title: { absolute: "Proyecto no encontrado | LUDIER" } };
   }
 
   const url = `${SITE_URL}/proyectos/${proyecto.slug}`;
@@ -32,7 +32,8 @@ export async function generateMetadata({
   const distrito = proyecto.ubicacion.split(",")[0]; 
 
   return {
-    title: `${proyecto.titulo} en ${distrito} | LUDIER`,
+    // FIX SEO F2: preservar el título y evitar la marca duplicada del template global.
+    title: { absolute: `${proyecto.titulo} en ${distrito} | LUDIER` },
     description: `Conoce el proyecto ${proyecto.titulo} ejecutado por LUDIER en ${proyecto.ubicacion}. ${proyecto.resultado.substring(0, 120)}...`,
     alternates: { canonical: url },
     openGraph: {

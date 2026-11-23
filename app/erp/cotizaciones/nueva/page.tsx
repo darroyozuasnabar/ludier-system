@@ -272,7 +272,7 @@ export default function NuevaCotizacionPage() {
         creado_por: session?.user?.id || null,
       };
 
-      const response = await fetch("/api/cotizaciones", {
+      const response = await fetch("/api/erp/cotizaciones", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

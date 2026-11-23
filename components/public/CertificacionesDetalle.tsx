@@ -58,10 +58,11 @@ export default function CertificacionesDetalle() {
   const { ref, inView } = useScrollReveal<HTMLDivElement>(0.1);
 
   const normas = [
-    { nombre: "ISO 9001:2015", descripcion: "Gestión de Calidad" },
-    { nombre: "ISO 14001:2015", descripcion: "Gestión Ambiental" },
-    { nombre: "ISO 45001:2018", descripcion: "Seguridad y Salud en el Trabajo" },
-    { nombre: "ISO 37001:2016", descripcion: "Gestión Antisoborno" },
+    // FIX COMERCIAL L-01: requisitos de gestión, sin atribuir certificaciones inexistentes.
+    { nombre: "Calidad", descripcion: "Requisitos de gestión de calidad" },
+    { nombre: "Gestión ambiental", descripcion: "Requisitos ambientales" },
+    { nombre: "Seguridad y salud", descripcion: "Requisitos de seguridad y salud en el trabajo" },
+    { nombre: "Integridad", descripcion: "Requisitos de integridad y prevención del soborno" },
     { nombre: "WORLDCOB CSR", descripcion: "Responsabilidad Social Empresarial" },
     { nombre: "WORLDCOB TRUST SEAL", descripcion: "Sello de Confianza Empresarial" },
   ];
@@ -106,10 +107,10 @@ export default function CertificacionesDetalle() {
             Avalado por <span className="text-[#FF5A1F]">Grupo Lar</span>
           </h2>
           <p className="mt-3 text-[#565C63] max-w-2xl mx-auto text-lg">
-            LUDIER ha superado un riguroso proceso de Debida Diligencia Reforzada
-            y ha sido declarado{" "}
-            <span className="text-[#FF5A1F] font-semibold">proveedor apto</span>{" "}
-            para proyectos de gran envergadura.
+            {/* FIX COMERCIAL L-01: describir la homologación real, manteniendo los estilos. */}
+            <span className="text-[#FF5A1F] font-semibold">Homologados por Hodelpe</span>{" "}
+            para trabajar con Grupo LAR. Nuestro sistema de gestión cumple con los estándares
+            exigidos por las principales constructoras del país.
           </p>
         </div>
 
@@ -184,7 +185,7 @@ export default function CertificacionesDetalle() {
             </div>
           </div>
 
-          {/* Tarjeta lateral - Normas ISO */}
+          {/* FIX COMERCIAL L-01: homologación de proveedor y requisitos de gestión. */}
           <div className="space-y-3">
             <div className="bg-[#F7F7F4] border border-[#E3E1D8] rounded-sm p-4">
               <p
@@ -192,7 +193,7 @@ export default function CertificacionesDetalle() {
                 style={{ fontFamily: FONT_DISPLAY }}
               >
                 <Award className="h-5 w-5 text-[#FF5A1F]" />
-                Normas certificadas por HODELPE
+                Homologación por Hodelpe
               </p>
               <div className="space-y-2">
                 {normas.map((norma, index) => (

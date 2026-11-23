@@ -127,7 +127,7 @@ export default function CotizacionDetallePage({
   const loadCotizacion = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/cotizaciones/${id}`); // 🔥 Usar id
+      const response = await fetch(`/api/erp/cotizaciones/${id}`); // 🔥 Usar id
       const data = await response.json();
 
       console.log('📄 Datos de cotización:', data);
@@ -147,7 +147,7 @@ export default function CotizacionDetallePage({
 
   const handleEnviar = async () => {
     try {
-      const response = await fetch(`/api/cotizaciones/${id}/enviar`, { // 🔥 Usar id
+      const response = await fetch(`/api/erp/cotizaciones/${id}/enviar`, { // 🔥 Usar id
         method: "POST",
         headers: {
           'Content-Type': 'application/json',
@@ -168,7 +168,7 @@ export default function CotizacionDetallePage({
     if (!confirm("¿Eliminar esta cotización? (Solo disponible en estado BORRADOR)")) return;
 
     try {
-      const response = await fetch(`/api/cotizaciones/${id}`, { // 🔥 Usar id
+      const response = await fetch(`/api/erp/cotizaciones/${id}`, { // 🔥 Usar id
         method: "DELETE" 
       });
       const data = await response.json();
@@ -194,7 +194,7 @@ export default function CotizacionDetallePage({
 
     setSaving(true);
     try {
-      const response = await fetch(`/api/cotizaciones/${id}/convertir`, { // 🔥 Usar id
+      const response = await fetch(`/api/erp/cotizaciones/${id}/convertir`, { // 🔥 Usar id
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -227,7 +227,7 @@ export default function CotizacionDetallePage({
     }
 
     try {
-      const response = await fetch(`/api/cotizaciones/${id}/seguimiento`, { // 🔥 Usar id
+      const response = await fetch(`/api/erp/cotizaciones/${id}/seguimiento`, { // 🔥 Usar id
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(nuevoSeguimiento),
@@ -252,7 +252,7 @@ export default function CotizacionDetallePage({
 
   const handleCambiarEstado = async (nuevoEstado: string) => {
     try {
-      const response = await fetch(`/api/cotizaciones/${id}`, { // 🔥 Usar id
+      const response = await fetch(`/api/erp/cotizaciones/${id}`, { // 🔥 Usar id
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ estado: nuevoEstado }),

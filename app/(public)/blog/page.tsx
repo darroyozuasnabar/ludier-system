@@ -9,7 +9,8 @@ const SITE_URL = "https://grupoludier.com";
 // METADATA SEO
 // ============================================================
 export const metadata: Metadata = {
-  title: "Blog — Estructuras Metálicas, Seguridad y Construcción | LUDIER",
+  // FIX SEO F2: conservar el texto sin añadir otra marca mediante title.template.
+  title: { absolute: "Blog — Estructuras Metálicas, Seguridad y Construcción | LUDIER" },
   description:
     "Artículos técnicos sobre estructuras metálicas, seguridad en obra, chutes metálicos y construcción vertical en Lima, Perú. Guías escritas por el equipo de LUDIER.",
   keywords: [

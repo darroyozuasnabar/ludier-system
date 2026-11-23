@@ -167,7 +167,7 @@ export default function SubirFotosPage() {
         formData.append("fecha_tomada", form.fecha_tomada);
         formData.append("subido_por", session?.user?.id || "");
 
-        const response = await fetch("/api/fotos", {
+        const response = await fetch("/api/erp/fotos", {
           method: "POST",
           body: formData,
         });
