@@ -124,21 +124,14 @@ const QUOTE_CHECKLIST = [
   "Si tienes un proveedor anterior, el detalle del sistema que usaban",
 ];
 
-// 👇 3 PROYECTOS REALES CON CHUTES METÁLICOS
+// Casos de éxito: una sola sección con fotografías, alcance y enlace al proyecto.
 const PROJECTS = [
-  {
-    href: "/proyectos/hilton",
-    img: "/img/hilton-lima-miraflores.jpg",
-    alt: "Chute metálico instalado en el Hotel Hilton por LUDIER",
-    title: "Hotel Hilton · Surco",
-    text: "Fabricación e instalación de chute metálico para evacuación de escombros en 19 pisos y sótano.",
-  },
   {
     href: "/proyectos/qantua",
     img: "/img/Qantua.jpg",
     alt: "Chutes metálicos instalados en el Proyecto Qantua por LUDIER",
     title: "Proyecto Qantua · Cercado de Lima",
-    text: "Fabricación, instalación, mantenimiento y desmontaje de chutes de escombros para las 6 torres del proyecto.",
+    text: "Fabricación, instalación, mantenimiento y desmontaje de chutes de escombros para las 6 torres del proyecto, en las fases 1 y 2.",
   },
   {
     href: "/proyectos/catalina-tower",
@@ -146,6 +139,13 @@ const PROJECTS = [
     alt: "Chute metálico instalado en el Edificio Catalina Tower por LUDIER",
     title: "Edificio Catalina Tower · La Victoria",
     text: "Servicio integral de instalación y desmontaje de chute metálico para evacuación de residuos en 10 pisos.",
+  },
+  {
+    href: "/proyectos/hilton",
+    img: "/img/hilton-lima-miraflores.jpg",
+    alt: "Chute metálico instalado en el Hotel Hilton por LUDIER",
+    title: "Hotel Hilton · Surco",
+    text: "Chute metálico de 19 pisos para MDP Construcciones, con 19 compuertas, anclajes estructurales y curva de empalme en el primer piso.",
   },
 ];
 
@@ -436,34 +436,13 @@ export default function ChutesMetalicosPage() {
               </ol>
             </section>
 
-            {/* MICROCASO CHUTES: evidencia del proyecto Hilton, sin alterar las secciones existentes. */}
-            <section aria-labelledby="caso-exito-hilton">
-              <h2 id="caso-exito-hilton" className="text-2xl font-semibold md:text-3xl" style={{ fontFamily: FONT_DISPLAY }}>
-                Caso de éxito: Chute metálico en el Hotel Hilton
-              </h2>
-              <p className="mt-4 max-w-2xl leading-relaxed text-[#565C63]">
-                Instalamos un chute metálico de 19 pisos para la evacuación de escombros en el
-                Hotel Hilton (MDP Construcciones). El sistema incluyó 19 compuertas, anclajes
-                estructurales y curva de empalme en el primer piso.
-              </p>
-              <div className="relative mt-6 h-96 max-w-sm overflow-hidden border border-[#E3E1D8] bg-white">
-                <Image
-                  src="/img/proyectos/Hotel_Hilton/ChuteMetalicoHotelHilton_img1.jpeg"
-                  alt="Detalle del chute metálico instalado en altura en el Hotel Hilton"
-                  fill
-                  sizes="(min-width: 640px) 384px, 100vw"
-                  className="object-contain"
-                />
-              </div>
-            </section>
-
-            {/* Proyectos (3 columnas en desktop) */}
+            {/* Casos de éxito: reutilizar las tarjetas existentes, sin otro bloque duplicado. */}
             <section aria-labelledby="proyectos">
               <h2 id="proyectos" className="text-2xl font-semibold md:text-3xl" style={{ fontFamily: FONT_DISPLAY }}>
-                Obras donde ya instalamos
+                Casos de éxito en chutes metálicos
               </h2>
               <p className="mt-4 max-w-2xl leading-relaxed text-[#565C63]">
-                Somos una empresa especializada en soluciones metalmecánicas para proyectos de construcción. Estas son tres de nuestras obras donde instalamos chutes metálicos.
+                Conoce el alcance de nuestros trabajos en Qantua, Catalina Tower y el Hotel Hilton.
               </p>
               <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {PROJECTS.map((p) => (
